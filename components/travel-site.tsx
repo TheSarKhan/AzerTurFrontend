@@ -1,4 +1,6 @@
 "use client";
+import Homepage from "./homepage";
+import { homeCategories, homeText, homeCopy } from "@/lib/homepage-content";
 import { translate } from "@/lib/i18n";
 import {
   CustomerAuth,
@@ -79,7 +81,7 @@ function Logo() {
   return (
     <span className="logo">
       <Mark />
-      <span>azertur</span>
+      <span>azərtur</span>
     </span>
   );
 }
@@ -179,12 +181,20 @@ function Photo({
     />
   );
 }
-function Card({ tour, index = 0 }: { tour: Tour; index?: number }) {
+function Card({
+  tour,
+  index = 0,
+  query = "",
+}: {
+  tour: Tour;
+  index?: number;
+  query?: string;
+}) {
   const { l, c, tr } = useEnv();
   return (
     <article className="tour-card">
       <Link
-        to={"/tours/" + tour.slug}
+        to={"/tours/" + tour.slug + query}
         className="card-image"
         aria-label={tour.name[l === "az" ? 2 : l === "en" ? 0 : 1]}
       >
@@ -201,7 +211,7 @@ function Card({ tour, index = 0 }: { tour: Tour; index?: number }) {
           {tour.days} {tr(tour.days === 1 ? "day" : "days", "дн.")}
         </span>
       </div>
-      <Link to={"/tours/" + tour.slug}>
+      <Link to={"/tours/" + tour.slug + query}>
         <h3>{tour.name[l === "az" ? 2 : l === "en" ? 0 : 1]}</h3>
       </Link>
       <div className="card-bottom">
@@ -219,514 +229,8 @@ function Card({ tour, index = 0 }: { tour: Tour; index?: number }) {
   );
 }
 function Home() {
-  const { l, c, tr, go } = useEnv();
-  const [place, setPlace] = useState(0);
-  const [step, setStep] = useState(0);
-  const [days, setDays] = useState("all");
-  const [date, setDate] = useState("");
-  const [pax, setPax] = useState("2");
-  const [selected, setSelected] = useState(["driver", "hotel"]);
-  const [draft, setDraft] = useState("");
-  useEffect(() => {
-    try {
-      const url = sessionStorage.getItem("azertur-draft-url");
-      if (url && /^\/(en|ru|az)\/(plan|tours\/)/.test(url))
-        setDraft(url.replace(/^\/(en|ru|az)/, ""));
-    } catch {}
-  }, []);
-  return (
-    <>
-      <section className="hero container">
-        <div className="hero-heading">
-          <h1>
-            <span>{tr("Take the", "Выбирайте")}</span>
-            <span>
-              {tr("scenic route.", "свой маршрут.")}
-              <span className="hero-star">
-                <Compass strokeWidth={1} aria-hidden="true" />
-              </span>
-            </span>
-          </h1>
-          <div className="hero-aside">
-            <p>
-              {tr(
-                "Azerbaijan is closer than you think. The journey? Entirely yours.",
-                "Азербайджан ближе, чем кажется. А путешествие — только ваше.",
-              )}
-            </p>
-            <Link to="/tours" className="text-link">
-              {tr("Find your adventure", "Найдите своё приключение")}
-              <ArrowUpRight />
-            </Link>
-          </div>
-        </div>
-        <div className="hero-landscape">
-          <Photo
-            src="mountains"
-            alt={tr(
-              "Green valleys of Khinalug in the Caucasus mountains",
-              "Зелёные долины Хыналыга в горах Кавказа",
-            )}
-            eager
-          />
-          <div className="image-topline">
-            <span>Quba → Khinalug</span>
-            <span>41.2308° N / 48.0633° E</span>
-          </div>
-          <div className="hero-picture-title">
-            {tr("A little further.", "Чуть дальше.")}
-            <br />
-            {tr("A lot more to feel.", "Гораздо больше впечатлений.")}
-          </div>
-          <button
-            className="round-scroll"
-            aria-label={tr("Explore trips below", "Посмотреть туры")}
-            onClick={() =>
-              document
-                .getElementById("journeys")
-                ?.scrollIntoView({ behavior: "smooth" })
-            }
-          >
-            <ArrowDown />
-          </button>
-        </div>
-        <form
-          className="trip-search"
-          onSubmit={(e) => {
-            e.preventDefault();
-            go(`/plan?date=${date}&pax=${pax}`);
-          }}
-        >
-          <div className="search-intro">
-            <Compass />
-            <span>{tr("Where will you go?", "Куда отправимся?")}</span>
-          </div>
-          <label>
-            <span>{tr("Start date", "Дата начала")}</span>
-            <input
-              aria-label={tr("Start date", "Дата начала")}
-              type="date"
-              min={dateLimit(3)}
-              max={dateLimit(365)}
-              value={date}
-              onInput={(e) => setDate(e.currentTarget.value)}
-              onChange={(e) => setDate(e.target.value)}
-            />
-          </label>
-          <label>
-            <span>{tr("Travellers", "Путешественники")}</span>
-            <select value={pax} onChange={(e) => setPax(e.target.value)}>
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((n) => (
-                <option key={n} value={n}>
-                  {n}{" "}
-                  {tr(
-                    n === 1 ? "traveller" : "travellers",
-                    n === 1 ? "человек" : "чел.",
-                  )}
-                </option>
-              ))}
-            </select>
-          </label>
-          <Btn type="submit">
-            {tr("Plan my trip", "Мой маршрут")}
-            <ArrowUpRight />
-          </Btn>
-        </form>
-        <div className="hero-foot">
-          {draft ? (
-            <Link to={draft} className="text-link">
-              {tr("Continue your last plan", "Продолжить планирование")}
-              <ArrowUpRight />
-            </Link>
-          ) : (
-            <span>
-              {tr(
-                "Private journeys. Local perspective.",
-                "Индивидуальные поездки. Местный взгляд.",
-              )}
-            </span>
-          )}
-          <span>
-            {tr(
-              "Choose your services. See your price.",
-              "Выберите услуги. Узнайте цену.",
-            )}
-            <span className="tiny-line" />
-          </span>
-        </div>
-      </section>
-      <section className="intro container reveal">
-        <p className="intro-statement">
-          {tr("Not just a place to visit.", "Не просто место на карте.")}
-          <br />
-          {tr("A place to", "Место, которое хочется")}{" "}
-          <span className="serif">{tr("feel.", "почувствовать.")}</span>
-        </p>
-        <div className="intro-copy">
-          <p>
-            {tr(
-              "The quiet of a mountain village. Tea that turns into a conversation. A road you wish was a little longer.",
-              "Тишина горной деревни. Чаепитие, переходящее в беседу. Дорога, которой хочется продлить путь.",
-            )}
-          </p>
-          <p>
-            {tr(
-              "We bring the pieces together. You make the journey your own.",
-              "Мы соединяем детали. Вы создаёте своё путешествие.",
-            )}
-          </p>
-          <Link to="/about" className="text-link">
-            {tr("Meet Azertur", "Знакомьтесь, Azertur")}
-            <ArrowUpRight />
-          </Link>
-        </div>
-      </section>
-      <section id="journeys" className="journeys container reveal">
-        <Heading
-          level={2}
-          side={
-            <>
-              <p>
-                {tr(
-                  "Three ways to start. A thousand little discoveries along the way.",
-                  "Три способа начать. Тысячи маленьких открытий по пути.",
-                )}
-              </p>
-              <Link to="/tours" className="text-link">
-                {tr("All journeys", "Все маршруты")}
-                <ArrowUpRight />
-              </Link>
-            </>
-          }
-        >
-          {tr("Good journeys", "Хорошие поездки")}
-          <br />
-          {tr("start here.", "начинаются здесь.")}
-        </Heading>
-        <div
-          className="filter-tabs"
-          aria-label={tr("Filter by duration", "По длительности")}
-        >
-          {[
-            ["all", tr("All journeys", "Все маршруты")],
-            ["short", tr("1–2 days", "1–2 дня")],
-            ["long", tr("3+ days", "3+ дня")],
-          ].map(([id, label]) => (
-            <button
-              key={id}
-              aria-pressed={days === id}
-              onClick={() => setDays(id)}
-            >
-              {label}
-            </button>
-          ))}
-          <span>
-            {tr(
-              "Sample itineraries & from-prices",
-              "Примерные маршруты и цены",
-            )}
-          </span>
-        </div>
-        <div className="tour-grid">
-          {tours
-            .filter(
-              (t) =>
-                days === "all" ||
-                (days === "short" ? t.days <= 2 : t.days >= 3),
-            )
-            .map((t, i) => (
-              <Card key={t.slug} tour={t} index={i} />
-            ))}
-        </div>
-      </section>
-      <section className="route-explorer container reveal">
-        <div className="route-copy">
-          <h2>
-            {tr("One country.", "Одна страна.")}
-            <br />
-            {tr("Different worlds.", "Разные миры.")}
-          </h2>
-          <p>
-            {tr(
-              "Follow your curiosity. From the Caspian coast to the foothills of the Caucasus.",
-              "Следуйте своему любопытству. От Каспийского побережья до предгорий Кавказа.",
-            )}
-          </p>
-          <div
-            className="place-list"
-            role="tablist"
-            aria-label={tr("Explore destinations", "Направления")}
-          >
-            {places.map((p, i) => (
-              <button
-                key={p.id}
-                role="tab"
-                id={"place-tab-" + i}
-                aria-controls="destination-panel"
-                tabIndex={place === i ? 0 : -1}
-                aria-selected={place === i}
-                onKeyDown={(e) => {
-                  let next = place;
-                  if (e.key === "ArrowRight" || e.key === "ArrowDown")
-                    next = (place + 1) % places.length;
-                  else if (e.key === "ArrowLeft" || e.key === "ArrowUp")
-                    next = (place + places.length - 1) % places.length;
-                  else if (e.key === "Home") next = 0;
-                  else if (e.key === "End") next = places.length - 1;
-                  else return;
-                  e.preventDefault();
-                  setPlace(next);
-                  e.currentTarget.parentElement
-                    ?.querySelectorAll<HTMLButtonElement>("[role=tab]")
-                    [next]?.focus();
-                }}
-                onClick={() => setPlace(i)}
-              >
-                <span>0{i + 1}</span>
-                <strong>{p.name[l === "az" ? 2 : l === "en" ? 0 : 1]}</strong>
-                <ArrowUpRight />
-              </button>
-            ))}
-          </div>
-        </div>
-        <div
-          className="route-image"
-          id="destination-panel"
-          role="tabpanel"
-          aria-labelledby={"place-tab-" + place}
-        >
-          <Photo
-            key={places[place].id}
-            src={places[place].image}
-            alt={places[place].region}
-          />
-          <div className="route-caption">
-            <div>
-              <span>{places[place].region}</span>
-              <p>{places[place].text[l === "az" ? 2 : l === "en" ? 0 : 1]}</p>
-            </div>
-            <Link
-              to={"/tours/" + places[place].tour}
-              className="image-arrow"
-              aria-label={tr("Explore this destination", "Открыть направление")}
-            >
-              <ArrowUpRight />
-            </Link>
-          </div>
-        </div>
-      </section>
-      <section className="build-section">
-        <div className="container build-grid">
-          <div className="build-copy reveal">
-            <h2>
-              {tr("Your trip.", "Ваша поездка.")}
-              <br />
-              <span className="serif">
-                {tr("Your rules.", "Ваши правила.")}
-              </span>
-            </h2>
-            <p>
-              {tr(
-                "A hotel with character. Your own driver. A guide who knows the stories. Choose what matters to you, and see it all in one clear price.",
-                "Отель с характером. Свой водитель. Гид, который знает истории. Выбирайте главное для себя и сразу смотрите общую цену.",
-              )}
-            </p>
-            <Link
-              to={"/plan?services=" + selected.join(",")}
-              className="button light"
-            >
-              {tr("Build my journey", "Создать маршрут")}
-              <ArrowUpRight />
-            </Link>
-          </div>
-          <div className="build-demo reveal">
-            <div className="build-demo-title">
-              <span>
-                {tr("A journey, made by you", "Поездка, созданная вами")}
-              </span>
-              <Compass />
-            </div>
-            <div className="build-route">
-              <span>Baku</span>
-              <span className="route-line" />
-              <span>Sheki</span>
-              <MapPin size={18} />
-            </div>
-            {[
-              [
-                "driver",
-                Car,
-                tr("Private driver", "Личный водитель"),
-                tr("The road, without the rush", "Дорога без спешки"),
-              ],
-              [
-                "hotel",
-                BedDouble,
-                tr("A place to stay", "Место для отдыха"),
-                tr(
-                  "Standard, comfort or premium",
-                  "Стандарт, комфорт или премиум",
-                ),
-              ],
-              [
-                "guide",
-                Globe,
-                tr("A local guide", "Местный гид"),
-                tr(
-                  "English, Russian or Azerbaijani",
-                  "Английский, русский или азербайджанский",
-                ),
-              ],
-              [
-                "activity",
-                Mountain,
-                tr("A little extra adventure", "Немного приключений"),
-                tr("Experiences along the way", "Впечатления по пути"),
-              ],
-            ].map(([id, Icon, title, desc]) => {
-              const I = Icon as typeof Car;
-              return (
-                <button
-                  key={id as string}
-                  aria-pressed={selected.includes(id as string)}
-                  className="service-toggle"
-                  onClick={() =>
-                    setSelected((s) =>
-                      s.includes(id as string)
-                        ? s.filter((x) => x !== id)
-                        : [...s, id as string],
-                    )
-                  }
-                >
-                  <I size={22} />
-                  <span>
-                    <strong>{title as string}</strong>
-                    <small>{desc as string}</small>
-                  </span>
-                  <span className="toggle-check">
-                    {selected.includes(id as string) ? (
-                      <Check size={16} />
-                    ) : (
-                      <Plus size={16} />
-                    )}
-                  </span>
-                </button>
-              );
-            })}
-            <div className="build-demo-bottom">
-              <span>
-                {selected.length} {tr("services selected", "услуги выбрано")}
-              </span>
-              <span>
-                {tr("You choose. We connect.", "Вы выбираете. Мы соединяем.")}
-                <ArrowUpRight size={16} />
-              </span>
-            </div>
-          </div>
-        </div>
-      </section>
-      <section className="process-section container reveal">
-        <div className="process-photo">
-          <Photo src="village" alt="Khinalug village" />
-          <div>
-            <span>
-              {tr("Less planning.", "Меньше планирования.")}
-              <br />
-              {tr("More being there.", "Больше впечатлений.")}
-            </span>
-          </div>
-        </div>
-        <div className="process-content">
-          <h2>
-            {tr("From someday", "От «когда-нибудь»")}
-            <br />
-            {tr("to let’s go.", "до «поехали».")}
-          </h2>
-          <div className="process-steps">
-            {[
-              [
-                tr("Find your kind of journey", "Найдите свой маршрут"),
-                tr(
-                  "Start with a ready-made trip or create a day-by-day itinerary. Choose your dates, travellers and services.",
-                  "Выберите готовый тур или создайте маршрут по дням. Укажите даты, количество путешественников и услуги.",
-                ),
-              ],
-              [
-                tr(
-                  "Know your price. Make it yours.",
-                  "Узнайте цену. Выбирайте сами.",
-                ),
-                tr(
-                  "Review each service and request operator approval. A demo deposit becomes available after the availability check.",
-                  "Проверьте подробный расчёт, депозит 30% и остаток. Вы точно знаете, что включено.",
-                ),
-              ],
-              [
-                tr(
-                  "Arrive. We’ll take it from here.",
-                  "Приезжайте. Остальное — за нами.",
-                ),
-                tr(
-                  "Your trip summary brings your itinerary and booking status together, so the next step is always clear.",
-                  "Ваша программа и статус бронирования собраны в одном месте. Следующий шаг всегда понятен.",
-                ),
-              ],
-            ].map(([title, body], i) => (
-              <div
-                key={title}
-                className={"process-step " + (step === i ? "active" : "")}
-              >
-                <button aria-expanded={step === i} onClick={() => setStep(i)}>
-                  <span>0{i + 1}</span>
-                  <strong>{title}</strong>
-                  {step === i ? <Minus /> : <Plus />}
-                </button>
-                {step === i && <p>{body}</p>}
-              </div>
-            ))}
-          </div>
-          <Link to="/how-it-works" className="text-link">
-            {tr("How it all works", "Как всё устроено")}
-            <ArrowUpRight />
-          </Link>
-        </div>
-      </section>
-      <section className="trust-strip container reveal">
-        <div>
-          <ShieldCheck />
-          <h3>{tr("A price you can see", "Прозрачная цена")}</h3>
-          <p>
-            {tr(
-              "Every selected service, itemised.",
-              "Каждая выбранная услуга в расчёте.",
-            )}
-          </p>
-        </div>
-        <div>
-          <Compass />
-          <h3>{tr("A pace of your own", "Ваш собственный ритм")}</h3>
-          <p>
-            {tr(
-              "Private trips, built around you.",
-              "Индивидуальные поездки для вас.",
-            )}
-          </p>
-        </div>
-        <div>
-          <MessageCircle />
-          <h3>{tr("A human on your side", "Люди рядом")}</h3>
-          <p>
-            {tr(
-              "A local team for your questions.",
-              "Местная команда для ваших вопросов.",
-            )}
-          </p>
-        </div>
-      </section>
-      <FAQ compact />
-      <FinalCTA />
-    </>
-  );
+  const { l, go } = useEnv();
+  return <Homepage locale={l} go={go} />;
 }
 function FinalCTA() {
   const { tr } = useEnv();
@@ -834,13 +338,20 @@ function FAQ({ compact = false }: { compact?: boolean }) {
   );
 }
 function TourList() {
-  const { tr } = useEnv();
+  const { tr, l } = useEnv();
   const [duration, setDuration] = useState("all");
   const [region, setRegion] = useState("all");
+  const [category, setCategory] = useState("all");
+  const [query, setQuery] = useState("");
   useEffect(() => {
     const p = new URLSearchParams(location.search);
     setDuration(p.get("duration") || "all");
     setRegion(p.get("region") || "all");
+    setCategory(p.get("category") || "all");
+    const bookingParams = new URLSearchParams();
+    for (const k of ["date", "pax"])
+      if (p.has(k)) bookingParams.set(k, p.get(k)!);
+    setQuery(bookingParams.size ? "?" + bookingParams : "");
   }, []);
   function filter(k: string, v: string) {
     const p = new URLSearchParams(location.search);
@@ -850,13 +361,24 @@ function TourList() {
       "",
       location.pathname + (p.size ? "?" + p.toString() : ""),
     );
-    k === "duration" ? setDuration(v) : setRegion(v);
+    k === "duration"
+      ? setDuration(v)
+      : k === "category"
+        ? setCategory(v)
+        : setRegion(v);
   }
   const list = tours.filter(
     (t) =>
       (duration === "all" ||
         (duration === "short" ? t.days <= 2 : t.days >= 3)) &&
-      (region === "all" || t.image === region),
+      (region === "all" ||
+        t.image === region ||
+        (region === "gabala" && t.image === "sheki")) &&
+      (category === "all" ||
+        ((category === "history" || category === "culture") &&
+          ["baku", "sheki"].includes(t.image)) ||
+        (category === "nature" && ["mountains", "sheki"].includes(t.image)) ||
+        (category === "entertainment" && t.image === "baku")),
   );
   return (
     <section className="container page-content">
@@ -898,6 +420,23 @@ function TourList() {
             <option value="mountains">Quba · Khinalug</option>
             <option value="sheki">Sheki · Gabala</option>
             <option value="baku">Baku</option>
+            <option value="gabala">Gabala</option>
+          </select>
+        </label>
+        <label>
+          {homeText(["Tour type", "Тип тура", "Tur növü"], l)}
+          <select
+            value={category}
+            onChange={(e) => filter("category", e.target.value)}
+          >
+            <option value="all">
+              {homeText(["All types", "Все типы", "Bütün növlər"], l)}
+            </option>
+            {homeCategories.map((cat) => (
+              <option key={cat.id} value={cat.id}>
+                {homeText(cat.label, l)}
+              </option>
+            ))}
           </select>
         </label>
         <span>
@@ -906,7 +445,7 @@ function TourList() {
       </div>
       <div className="tour-grid">
         {list.map((t, i) => (
-          <Card key={t.slug} tour={t} index={i} />
+          <Card key={t.slug} tour={t} index={i} query={query} />
         ))}
       </div>
       {!list.length && (
@@ -926,12 +465,35 @@ function TourList() {
             onClick={() => {
               filter("duration", "all");
               filter("region", "all");
+              filter("category", "all");
             }}
           >
             {tr("Reset filters", "Сбросить фильтры")}
           </Btn>
-          <Link to="/plan" className="text-link">
-            {tr("Build your own", "Создать свой")}
+          <Link
+            to={
+              category === "medical" || category === "business"
+                ? "/request?route=" +
+                  encodeURIComponent(
+                    homeText(
+                      homeCategories.find((c) => c.id === category)!.label,
+                      l,
+                    ),
+                  )
+                : "/plan"
+            }
+            className="text-link"
+          >
+            {category === "medical" || category === "business"
+              ? homeText(
+                  [
+                    "Ask our team",
+                    "Обратиться к команде",
+                    "Komandaya müraciət et",
+                  ],
+                  l,
+                )
+              : tr("Build your own", "Создать свой")}
             <ArrowUpRight />
           </Link>
         </div>
@@ -2169,6 +1731,18 @@ function Credits() {
       <div className="prose">
         {[
           [
+            "Tea_in_Azerbaijani_national_Armudu_glass.jpg",
+            "Tea in Baku — Interfase",
+            "by-sa/3.0",
+            "CC BY-SA 3.0",
+          ],
+          [
+            "Nohur_Lake,_Gabala.jpg",
+            "Nohur Lake, Gabala — Nigar O.Mammadova",
+            "by-sa/4.0",
+            "CC BY-SA 4.0",
+          ],
+          [
             "Azerbajiani_landscape_-_Another_version.jpg",
             "Khinalug valley — Matthew Hadley / Ximonic, Simo Räsänen",
             "by/1.0",
@@ -2324,7 +1898,10 @@ export default function Site({ initialPath }: { initialPath: string }) {
           about: tr("Our story", "О нас"),
         }[route];
     document.title =
-      (title || tr("Take the scenic route", "Выбирайте свой маршрут")) +
+      (title ||
+        (route === ""
+          ? homeText(homeCopy.headline, l)
+          : tr("Take the scenic route", "Выбирайте свой маршрут"))) +
       " — Azertur";
   }, [path, l]);
   const env: Env = {
@@ -2400,251 +1977,299 @@ export default function Site({ initialPath }: { initialPath: string }) {
     );
   return (
     <Context.Provider value={env}>
-      <a href="#main" className="skip-link">
-        {tr("Skip to content", "К содержимому")}
-      </a>
-      <header className="header-wrap">
-        <div className="header container">
-          <Link to="/" aria-label="Azertur home">
-            <Logo />
-          </Link>
-          <nav aria-label={tr("Main navigation", "Главная навигация")}>
-            <Link
-              to="/tours"
-              className={route.startsWith("tours") ? "active" : ""}
-            >
-              {tr("Journeys", "Маршруты")}
+      <div className={route === "" ? "homepage-shell" : "site-shell"}>
+        <a href="#main" className="skip-link">
+          {tr("Skip to content", "К содержимому")}
+        </a>
+        <header className="header-wrap">
+          <div className="header container">
+            <Link to="/" aria-label="Azertur home">
+              <Logo />
             </Link>
-            <Link to="/plan" className={route === "plan" ? "active" : ""}>
-              {tr("Build your trip", "Создать маршрут")}
-            </Link>
-            <Link to="/how-it-works">
-              {tr("How it works", "Как это работает")}
-            </Link>
-          </nav>
-          <div className="header-controls">
-            <label className="sr-only" htmlFor="currency">
-              {tr("Currency", "Валюта")}
-            </label>
-            <select
-              id="currency"
-              value={c}
-              onChange={(e) => currency(e.target.value as Currency)}
-            >
-              <option>EUR</option>
-              <option>USD</option>
-              <option>AZN</option>
-            </select>
-            <select
-              className="language"
-              aria-label={tr("Language", "Язык")}
-              value={l}
-              onChange={(e) =>
-                go("/" + e.target.value + "/" + route + location.search)
-              }
-            >
-              <option value="en">EN</option>
-              <option value="ru">RU</option>
-              <option value="az">AZ</option>
-            </select>
-            <Link to="/trips" className="header-trip">
-              {tr("My trips", "Мои поездки")}
-              <ArrowUpRight size={16} />
-            </Link>
-            <button
-              className="menu-button"
-              onClick={() => setMenu(true)}
-              aria-label={tr("Open menu", "Открыть меню")}
-            >
-              <Menu size={24} />
-            </button>
-          </div>
-        </div>
-      </header>
-      <main id="main" key={route} tabIndex={-1}>
-        {content}
-      </main>
-      <footer className="footer">
-        <div className="container">
-          <div className="footer-top">
-            <div>
-              <Link to="/">
-                <Logo />
-              </Link>
-              <p>
-                {tr(
-                  "Azerbaijan, at your own pace.",
-                  "Азербайджан в вашем ритме.",
-                )}
-              </p>
-            </div>
-            <div>
-              <h4>{tr("Explore", "Откройте")}</h4>
-              <Link to="/tours">{tr("Journeys", "Маршруты")}</Link>
-              <Link to="/plan">{tr("Build your trip", "Создать маршрут")}</Link>
-              <Link to="/services">
-                {tr("Services & prices", "Услуги и цены")}
-              </Link>
-            </div>
-            <div>
-              <h4>{tr("A little more", "Ещё немного")}</h4>
-              <Link to="/about">{tr("About Azertur", "Об Azertur")}</Link>
-              <Link to="/faq">FAQ</Link>
-              <Link to="/contact">{tr("Get in touch", "Связаться")}</Link>
-            </div>
-            <div>
-              <h4>{tr("The details", "Детали")}</h4>
-              <Link to="/legal/terms" target="_blank">
-                {tr("Terms", "Условия")}
-              </Link>
-              <Link to="/legal/cancellation" target="_blank">
-                {tr("Cancellation", "Отмена")}
-              </Link>
-              <Link to="/legal/privacy">{tr("Privacy", "Приватность")}</Link>
-            </div>
-          </div>
-          <div className="footer-bottom">
-            <span>© 2026 Azertur</span>
-            <span>
-              {tr(
-                "Interactive preview · sample itineraries · no real payments",
-                "Интерактивное демо · примерные маршруты · без реальных платежей",
+            <nav aria-label={tr("Main navigation", "Главная навигация")}>
+              {route === "" ? (
+                <>
+                  <Link to="/tours">
+                    {homeText(["Tours", "Туры", "Turlar"], l)}
+                  </Link>
+                  <a href={"/" + l + "#destinations"}>
+                    {homeText(
+                      ["Destinations", "Направления", "İstiqamətlər"],
+                      l,
+                    )}
+                  </a>
+                  <Link to="/plan">
+                    {homeText(
+                      [
+                        "Create your trip",
+                        "Создать поездку",
+                        "Öz səfərini yarat",
+                      ],
+                      l,
+                    )}
+                  </Link>
+                  <Link to="/about">
+                    {homeText(["About us", "О нас", "Haqqımızda"], l)}
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link
+                    to="/tours"
+                    className={route.startsWith("tours") ? "active" : ""}
+                  >
+                    {tr("Journeys", "Маршруты")}
+                  </Link>
+                  <Link to="/plan" className={route === "plan" ? "active" : ""}>
+                    {tr("Build your trip", "Создать маршрут")}
+                  </Link>
+                  <Link to="/how-it-works">
+                    {tr("How it works", "Как это работает")}
+                  </Link>
+                </>
               )}
-            </span>
-            <button
-              onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-            >
-              {tr("Back to top", "Наверх")}
-              <ArrowUpRight size={16} />
-            </button>
-          </div>
-          <details className="photo-credits">
-            <summary>
-              {tr("Photography credits", "Авторы фотографий")}
-              <Plus size={12} />
-            </summary>
-            <p>
-              Khinalug valley:{" "}
-              <a
-                href="https://commons.wikimedia.org/wiki/File:Azerbajiani_landscape_-_Another_version.jpg"
-                target="_blank"
-                rel="noreferrer"
+            </nav>
+            <div className="header-controls">
+              <label className="sr-only" htmlFor="currency">
+                {tr("Currency", "Валюта")}
+              </label>
+              <select
+                id="currency"
+                value={c}
+                onChange={(e) => currency(e.target.value as Currency)}
               >
-                Matthew Hadley / Ximonic, Simo Räsänen
-              </a>{" "}
-              ·{" "}
-              <a href="https://creativecommons.org/licenses/by/1.0/">
-                CC BY 1.0
-              </a>
-              . Village:{" "}
-              <a href="https://commons.wikimedia.org/wiki/File:Az%C9%99rbaycan,_X%C4%B1nal%C4%B1q._Azerbaijan,_Khinalug.jpg">
-                Musa Abdulragimli
-              </a>{" "}
-              ·{" "}
-              <a href="https://creativecommons.org/licenses/by-sa/4.0/">
-                CC BY-SA 4.0
-              </a>
-              . Baku & Sheki: <Link to="/credits">full photo credits</Link>. All
-              photos resized, converted to WebP and cropped in layouts.
-            </p>
-          </details>
-        </div>
-      </footer>
-      <button
-        className="contact-float"
-        onClick={() => go("/contact")}
-        aria-label={tr("Ask a local — contact Azertur", "Связаться с Azertur")}
-      >
-        <MessageCircle size={22} />
-        <span>{tr("Ask a local", "Спросите местных")}</span>
-      </button>
-      {cookie && (
-        <div className="cookie-banner">
-          <p>
-            {tr("A small note on cookies.", "Немного о cookies.")}
-            <small>
-              {tr(
-                "We remember your language and currency. No analytics are loaded in this preview.",
-                "Мы запоминаем язык и валюту. В демо аналитика не загружается.",
-              )}
-            </small>
-          </p>
-          <div>
-            <button onClick={() => consent("essential")}>
-              {tr("Essential only", "Только необходимые")}
-            </button>
-            <Btn onClick={() => consent("accepted")}>
-              {tr("Got it", "Понятно")}
-              <Check size={16} />
-            </Btn>
+                <option>EUR</option>
+                <option>USD</option>
+                <option>AZN</option>
+              </select>
+              <select
+                className="language"
+                aria-label={tr("Language", "Язык")}
+                value={l}
+                onChange={(e) =>
+                  go("/" + e.target.value + "/" + route + location.search)
+                }
+              >
+                <option value="en">EN</option>
+                <option value="ru">RU</option>
+                <option value="az">AZ</option>
+              </select>
+              <Link to="/trips" className="header-trip">
+                {route === ""
+                  ? homeText(["My account", "Мой аккаунт", "Hesabım"], l)
+                  : tr("My trips", "Мои поездки")}
+                <ArrowUpRight size={16} />
+              </Link>
+              <button
+                className="menu-button"
+                onClick={() => setMenu(true)}
+                aria-label={tr("Open menu", "Открыть меню")}
+              >
+                <Menu size={24} />
+              </button>
+            </div>
           </div>
-        </div>
-      )}
-      <dialog
-        ref={dialog}
-        className="app-dialog"
-        onCancel={() => setModal(null)}
-        onClick={(e) => {
-          if (e.target === e.currentTarget) {
-            const r = e.currentTarget.getBoundingClientRect();
-            if (
-              e.clientX < r.left ||
-              e.clientX > r.right ||
-              e.clientY < r.top ||
-              e.clientY > r.bottom
-            )
-              setModal(null);
-          }
-        }}
-      >
+        </header>
+        <main id="main" key={route} tabIndex={-1}>
+          {content}
+        </main>
+        <footer className="footer">
+          <div className="container">
+            <div className="footer-top">
+              <div>
+                <Link to="/">
+                  <Logo />
+                </Link>
+                <p>
+                  {tr(
+                    "Azerbaijan, at your own pace.",
+                    "Азербайджан в вашем ритме.",
+                  )}
+                </p>
+              </div>
+              <div>
+                <h4>{tr("Explore", "Откройте")}</h4>
+                <Link to="/tours">{tr("Journeys", "Маршруты")}</Link>
+                <Link to="/plan">
+                  {tr("Build your trip", "Создать маршрут")}
+                </Link>
+                <Link to="/services">
+                  {tr("Services & prices", "Услуги и цены")}
+                </Link>
+              </div>
+              <div>
+                <h4>{tr("A little more", "Ещё немного")}</h4>
+                <Link to="/about">{tr("About Azertur", "Об Azertur")}</Link>
+                <Link to="/faq">FAQ</Link>
+                <Link to="/contact">{tr("Get in touch", "Связаться")}</Link>
+              </div>
+              <div>
+                <h4>{tr("The details", "Детали")}</h4>
+                <Link to="/legal/terms" target="_blank">
+                  {tr("Terms", "Условия")}
+                </Link>
+                <Link to="/legal/cancellation" target="_blank">
+                  {tr("Cancellation", "Отмена")}
+                </Link>
+                <Link to="/legal/privacy">{tr("Privacy", "Приватность")}</Link>
+              </div>
+            </div>
+            <div className="footer-bottom">
+              <span>© 2026 Azertur</span>
+              <span>
+                {tr(
+                  "Interactive preview · sample itineraries · no real payments",
+                  "Интерактивное демо · примерные маршруты · без реальных платежей",
+                )}
+              </span>
+              <button
+                onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+              >
+                {tr("Back to top", "Наверх")}
+                <ArrowUpRight size={16} />
+              </button>
+            </div>
+            <details className="photo-credits">
+              <summary>
+                {tr("Photography credits", "Авторы фотографий")}
+                <Plus size={12} />
+              </summary>
+              <p>
+                Khinalug valley:{" "}
+                <a
+                  href="https://commons.wikimedia.org/wiki/File:Azerbajiani_landscape_-_Another_version.jpg"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Matthew Hadley / Ximonic, Simo Räsänen
+                </a>{" "}
+                ·{" "}
+                <a href="https://creativecommons.org/licenses/by/1.0/">
+                  CC BY 1.0
+                </a>
+                . Village:{" "}
+                <a href="https://commons.wikimedia.org/wiki/File:Az%C9%99rbaycan,_X%C4%B1nal%C4%B1q._Azerbaijan,_Khinalug.jpg">
+                  Musa Abdulragimli
+                </a>{" "}
+                ·{" "}
+                <a href="https://creativecommons.org/licenses/by-sa/4.0/">
+                  CC BY-SA 4.0
+                </a>
+                . Baku & Sheki: <Link to="/credits">full photo credits</Link>.
+                Tea and Nohur Lake:{" "}
+                <Link to="/credits">full photo credits</Link>. All photos
+                resized, converted to WebP and cropped in layouts.
+              </p>
+            </details>
+          </div>
+        </footer>
         <button
-          className="dialog-close icon-button"
-          aria-label={tr("Close dialog", "Закрыть")}
-          onClick={() => setModal(null)}
+          className="contact-float"
+          onClick={() => go("/contact")}
+          aria-label={tr(
+            "Ask a local — contact Azertur",
+            "Связаться с Azertur",
+          )}
         >
-          <X />
+          <MessageCircle size={22} />
+          <span>{tr("Ask a local", "Спросите местных")}</span>
         </button>
-        {modal}
-      </dialog>
-      <dialog
-        ref={menuRef}
-        className="menu-dialog"
-        onCancel={() => setMenu(false)}
-      >
-        <div className="menu-top">
-          <Logo />
+        {cookie && (
+          <div className="cookie-banner">
+            <p>
+              {tr("A small note on cookies.", "Немного о cookies.")}
+              <small>
+                {tr(
+                  "We remember your language and currency. No analytics are loaded in this preview.",
+                  "Мы запоминаем язык и валюту. В демо аналитика не загружается.",
+                )}
+              </small>
+            </p>
+            <div>
+              <button onClick={() => consent("essential")}>
+                {tr("Essential only", "Только необходимые")}
+              </button>
+              <Btn onClick={() => consent("accepted")}>
+                {tr("Got it", "Понятно")}
+                <Check size={16} />
+              </Btn>
+            </div>
+          </div>
+        )}
+        <dialog
+          ref={dialog}
+          className="app-dialog"
+          onCancel={() => setModal(null)}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              const r = e.currentTarget.getBoundingClientRect();
+              if (
+                e.clientX < r.left ||
+                e.clientX > r.right ||
+                e.clientY < r.top ||
+                e.clientY > r.bottom
+              )
+                setModal(null);
+            }
+          }}
+        >
           <button
-            aria-label="Close menu"
-            onClick={() => setMenu(false)}
-            className="icon-button"
+            className="dialog-close icon-button"
+            aria-label={tr("Close dialog", "Закрыть")}
+            onClick={() => setModal(null)}
           >
             <X />
           </button>
-        </div>
-        <nav>
-          {[
-            ["/tours", tr("Journeys", "Маршруты")],
-            ["/plan", tr("Build your trip", "Создать маршрут")],
-            ["/services", tr("Services", "Услуги")],
-            ["/about", tr("Our story", "О нас")],
-            ["/faq", "FAQ"],
-            ["/contact", tr("Get in touch", "Связаться")],
-          ].map(([to, label], i) => (
-            <Link key={to} to={to}>
-              <span>0{i + 1}</span>
-              {label}
+          {modal}
+        </dialog>
+        <dialog
+          ref={menuRef}
+          className="menu-dialog"
+          onCancel={() => setMenu(false)}
+        >
+          <div className="menu-top">
+            <Logo />
+            <button
+              aria-label={homeText(
+                ["Close menu", "Закрыть меню", "Menyunu bağla"],
+                l,
+              )}
+              onClick={() => setMenu(false)}
+              className="icon-button"
+            >
+              <X />
+            </button>
+          </div>
+          <nav>
+            {[
+              ["/tours", tr("Journeys", "Маршруты")],
+              ["/plan", tr("Build your trip", "Создать маршрут")],
+              ["/services", tr("Services", "Услуги")],
+              ["/about", tr("Our story", "О нас")],
+              ["/faq", "FAQ"],
+              ["/contact", tr("Get in touch", "Связаться")],
+            ].map(([to, label], i) => (
+              <Link key={to} to={to}>
+                <span>0{i + 1}</span>
+                {label}
+                <ArrowUpRight />
+              </Link>
+            ))}
+          </nav>
+          <div className="menu-bottom">
+            <Link to="/trips">
+              {tr("My trips", "Мои поездки")}
               <ArrowUpRight />
             </Link>
-          ))}
-        </nav>
-        <div className="menu-bottom">
-          <Link to="/trips">
-            {tr("My trips", "Мои поездки")}
-            <ArrowUpRight />
-          </Link>
-          <span>Azerbaijan, at your own pace.</span>
-        </div>
-      </dialog>
+            <span>
+              {tr(
+                "Azerbaijan, at your own pace.",
+                "Азербайджан в вашем ритме.",
+              )}
+            </span>
+          </div>
+        </dialog>
+      </div>
     </Context.Provider>
   );
 }
