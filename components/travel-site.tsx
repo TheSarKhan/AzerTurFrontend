@@ -1257,8 +1257,8 @@ export default function Site({ initialPath }: { initialPath: string }) {
       <CustomerTrips locale={l} go={go} />
     ) : route.startsWith("checkout/") ? (
       <BookingCheckout locale={l} go={go} quoteId={route.split("/")[1]} />
-    ) : route === "trips" ? (
-      <CustomerTrips locale={l} go={go} />
+    ) : route === "trips" || route.startsWith("trips/") ? (
+      <CustomerTrips locale={l} go={go} bookingId={route.split("/")[1]} />
     ) : route === "services" ? (
       <Services />
     ) : route === "credits" ? (
@@ -1284,7 +1284,11 @@ export default function Site({ initialPath }: { initialPath: string }) {
     <Context.Provider value={env}>
       <div
         className={
-          route === "" || route.startsWith("tours") || route === "plan"
+          route === "" ||
+          route.startsWith("tours") ||
+          route === "plan" ||
+          route === "trips" ||
+          route.startsWith("trips/")
             ? "homepage-shell" +
               (route.startsWith("tours") ? " tours-shell" : "")
             : "site-shell"
@@ -1299,7 +1303,11 @@ export default function Site({ initialPath }: { initialPath: string }) {
               <Logo />
             </Link>
             <nav aria-label={tr("Main navigation", "Главная навигация")}>
-              {route === "" || route.startsWith("tours") || route === "plan" ? (
+              {route === "" ||
+              route.startsWith("tours") ||
+              route === "plan" ||
+              route === "trips" ||
+              route.startsWith("trips/") ? (
                 <>
                   <Link
                     to="/tours"
@@ -1370,7 +1378,11 @@ export default function Site({ initialPath }: { initialPath: string }) {
                 <option value="az">AZ</option>
               </select>
               <Link to="/trips" className="header-trip">
-                {route === "" || route.startsWith("tours") || route === "plan"
+                {route === "" ||
+                route.startsWith("tours") ||
+                route === "plan" ||
+                route === "trips" ||
+                route.startsWith("trips/")
                   ? homeText(["My account", "Мой аккаунт", "Hesabım"], l)
                   : tr("My trips", "Мои поездки")}
                 <ArrowUpRight size={16} />
