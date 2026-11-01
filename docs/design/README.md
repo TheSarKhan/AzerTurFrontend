@@ -18,3 +18,9 @@ Existing Baku, Sheki and Khinalug credits remain on the website's Credits page a
 ## Imagery correction v3
 
 At Sarkhan's request, homepage photography now follows the approved generated concept. Eight built-in GPT Images assets are in `public/images/homepage-v3/`; prompts are archived in `approved/homepage/v2/photo-prompts-v3.json`. They are rendered with responsive Next.js Image optimization. A localized on-page note identifies generated illustrative imagery. Original documentary assets/credits are retained for other pages. The central design archive preserves all eight generated originals under `design/approved/homepage/v2/imagery-v3/`.
+
+## Approved tour pages v1
+
+Sarkhan approved the desktop/mobile catalog and detail concepts on 1 November 2026. The four accepted PNGs, exact generation/refinement prompts and approval record are in `approved/tours/v1/`. Implementation uses `components/tour-experience.tsx`, `app/tours.css`, translated content in `lib/tour-content.ts` and URL-backed discovery in `lib/tour-discovery.ts`. All tour photography uses the generated homepage assets, with localized illustrative-imagery disclosure. Implementation screenshots are preserved in the central `design/approved/tours/v1/` archive.
+
+See `approved/tours/v1/implementation.md` for behavior and validation. These pages customize a trip before the existing registration/operator-review flow; they do not implement live payments, contracts or staged payment requests.

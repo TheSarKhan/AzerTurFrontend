@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import "./homepage.css";
+import "./tours.css";
 export const metadata: Metadata = {
   title: "Azertur — Take the scenic route",
   description:
