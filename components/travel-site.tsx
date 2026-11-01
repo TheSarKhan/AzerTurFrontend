@@ -1,5 +1,6 @@
 "use client";
 import Homepage from "./homepage";
+import { TourCatalog, TourDetail } from "./tour-experience";
 import { homeCategories, homeText, homeCopy } from "@/lib/homepage-content";
 import { translate } from "@/lib/i18n";
 import {
@@ -338,168 +339,8 @@ function FAQ({ compact = false }: { compact?: boolean }) {
   );
 }
 function TourList() {
-  const { tr, l } = useEnv();
-  const [duration, setDuration] = useState("all");
-  const [region, setRegion] = useState("all");
-  const [category, setCategory] = useState("all");
-  const [query, setQuery] = useState("");
-  useEffect(() => {
-    const p = new URLSearchParams(location.search);
-    setDuration(p.get("duration") || "all");
-    setRegion(p.get("region") || "all");
-    setCategory(p.get("category") || "all");
-    const bookingParams = new URLSearchParams();
-    for (const k of ["date", "pax"])
-      if (p.has(k)) bookingParams.set(k, p.get(k)!);
-    setQuery(bookingParams.size ? "?" + bookingParams : "");
-  }, []);
-  function filter(k: string, v: string) {
-    const p = new URLSearchParams(location.search);
-    v === "all" ? p.delete(k) : p.set(k, v);
-    history.replaceState(
-      {},
-      "",
-      location.pathname + (p.size ? "?" + p.toString() : ""),
-    );
-    k === "duration"
-      ? setDuration(v)
-      : k === "category"
-        ? setCategory(v)
-        : setRegion(v);
-  }
-  const list = tours.filter(
-    (t) =>
-      (duration === "all" ||
-        (duration === "short" ? t.days <= 2 : t.days >= 3)) &&
-      (region === "all" ||
-        t.image === region ||
-        (region === "gabala" && t.image === "sheki")) &&
-      (category === "all" ||
-        ((category === "history" || category === "culture") &&
-          ["baku", "sheki"].includes(t.image)) ||
-        (category === "nature" && ["mountains", "sheki"].includes(t.image)) ||
-        (category === "entertainment" && t.image === "baku")),
-  );
-  return (
-    <section className="container page-content">
-      <Heading
-        side={
-          <p>
-            {tr(
-              "Start with a route that speaks to you. Make the details your own.",
-              "Выберите маршрут по душе. Детали настройте под себя.",
-            )}
-          </p>
-        }
-      >
-        {tr("Go somewhere", "Отправляйтесь туда,")}
-        <br />
-        <span className="serif">
-          {tr("that stays with you.", "где запомнится.")}
-        </span>
-      </Heading>
-      <div className="list-filters">
-        <label>
-          {tr("Duration", "Длительность")}
-          <select
-            value={duration}
-            onChange={(e) => filter("duration", e.target.value)}
-          >
-            <option value="all">{tr("All durations", "Любая")}</option>
-            <option value="short">1–2 {tr("days", "дня")}</option>
-            <option value="long">3+ {tr("days", "дня")}</option>
-          </select>
-        </label>
-        <label>
-          {tr("Region", "Регион")}
-          <select
-            value={region}
-            onChange={(e) => filter("region", e.target.value)}
-          >
-            <option value="all">{tr("All regions", "Все регионы")}</option>
-            <option value="mountains">Quba · Khinalug</option>
-            <option value="sheki">Sheki · Gabala</option>
-            <option value="baku">Baku</option>
-            <option value="gabala">Gabala</option>
-          </select>
-        </label>
-        <label>
-          {homeText(["Tour type", "Тип тура", "Tur növü"], l)}
-          <select
-            value={category}
-            onChange={(e) => filter("category", e.target.value)}
-          >
-            <option value="all">
-              {homeText(["All types", "Все типы", "Bütün növlər"], l)}
-            </option>
-            {homeCategories.map((cat) => (
-              <option key={cat.id} value={cat.id}>
-                {homeText(cat.label, l)}
-              </option>
-            ))}
-          </select>
-        </label>
-        <span>
-          {list.length} {tr("journeys", "маршрута")}
-        </span>
-      </div>
-      <div className="tour-grid">
-        {list.map((t, i) => (
-          <Card key={t.slug} tour={t} index={i} query={query} />
-        ))}
-      </div>
-      {!list.length && (
-        <div className="empty">
-          <Mountain />
-          <h3>
-            {tr("A different route, perhaps?", "Может быть, другой маршрут?")}
-          </h3>
-          <p>
-            {tr(
-              "No trips match these filters.",
-              "Нет туров с такими фильтрами.",
-            )}
-          </p>
-          <Btn
-            secondary
-            onClick={() => {
-              filter("duration", "all");
-              filter("region", "all");
-              filter("category", "all");
-            }}
-          >
-            {tr("Reset filters", "Сбросить фильтры")}
-          </Btn>
-          <Link
-            to={
-              category === "medical" || category === "business"
-                ? "/request?route=" +
-                  encodeURIComponent(
-                    homeText(
-                      homeCategories.find((c) => c.id === category)!.label,
-                      l,
-                    ),
-                  )
-                : "/plan"
-            }
-            className="text-link"
-          >
-            {category === "medical" || category === "business"
-              ? homeText(
-                  [
-                    "Ask our team",
-                    "Обратиться к команде",
-                    "Komandaya müraciət et",
-                  ],
-                  l,
-                )
-              : tr("Build your own", "Создать свой")}
-            <ArrowUpRight />
-          </Link>
-        </div>
-      )}
-    </section>
-  );
+  const { l, c, go } = useEnv();
+  return <TourCatalog locale={l} currency={c} go={go} />;
 }
 function Builder({
   tour,
@@ -878,263 +719,9 @@ function lineLabel(key: string, l: Locale) {
   return labels[key]?.[l === "az" ? 2 : l === "en" ? 0 : 1] || key;
 }
 function TourPage({ slug }: { slug: string }) {
-  const { l, c, tr, modal } = useEnv();
-  const tour = tours.find((t) => t.slug === slug);
-  const [gallery, setGallery] = useState(false);
-  const [photo, setPhoto] = useState(0);
-  const galleryRef = useRef<HTMLDialogElement>(null);
-  useEffect(() => {
-    if (gallery) galleryRef.current?.showModal();
-    else galleryRef.current?.close();
-  }, [gallery]);
-  if (!tour) return <NotFound />;
-  const images = [tour.image, "village", "mountains", "baku"];
-  return (
-    <>
-      <section className="container tour-page">
-        <div className="breadcrumb">
-          <Link to="/tours">{tr("Journeys", "Маршруты")}</Link>
-          <span>/ {tour.region}</span>
-        </div>
-        <div className="tour-title">
-          <h1>
-            {tour.name[l === "az" ? 2 : l === "en" ? 0 : 1]}
-            <span>.</span>
-          </h1>
-          <div className="tour-facts">
-            <span>
-              <Clock />
-              {tour.days} {tr(tour.days === 1 ? "day" : "days", "дн.")}
-            </span>
-            <span>
-              <MapPin />
-              {tour.region}
-            </span>
-            <span>
-              <Mountain />
-              {tour.difficulty[l === "az" ? 2 : l === "en" ? 0 : 1]}
-            </span>
-          </div>
-        </div>
-        <div className="tour-gallery">
-          <button
-            onClick={() => {
-              setPhoto(0);
-              setGallery(true);
-            }}
-            aria-label={tr("Open photo gallery", "Открыть галерею")}
-          >
-            <Photo src={tour.image} alt={tour.region} eager />
-            <span>
-              {tr("Explore the views", "Посмотреть фотографии")}
-              <Plus />
-            </span>
-          </button>
-          <button
-            onClick={() => {
-              setPhoto(1);
-              setGallery(true);
-            }}
-            aria-label={tr("Open second photo", "Открыть второе фото")}
-          >
-            <Photo src="village" alt="Khinalug village" />
-          </button>
-        </div>
-        <div className="tour-detail-grid">
-          <div className="tour-main">
-            <h2>
-              {tr(
-                "A little out of the ordinary.",
-                "Немного за пределами обычного.",
-              )}
-            </h2>
-            <p className="lead">
-              {tour.description[l === "az" ? 2 : l === "en" ? 0 : 1]}
-            </p>
-            <div className="route-strip">
-              {tour.stops.map((s, i) => (
-                <span key={s}>
-                  {i > 0 && <ArrowRight size={16} />}
-                  <MapPin size={16} />
-                  {s}
-                </span>
-              ))}
-            </div>
-            <h2>{tr("The days ahead.", "Дни впереди.")}</h2>
-            <div className="itinerary">
-              {tour.plans.map((p, i) => (
-                <details key={p[0]} open={i === 0}>
-                  <summary>
-                    <span className="day-num">0{i + 1}</span>
-                    <div>
-                      <small>
-                        {tr("Day", "День")} {i + 1}
-                      </small>
-                      <h3>{p[l === "az" ? 2 : l === "en" ? 0 : 1]}</h3>
-                    </div>
-                    <Plus />
-                  </summary>
-                  <div className="itinerary-body">
-                    <p>
-                      <time>09:00</time>
-                      {tr(
-                        "Meet your driver and start the day.",
-                        "Встреча с водителем и начало дня.",
-                      )}
-                    </p>
-                    <p>
-                      <time>12:30</time>
-                      {tr(
-                        "A local lunch stop and time to explore.",
-                        "Обед и свободное время для прогулки.",
-                      )}
-                    </p>
-                    <p>
-                      <time>16:00</time>
-                      {tr(
-                        "A scenic walk, then settle into the evening.",
-                        "Живописная прогулка и спокойный вечер.",
-                      )}
-                    </p>
-                    <small>
-                      {tr(
-                        "Illustrative itinerary. Final timing is confirmed with your booking.",
-                        "Примерная программа. Расписание уточняется при подтверждении.",
-                      )}
-                    </small>
-                  </div>
-                </details>
-              ))}
-            </div>
-            <div className="included">
-              <div>
-                <h3>{tr("The essentials", "Главное")}</h3>
-                {[
-                  tr(
-                    "Private driver for the route",
-                    "Личный водитель по маршруту",
-                  ),
-                  tr("Flexible service choices", "Гибкий выбор услуг"),
-                  tr("A detailed trip summary", "Подробный план поездки"),
-                ].map((x) => (
-                  <p key={x}>
-                    <Check size={16} />
-                    {x}
-                  </p>
-                ))}
-              </div>
-              <div>
-                <h3>{tr("Good to know", "Полезно знать")}</h3>
-                <p>
-                  {tr(
-                    "Flights and visas are not included.",
-                    "Перелёты и визы не включены.",
-                  )}
-                </p>
-                <p>
-                  {tr(
-                    "Your hotel and extras follow your selections.",
-                    "Отель и дополнения зависят от вашего выбора.",
-                  )}
-                </p>
-                <p>
-                  {tr(
-                    "Comfortable shoes and seasonal layers recommended.",
-                    "Рекомендуем удобную обувь и одежду по сезону.",
-                  )}
-                </p>
-              </div>
-            </div>
-            <div className="customise">
-              <Compass size={32} />
-              <h3>
-                {tr(
-                  "Like the route. Want to change the rhythm?",
-                  "Нравится маршрут, но хотите свой ритм?",
-                )}
-              </h3>
-              <p>
-                {tr(
-                  "Use this trip as the starting point for your own journey.",
-                  "Возьмите этот тур за основу своего путешествия.",
-                )}
-              </p>
-              <Link to={"/plan?template=" + tour.slug} className="text-link">
-                {tr("Make this trip yours", "Изменить этот тур")}
-                <ArrowUpRight />
-              </Link>
-            </div>
-            <h3>{tr("Plans can change.", "Планы могут измениться.")}</h3>
-            <p className="muted">
-              {tr(
-                "Contact the team to request changes or cancellation. Review the policy before booking.",
-                "Для изменения или отмены обратитесь в команду. Изучите условия перед бронированием.",
-              )}
-            </p>
-            <Link to="/legal/cancellation" className="text-link">
-              {tr("Cancellation policy", "Условия отмены")}
-              <ArrowUpRight />
-            </Link>
-          </div>
-          <aside className="builder-aside">
-            <Builder key={tour.slug} tour={tour} />
-          </aside>
-        </div>
-      </section>
-      <div className="mobile-booking-bar">
-        <span>
-          <small>{tr("From / person", "От / чел.")}</small>
-          <strong>{money(tour.base * rates[c], c, l)}</strong>
-        </span>
-        <Btn onClick={() => modal(<Builder tour={tour} />)}>
-          {tr("Choose my options", "Выбрать опции")}
-          <ArrowUpRight />
-        </Btn>
-      </div>
-      <dialog
-        ref={galleryRef}
-        onCancel={() => setGallery(false)}
-        className="gallery-overlay"
-        aria-label={tr("Photo gallery", "Фотогалерея")}
-      >
-        <button
-          className="gallery-close icon-button"
-          onClick={() => setGallery(false)}
-          aria-label={tr("Close gallery", "Закрыть галерею")}
-        >
-          <X />
-        </button>
-        <button
-          className="icon-button"
-          onClick={() => setPhoto((photo + images.length - 1) % images.length)}
-          aria-label={tr("Previous photo", "Предыдущее фото")}
-        >
-          <ChevronLeft />
-        </button>
-        <Photo
-          src={images[photo]}
-          alt={
-            [tour.region, "Khinalug village", "Khinalug valley", "Baku"][photo]
-          }
-          eager
-        />
-        <button
-          className="icon-button"
-          onClick={() => setPhoto((photo + 1) % images.length)}
-          aria-label={tr("Next photo", "Следующее фото")}
-        >
-          <ChevronRight />
-        </button>
-        <p>
-          {photo + 1} / {images.length} ·{" "}
-          {tr(
-            "Destination photography, illustrative gallery",
-            "Фотографии направлений, примерная галерея",
-          )}
-        </p>
-      </dialog>
-    </>
-  );
+  const { l, c, go } = useEnv();
+  if (!tours.some((t) => t.slug === slug)) return <NotFound />;
+  return <TourDetail slug={slug} locale={l} currency={c} go={go} />;
 }
 function Planner() {
   const { tr } = useEnv();
@@ -1823,6 +1410,7 @@ export default function Site({ initialPath }: { initialPath: string }) {
         : "/" + l + (p === "/" ? "" : p);
     history.pushState({}, "", next);
     setPath(next.split("?")[0]);
+    window.dispatchEvent(new Event("azertur:navigate"));
     setMenu(false);
     setModal(null);
     window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
@@ -1977,7 +1565,14 @@ export default function Site({ initialPath }: { initialPath: string }) {
     );
   return (
     <Context.Provider value={env}>
-      <div className={route === "" ? "homepage-shell" : "site-shell"}>
+      <div
+        className={
+          route === "" || route.startsWith("tours")
+            ? "homepage-shell" +
+              (route.startsWith("tours") ? " tours-shell" : "")
+            : "site-shell"
+        }
+      >
         <a href="#main" className="skip-link">
           {tr("Skip to content", "К содержимому")}
         </a>
@@ -1987,9 +1582,12 @@ export default function Site({ initialPath }: { initialPath: string }) {
               <Logo />
             </Link>
             <nav aria-label={tr("Main navigation", "Главная навигация")}>
-              {route === "" ? (
+              {route === "" || route.startsWith("tours") ? (
                 <>
-                  <Link to="/tours">
+                  <Link
+                    to="/tours"
+                    className={route.startsWith("tours") ? "active" : ""}
+                  >
                     {homeText(["Tours", "Туры", "Turlar"], l)}
                   </Link>
                   <a href={"/" + l + "#destinations"}>
@@ -2055,7 +1653,7 @@ export default function Site({ initialPath }: { initialPath: string }) {
                 <option value="az">AZ</option>
               </select>
               <Link to="/trips" className="header-trip">
-                {route === ""
+                {route === "" || route.startsWith("tours")
                   ? homeText(["My account", "Мой аккаунт", "Hesabım"], l)
                   : tr("My trips", "Мои поездки")}
                 <ArrowUpRight size={16} />
