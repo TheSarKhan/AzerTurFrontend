@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 const cookie = "azertur_session";
 const paths =
-  /^(auth\/(register|login|logout|me)|bookings(\/requests|\/[0-9a-f-]{36}\/(requests|demo-payment))?)$/;
+  /^(auth\/(register|login|logout|me)|bookings(\/(requests|offers)|\/[0-9a-f-]{36}\/(requests|demo-payment))?)$/;
 async function proxy(
   request: NextRequest,
   context: { params: Promise<{ path: string[] }> },

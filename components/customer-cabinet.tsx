@@ -1,6 +1,10 @@
 "use client";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import Image from "next/image";
+import CustomerOfferView, {
+  offerStatus,
+  originalEstimate,
+} from "./customer-offer";
 import {
   ArrowLeft,
   ArrowRight,
@@ -24,6 +28,7 @@ import {
   type Customer,
   type Booking,
   type BookingRequest,
+  type CustomerOffer,
 } from "@/lib/customer-api";
 import { money, dateLimit, type Locale } from "@/lib/travel";
 import {
@@ -51,6 +56,7 @@ export default function CustomerCabinet({
 }: Props) {
   const t = (en: string, ru: string, az: string) =>
     l === "az" ? az : l === "ru" ? ru : en;
+  const [offers, setOffers] = useState<CustomerOffer[]>([]);
   const [customer, setCustomer] = useState<Customer | null>(null),
     [bookings, setBookings] = useState<Booking[]>([]),
     [requests, setRequests] = useState<BookingRequest[]>([]),
@@ -92,13 +98,15 @@ export default function CustomerCabinet({
     setError("");
     try {
       const c = await customerApi<Customer>("auth/me");
-      const [b, r] = await Promise.all([
+      const [b, r, o] = await Promise.all([
         customerApi<Booking[]>("bookings"),
         customerApi<BookingRequest[]>("bookings/requests"),
+        customerApi<CustomerOffer[]>("bookings/offers"),
       ]);
       setCustomer(c);
       setBookings(b);
       setRequests(r);
+      setOffers(o);
       setUnauthorized(false);
     } catch (e) {
       if (e instanceof ApiError && e.status === 401) {
@@ -106,6 +114,7 @@ export default function CustomerCabinet({
         setCustomer(null);
         setBookings([]);
         setRequests([]);
+        setOffers([]);
       } else setError(problem(e));
     } finally {
       setReady(true);
@@ -122,6 +131,7 @@ export default function CustomerCabinet({
     setNotice("");
     setError("");
   }, [bookingId, l]);
+  const currentOffer = offers.find((o) => o.bookingId === bookingId);
   const b = bookings.find((item) => item.id === bookingId),
     q = b ? bookingQuote(b) : null,
     route = b ? cabinetRoute(b) : [],
@@ -220,7 +230,10 @@ export default function CustomerCabinet({
   const status = (item: Booking) => (
     <span className="cc-status">
       {item.status === "CONFIRMED" ? <Check size={20} /> : <Clock size={20} />}{" "}
-      {statuses[item.status]}
+      {item.status === "PENDING_REVIEW" &&
+      offers.some((o) => o.bookingId === item.id)
+        ? offerStatus(l)
+        : statuses[item.status]}
     </span>
   );
   const nextSteps = (
@@ -372,6 +385,7 @@ export default function CustomerCabinet({
                     setCustomer(null);
                     setBookings([]);
                     setRequests([]);
+                    setOffers([]);
                   } catch (e) {
                     setError(problem(e));
                   } finally {
@@ -453,6 +467,7 @@ export default function CustomerCabinet({
                   </div>
                   {filterTrips(bookings, filter, dateLimit(0)).map((item) => {
                     const quote = bookingQuote(item);
+                    const latest = offers.find((o) => o.bookingId === item.id);
                     return (
                       <article className="cc-trip" key={item.id}>
                         <Image
@@ -479,7 +494,7 @@ export default function CustomerCabinet({
                             {dates(item)} · {quote?.input.pax || "—"}{" "}
                             {t("travelers", "чел.", "nəfər")}
                           </p>
-                          {item.status === "PENDING_REVIEW" && (
+                          {item.status === "PENDING_REVIEW" && !latest && (
                             <div className="cc-sage">
                               <Users size={26} />
                               <div>
@@ -500,17 +515,26 @@ export default function CustomerCabinet({
                               </div>
                             </div>
                           )}
+                          {latest && (
+                            <CustomerOfferView
+                              offer={latest}
+                              locale={l}
+                              compact
+                            />
+                          )}
                           {item.operatorNote && (
                             <p className="cc-operator">{item.operatorNote}</p>
                           )}
                           <div className="cc-trip-bottom">
                             <div>
                               <strong>
-                                {t(
-                                  "Estimated group total",
-                                  "Примерная сумма для группы",
-                                  "Qrup üçün təxmini cəm",
-                                )}
+                                {latest
+                                  ? originalEstimate(l)
+                                  : t(
+                                      "Estimated group total",
+                                      "Примерная сумма для группы",
+                                      "Qrup üçün təxmini cəm",
+                                    )}
                               </strong>
                               <small>
                                 {t("Paid", "Оплачено", "Ödənilib")}{" "}
@@ -654,7 +678,11 @@ export default function CustomerCabinet({
             <div className="cc-state-banner">
               <Clock size={25} />
               <div>
-                <strong>{statuses[b.status]}</strong>
+                <strong>
+                  {currentOffer && b.status === "PENDING_REVIEW"
+                    ? offerStatus(l)
+                    : statuses[b.status]}
+                </strong>
                 <p>
                   {pending
                     ? t(
@@ -662,18 +690,20 @@ export default function CustomerCabinet({
                         "Изменение или отмена на проверке. Оплата приостановлена.",
                         "Dəyişiklik və ya ləğv sorğusu yoxlanılır. Ödəniş dayandırılıb.",
                       )
-                    : b.status === "PENDING_REVIEW"
-                      ? t(
-                          "We’re checking your route and availability. No payment is due.",
-                          "Проверяем маршрут и доступность. Сейчас оплаты нет.",
-                          "Marşrutu və mövcudluğu yoxlayırıq. Hazırda ödəniş tələb olunmur.",
-                        )
-                      : b.operatorNote ||
-                        t(
-                          "See your request details and next step below.",
-                          "Детали заявки и следующий шаг ниже.",
-                          "Sorğu detalları və növbəti addım aşağıdadır.",
-                        )}
+                    : currentOffer
+                      ? offerStatus(l)
+                      : b.status === "PENDING_REVIEW"
+                        ? t(
+                            "We’re checking your route and availability. No payment is due.",
+                            "Проверяем маршрут и доступность. Сейчас оплаты нет.",
+                            "Marşrutu və mövcudluğu yoxlayırıq. Hazırda ödəniş tələb olunmur.",
+                          )
+                        : b.operatorNote ||
+                          t(
+                            "See your request details and next step below.",
+                            "Детали заявки и следующий шаг ниже.",
+                            "Sorğu detalları və növbəti addım aşağıdadır.",
+                          )}
                 </p>
               </div>
               {refresh}
@@ -699,6 +729,9 @@ export default function CustomerCabinet({
                     </a>
                   ))}
                 </nav>
+                {currentOffer && (
+                  <CustomerOfferView offer={currentOffer} locale={l} />
+                )}
                 <section id="cc-route">
                   <h2>
                     <span>01</span>
@@ -998,15 +1031,17 @@ export default function CustomerCabinet({
                             "Дождитесь ответа команды.",
                             "Komandanın sorğuya cavabını gözlə.",
                           )
-                        : b.status === "PENDING_REVIEW"
-                          ? t(
-                              "Wait for our team’s review.",
-                              "Дождитесь проверки команды.",
-                              "Komandamızın yoxlamasını gözlə.",
-                            )
-                          : statuses[b.status]}
+                        : currentOffer
+                          ? offerStatus(l)
+                          : b.status === "PENDING_REVIEW"
+                            ? t(
+                                "Wait for our team’s review.",
+                                "Дождитесь проверки команды.",
+                                "Komandamızın yoxlamasını gözlə.",
+                              )
+                            : statuses[b.status]}
                     </p>
-                    {paymentAvailable(b, requests) && (
+                    {!currentOffer && paymentAvailable(b, requests) && (
                       <button
                         className="cc-primary"
                         onClick={() => open("payment")}
