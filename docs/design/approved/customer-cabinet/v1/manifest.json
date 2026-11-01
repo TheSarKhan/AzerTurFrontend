@@ -1,0 +1,25 @@
+{
+  "status": "approved-and-implemented",
+  "date": "2026-11-01",
+  "generator": "built-in GPT Images",
+  "assets": [
+    {
+      "file": "overview-desktop.png",
+      "width": 1262,
+      "height": 1246
+    },
+    {
+      "file": "detail-desktop.png",
+      "width": 1015,
+      "height": 1549
+    },
+    {
+      "file": "mobile.png",
+      "width": 948,
+      "height": 1659
+    }
+  ],
+  "mobileLayout": "Left: My trips overview. Right: request detail. Two distinct pages, not sequential segments.",
+  "sampleGroupTotal": 495,
+  "currency": "EUR"
+}

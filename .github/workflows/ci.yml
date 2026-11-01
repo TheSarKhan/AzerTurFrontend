@@ -16,4 +16,5 @@ jobs:
           node tests/localization.mjs
           node tests/tour-discovery.mjs
           node tests/planner-pricing.mjs
+          node tests/customer-cabinet.mjs
           npm run build
