@@ -1,5 +1,6 @@
 "use client";
 import Homepage from "./homepage";
+import TripPlanner from "./trip-planner";
 import { TourCatalog, TourDetail } from "./tour-experience";
 import { homeCategories, homeText, homeCopy } from "@/lib/homepage-content";
 import { translate } from "@/lib/i18n";
@@ -724,294 +725,10 @@ function TourPage({ slug }: { slug: string }) {
   return <TourDetail slug={slug} locale={l} currency={c} go={go} />;
 }
 function Planner() {
-  const { tr } = useEnv();
-  const [shared, setShared] = useState(false);
-  const [shareFallback, setShareFallback] = useState("");
-  const [cities, setCities] = useState(["Baku", "Gabala", "Sheki"]);
-  const [days, setDays] = useState(3);
-  const [active, setActive] = useState(0);
-  const [defaults, setDefaults] = useState<Partial<QuoteInput>>({});
-  const [ready, setReady] = useState(false);
-  useEffect(() => {
-    if (ready) {
-      const p = new URLSearchParams(location.search);
-      p.set("route", cities.join(","));
-      history.replaceState({}, "", location.pathname + "?" + p.toString());
-      try {
-        sessionStorage.setItem(
-          "azertur-draft-url",
-          location.pathname + "?" + p.toString(),
-        );
-      } catch {}
-    }
-  }, [ready, days, JSON.stringify(cities)]);
-  useEffect(() => {
-    const p = new URLSearchParams(location.search);
-    const template = tours.find((t) => t.slug === p.get("template"));
-    if (template) {
-      const route =
-        template.slug === "quba-khinalug"
-          ? ["Quba", "Khinalug"]
-          : template.slug === "baku-discovery"
-            ? ["Baku"]
-            : ["Baku", "Gabala", "Sheki"];
-      setCities(route);
-      setDays(route.length);
-    }
-    setDefaults({
-      date: p.get("date") || "",
-      pax: Math.min(12, Math.max(1, Number(p.get("pax")) || 2)),
-      driver:
-        !p.has("services") || (p.get("services") || "").includes("driver"),
-      stay: !p.has("services") || (p.get("services") || "").includes("hotel"),
-      activity: (p.get("services") || "").includes("activity"),
-      transfer: (p.get("services") || "").includes("transfer"),
-      guide: !p.has("services") || (p.get("services") || "").includes("guide"),
-    });
-    setReady(true);
-  }, []);
-  function count(n: number) {
-    n = Math.min(14, Math.max(1, n));
-    setDays(n);
-    setCities((s) => {
-      const next = Array.from(
-        { length: n },
-        (_, i) => s[i] || s[s.length - 1] || "Baku",
-      );
-      const p = new URLSearchParams(location.search);
-      p.set("route", next.join(","));
-      history.replaceState({}, "", location.pathname + "?" + p);
-      return next;
-    });
-    setActive((a) => Math.min(a, n - 1));
-  }
-  async function share() {
-    const p = new URLSearchParams(location.search);
-    p.set("route", cities.join(","));
-    const url = location.origin + location.pathname + "?" + p.toString();
-    try {
-      await navigator.clipboard.writeText(url);
-      setShared(true);
-    } catch {
-      setShareFallback(url);
-    }
-  }
-  function city(value: string) {
-    setCities((s) => {
-      const next = [...s];
-      next[active] = value;
-      for (let i = active + 1; i < next.length; i++)
-        if (!transitions[next[i - 1]].includes(next[i])) next[i] = next[i - 1];
-      const p = new URLSearchParams(location.search);
-      p.set("route", next.join(","));
-      history.replaceState({}, "", location.pathname + "?" + p);
-      return next;
-    });
-  }
-  useEffect(() => {
-    const route = new URLSearchParams(location.search).get("route");
-    if (route) {
-      const values = route.split(",");
-      if (
-        values.length <= 14 &&
-        values.every(
-          (x, i) =>
-            Object.hasOwn(transitions, x) &&
-            (i === 0 || transitions[values[i - 1]].includes(x)),
-        )
-      ) {
-        setCities(values);
-        setDays(values.length);
-      }
-    }
-  }, []);
-  return (
-    <section className="container page-content planner-page">
-      <Heading
-        side={
-          <p>
-            {tr(
-              "Choose the days, shape the route, add the details. We’ll bring the price together.",
-              "Выбирайте дни, создавайте маршрут, добавляйте детали. Мы рассчитаем стоимость.",
-            )}
-          </p>
-        }
-      >
-        {tr("Go your", "Путешествуйте")}
-        <br />
-        <span className="serif">{tr("own way.", "по-своему.")}</span>
-      </Heading>
-      <div className="planner-grid">
-        <div>
-          <div className="planner-actions">
-            <Btn secondary onClick={share}>
-              {shared
-                ? tr("Link copied", "Ссылка скопирована")
-                : tr("Share this plan", "Поделиться маршрутом")}
-              <ArrowUpRight size={16} />
-            </Btn>
-            <p>
-              {tr(
-                "Only your route and service choices are shared.",
-                "Передаются только маршрут и выбранные услуги.",
-              )}
-            </p>
-          </div>
-          {shareFallback && (
-            <label className="share-fallback">
-              {tr("Copy this link", "Скопируйте ссылку")}
-              <input
-                readOnly
-                value={shareFallback}
-                onFocus={(e) => e.target.select()}
-              />
-            </label>
-          )}
-          <div className="planner-top">
-            <div>
-              <h3>{tr("Your route", "Ваш маршрут")}</h3>
-              <p>
-                {tr(
-                  "Up to 14 days. A different pace every day.",
-                  "До 14 дней. Каждый день в своём ритме.",
-                )}
-              </p>
-            </div>
-            <div className="stepper">
-              <button
-                aria-label="Remove day"
-                onClick={() => count(days - 1)}
-                disabled={days <= 1}
-              >
-                <Minus size={16} />
-              </button>
-              <output>
-                {days} {tr("days", "дн.")}
-              </output>
-              <button
-                aria-label="Add day"
-                onClick={() => count(days + 1)}
-                disabled={days >= 14}
-              >
-                <Plus size={16} />
-              </button>
-            </div>
-          </div>
-          <div className="planner-days" role="tablist" aria-label="Trip days">
-            {cities.map((city, i) => (
-              <button
-                role="tab"
-                key={i}
-                aria-selected={active === i}
-                tabIndex={active === i ? 0 : -1}
-                onKeyDown={(e) => {
-                  let next = active;
-                  if (e.key === "ArrowRight") next = (active + 1) % days;
-                  else if (e.key === "ArrowLeft")
-                    next = (active + days - 1) % days;
-                  else if (e.key === "Home") next = 0;
-                  else if (e.key === "End") next = days - 1;
-                  else return;
-                  e.preventDefault();
-                  setActive(next);
-                  e.currentTarget.parentElement
-                    ?.querySelectorAll<HTMLButtonElement>("[role=tab]")
-                    [next]?.focus();
-                }}
-                onClick={() => setActive(i)}
-              >
-                <small>
-                  {tr("Day", "День")} {i + 1}
-                </small>
-                <span>{city}</span>
-                {active === i ? <ArrowDown size={16} /> : <MapPin size={16} />}
-              </button>
-            ))}
-          </div>
-          <div className="day-editor">
-            <span className="day-big">
-              {String(active + 1).padStart(2, "0")}
-            </span>
-            <div>
-              <h3>
-                {tr("Where will the day take you?", "Куда приведёт этот день?")}
-              </h3>
-              <p>
-                {tr(
-                  "Stay a while or take the next road.",
-                  "Задержитесь на месте или отправьтесь дальше.",
-                )}
-              </p>
-            </div>
-          </div>
-          <label className="city-field">
-            {tr("City / overnight stop", "Город / место ночёвки")}
-            <select
-              value={cities[active]}
-              onChange={(e) => city(e.target.value)}
-            >
-              {Object.keys(transitions).map((name) => (
-                <option
-                  key={name}
-                  disabled={
-                    active > 0 &&
-                    !transitions[cities[active - 1]].includes(name)
-                  }
-                >
-                  {name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <p className="field-help">
-            {tr(
-              "Only connected cities can follow one another. Changing a stop also keeps later days connected.",
-              "Можно выбирать только связанные города. Изменение остановки сохраняет связность следующих дней.",
-            )}
-          </p>
-          <div className="planner-route">
-            {cities.map((city, i) => (
-              <span key={i}>
-                {i > 0 && <ArrowRight size={16} />}
-                <span>{city}</span>
-              </span>
-            ))}
-          </div>
-          <Photo
-            src={
-              cities[active] === "Sheki" || cities[active] === "Gabala"
-                ? "sheki"
-                : cities[active] === "Baku"
-                  ? "baku"
-                  : "mountains"
-            }
-            alt={cities[active]}
-            className="planner-photo"
-          />
-          <div className="planner-note">
-            <ShieldCheck />
-            <p>
-              {tr(
-                "The office team checks your route and availability before payment. Changes and cancellations are handled by an employee. Demo payments become available only after approval.",
-                "Сотрудник проверяет маршрут и доступность до оплаты. Изменения и отмены обрабатывает офис. Демо-оплата доступна только после одобрения.",
-              )}
-            </p>
-          </div>
-        </div>
-        <aside className="builder-aside">
-          {ready && (
-            <Builder
-              tour={tours[1]}
-              customDays={days}
-              cities={cities}
-              defaults={defaults}
-            />
-          )}
-        </aside>
-      </div>
-    </section>
-  );
+  const { l, c, go, book } = useEnv();
+  return <TripPlanner locale={l} currency={c} go={go} book={book} />;
 }
+
 function Contact({ request = false }: { request?: boolean }) {
   const { tr } = useEnv();
   const [sent, setSent] = useState(false);
@@ -1567,7 +1284,7 @@ export default function Site({ initialPath }: { initialPath: string }) {
     <Context.Provider value={env}>
       <div
         className={
-          route === "" || route.startsWith("tours")
+          route === "" || route.startsWith("tours") || route === "plan"
             ? "homepage-shell" +
               (route.startsWith("tours") ? " tours-shell" : "")
             : "site-shell"
@@ -1582,7 +1299,7 @@ export default function Site({ initialPath }: { initialPath: string }) {
               <Logo />
             </Link>
             <nav aria-label={tr("Main navigation", "Главная навигация")}>
-              {route === "" || route.startsWith("tours") ? (
+              {route === "" || route.startsWith("tours") || route === "plan" ? (
                 <>
                   <Link
                     to="/tours"
@@ -1653,7 +1370,7 @@ export default function Site({ initialPath }: { initialPath: string }) {
                 <option value="az">AZ</option>
               </select>
               <Link to="/trips" className="header-trip">
-                {route === "" || route.startsWith("tours")
+                {route === "" || route.startsWith("tours") || route === "plan"
                   ? homeText(["My account", "Мой аккаунт", "Hesabım"], l)
                   : tr("My trips", "Мои поездки")}
                 <ArrowUpRight size={16} />

@@ -24,6 +24,8 @@ const serviceName = (key: string, l: Locale) => {
 const bookingTitle = (b: Booking, l: Locale) => {
   try {
     const q = JSON.parse(b.quotePayload) as Quote;
+    if (q.input.customDays)
+      return text(l, "Your custom journey", "Ваш маршрут", "Fərdi səfəriniz");
     return (
       tours.find((t) => t.slug === q.input.slug)?.name[
         l === "az" ? 2 : l === "ru" ? 1 : 0
@@ -235,6 +237,7 @@ export function BookingCheckout({
 }: Props & { quoteId: string }) {
   const [customer, setCustomer] = useState<Customer | null>(null),
     [ready, setReady] = useState(false),
+    [plannerNote, setPlannerNote] = useState(""),
     [quote, setQuote] = useState<Quote | null>(null),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false);
@@ -242,6 +245,9 @@ export function BookingCheckout({
   useEffect(() => {
     let active = true;
     try {
+      setPlannerNote(
+        sessionStorage.getItem("azertur-planner-notes-" + quoteId) || "",
+      );
       const raw = sessionStorage.getItem("azertur-quote-" + quoteId);
       if (raw) setQuote(JSON.parse(raw));
     } catch {}
@@ -330,6 +336,7 @@ export function BookingCheckout({
             )}
             <textarea
               name="note"
+              defaultValue={plannerNote}
               rows={5}
               maxLength={2000}
               placeholder={t(
