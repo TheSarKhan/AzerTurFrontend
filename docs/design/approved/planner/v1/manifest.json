@@ -1,0 +1,29 @@
+{
+  "status": "approved-and-implemented",
+  "created": "2026-11-01",
+  "tool": "built-in GPT Images",
+  "selected": [
+    {
+      "file": "desktop.png",
+      "width": 868,
+      "height": 1812
+    },
+    {
+      "file": "mobile.png",
+      "width": 836,
+      "height": 1880
+    },
+    {
+      "file": "stay-chooser.png",
+      "width": 1254,
+      "height": 1254
+    },
+    {
+      "file": "tour-picker-refined.png",
+      "width": 1254,
+      "height": 1254
+    }
+  ],
+  "verification": "All selected images visually inspected. Main 2-day example group total: 180+110+130+35+40=495 EUR. Tour-picker 3-day proposal contains only its two selected tours.",
+  "implementation": "Not changed in this design pass."
+}
