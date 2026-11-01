@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import { convertedServiceTotal } from "@/lib/planner-pricing";
 import {
   ArrowRight,
   Plus,
@@ -122,13 +123,16 @@ export default function TripPlanner({
     transfer: 35,
     activity: input.pax * 20,
   };
-  const total = keys.reduce(
-    (sum, key) =>
-      sum + (input[key] && (key !== "stay" || nights > 0) ? amounts[key] : 0),
-    0,
-  );
   const selected = keys.filter(
     (key) => input[key] && (key !== "stay" || nights > 0),
+  );
+  const displayedTotal = money(
+    convertedServiceTotal(
+      selected.map((key) => amounts[key]),
+      rates[c],
+    ),
+    c,
+    l,
   );
   const icons = {
     driver: Car,
@@ -720,7 +724,7 @@ export default function TripPlanner({
                 <strong>
                   {t("Estimated total", "Примерная сумма", "Təxmini cəm")}
                 </strong>
-                <strong>{fmt(total)}</strong>
+                <strong>{displayedTotal}</strong>
               </div>
               <small>
                 {t(
@@ -923,7 +927,7 @@ export default function TripPlanner({
         <div className="tp-mobile-action">
           <span>
             {t("Estimate", "Примерно", "Təxmini")}
-            <strong>{fmt(total)}</strong>
+            <strong>{displayedTotal}</strong>
           </span>
           <button
             className="tp-primary"
