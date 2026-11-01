@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import { useState, type ReactNode, type MouseEvent } from "react";
 import {
   ArrowRight,
@@ -61,10 +62,17 @@ export default function Homepage({ locale, go }: Props) {
     </a>
   );
   const picture = (src: string, alt: string, eager = false) => (
-    <img
+    <Image
       src={"/images/" + src}
       alt={alt}
       loading={eager ? "eager" : "lazy"}
+      fetchPriority={eager ? "high" : "auto"}
+      sizes={
+        eager
+          ? "100vw"
+          : "(max-width: 700px) 100vw, (max-width: 1100px) 50vw, 640px"
+      }
+      quality={85}
       width={1600}
       height={1000}
     />
@@ -73,11 +81,11 @@ export default function Homepage({ locale, go }: Props) {
     <div className="home-v2">
       <section className="hv-hero">
         {picture(
-          "mountains.webp",
+          "homepage-v3/hero.png",
           t([
-            "Khinalug valleys in the Caucasus mountains",
-            "Долины Хыналыга в горах Кавказа",
-            "Qafqaz dağlarında Xınalıq dərələri",
+            "Illustrative Caucasus mountain village",
+            "Иллюстрация горной деревни Кавказа",
+            "Qafqaz dağ kəndinin illüstrativ görüntüsü",
           ]),
           true,
         )}
@@ -122,16 +130,7 @@ export default function Homepage({ locale, go }: Props) {
               >
                 <option value="all">{t(homeCopy.where)}</option>
                 {homeDestinations.map((d) => (
-                  <option
-                    key={d.image}
-                    value={
-                      d.image === "gabala.jpg"
-                        ? "gabala"
-                        : d.region === "mountains"
-                          ? "mountains"
-                          : d.region
-                    }
-                  >
+                  <option key={d.image} value={d.region}>
                     {t(d.name)}
                   </option>
                 ))}
@@ -218,7 +217,7 @@ export default function Homepage({ locale, go }: Props) {
             <article key={d.image}>
               {link(
                 "/tours?region=" +
-                  (d.image === "gabala.jpg" ? "gabala" : d.region),
+                  d.region,
                 <>
                   {picture(d.image, t(d.alt))}
                   <h3>{t(d.name)}</h3>
@@ -251,7 +250,16 @@ export default function Homepage({ locale, go }: Props) {
               {link(
                 "/tours/" + tour.slug,
                 <>
-                  {picture(tour.image + ".webp", tour.region)}
+                  {picture(
+                    "homepage-v3/" +
+                      {
+                        "baku-discovery": "baku",
+                        "sheki-gabala": "sheki",
+                        "quba-khinalug": "khinalug",
+                      }[tour.slug] +
+                      ".png",
+                    tour.region,
+                  )}
                   <div className="hv-tour-copy">
                     <span>
                       <MapPin size={13} />
@@ -298,8 +306,22 @@ export default function Homepage({ locale, go }: Props) {
           </ul>
         </div>
         <div className="hv-builder-images">
-          {picture("sheki.webp", t(homeDestinations[1].alt))}
-          {picture("village.webp", t(homeDestinations[3].alt))}
+          {picture(
+            "homepage-v3/guesthouse.png",
+            t([
+              "Illustrative mountain guesthouse terrace",
+              "Иллюстрация террасы горного гостевого дома",
+              "Dağ qonaq evinin illüstrativ terrası",
+            ]),
+          )}
+          {picture(
+            "homepage-v3/hiking.png",
+            t([
+              "Hikers on a mountain trail",
+              "Поход по горной тропе",
+              "Dağ cığırında yürüş",
+            ]),
+          )}
         </div>
       </section>
       <section className="hv-container hv-section">
@@ -324,7 +346,7 @@ export default function Homepage({ locale, go }: Props) {
       <section className="hv-hospitality hv-section">
         <div className="hv-hospitality-photo">
           {picture(
-            "tea.jpg",
+            "homepage-v3/tea.png",
             t([
               "Tea in an Azerbaijani armudu glass",
               "Чай в азербайджанском стакане армуду",
@@ -362,6 +384,13 @@ export default function Homepage({ locale, go }: Props) {
           </details>
         ))}
       </section>
+      <p className="hv-imagery-note">
+        {t([
+          "Homepage imagery is AI-generated for illustration.",
+          "Изображения на главной созданы ИИ для иллюстрации.",
+          "Ana səhifədəki görüntülər illüstrasiya üçün süni intellektlə yaradılıb.",
+        ])}
+      </p>
     </div>
   );
 }

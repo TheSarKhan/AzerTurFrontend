@@ -168,11 +168,11 @@ export const homeDestinations: {
 }[] = [
   {
     name: ["Baku", "Баку", "Bakı"],
-    image: "baku.webp",
+    image: "homepage-v3/baku.png",
     alt: [
-      "Baku skyline by the Caspian Sea",
-      "Панорама Баку у Каспия",
-      "Xəzər sahilində Bakı mənzərəsi",
+      "Illustrative Baku skyline",
+      "Иллюстрация панорамы Баку",
+      "Bakının illüstrativ mənzərəsi",
     ],
     description: [
       "A modern city with a timeless soul.",
@@ -183,7 +183,7 @@ export const homeDestinations: {
   },
   {
     name: ["Sheki", "Шеки", "Şəki"],
-    image: "sheki.webp",
+    image: "homepage-v3/sheki.png",
     alt: ["Sheki Khan Palace", "Дворец шекинских ханов", "Şəki Xan sarayı"],
     description: [
       "Palaces, crafts and a proud history.",
@@ -194,22 +194,22 @@ export const homeDestinations: {
   },
   {
     name: ["Gabala", "Габала", "Qəbələ"],
-    image: "gabala.jpg",
+    image: "homepage-v3/gabala.png",
     alt: [
-      "Nohur Lake in Gabala",
-      "Озеро Нохур в Габале",
-      "Qəbələdə Nohur gölü",
+      "Illustrative lake and mountains",
+      "Иллюстрация озера и гор",
+      "Göl və dağların illüstrativ görüntüsü",
     ],
     description: [
       "Nature, adventure and fresh air.",
       "Природа, приключения и свежий воздух.",
       "Təbiət, macəra və təmiz hava.",
     ],
-    region: "sheki",
+    region: "gabala",
   },
   {
     name: ["Khinalug", "Хыналыг", "Xınalıq"],
-    image: "village.webp",
+    image: "homepage-v3/khinalug.png",
     alt: [
       "Stone houses in Khinalug",
       "Каменные дома Хыналыга",

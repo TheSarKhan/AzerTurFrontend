@@ -14,3 +14,7 @@ New photo sources (CSS crops; original JPEGs retained):
 - `public/images/gabala.jpg`: Nigar O.Mammadova, Nohur Lake, Gabala, CC BY-SA 4.0. https://commons.wikimedia.org/wiki/File:Nohur_Lake,_Gabala.jpg — https://creativecommons.org/licenses/by-sa/4.0/
 
 Existing Baku, Sheki and Khinalug credits remain on the website's Credits page and footer. Image licenses apply to photographs; no endorsement by photographers is implied.
+
+## Imagery correction v3
+
+At Sarkhan's request, homepage photography now follows the approved generated concept. Eight built-in GPT Images assets are in `public/images/homepage-v3/`; prompts are archived in `approved/homepage/v2/photo-prompts-v3.json`. They are rendered with responsive Next.js Image optimization. A localized on-page note identifies generated illustrative imagery. Original documentary assets/credits are retained for other pages. The central design archive preserves all eight generated originals under `design/approved/homepage/v2/imagery-v3/`.
