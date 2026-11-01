@@ -605,13 +605,6 @@ export function CustomerTrips({ locale: l, go }: Props) {
             {(() => {
               try {
                 const q = JSON.parse(b.quotePayload) as Quote;
-                if (q.input.customDays)
-                  return text(
-                    l,
-                    "Your custom journey",
-                    "Ваш маршрут",
-                    "Fərdi səfəriniz",
-                  );
                 return q.lines.map((line) => (
                   <div key={line.label}>
                     <span>{serviceName(line.label, l)}</span>
