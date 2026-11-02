@@ -107,9 +107,9 @@ export default function CustomerOfferView({
       <p className="cc-notes">{offer.message}</p>
       <p>
         {t(
-          "No payment is requested. PDF contract approval and staged payments are planned next steps.",
-          "Оплата не запрашивается. PDF-договор и поэтапная оплата — следующие этапы.",
-          "Ödəniş tələb olunmur. PDF müqavilə təsdiqi və mərhələli ödənişlər sonrakı planlaşdırılan addımlardır.",
+          "No payment is requested. Your contract will appear in Documents when sent.",
+          "Оплата не запрашивается. Договор появится в разделе документов после отправки.",
+          "Ödəniş tələb olunmur. Müqavilə göndərildikdə Sənədlər bölməsində görünəcək.",
         )}
       </p>
     </section>

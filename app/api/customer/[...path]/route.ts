@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 const cookie = "azertur_session";
 const paths =
-  /^(auth\/(register|login|logout|me)|bookings(\/(requests|offers)|\/[0-9a-f-]{36}\/(requests|demo-payment))?)$/;
+  /^(auth\/(register|login|logout|me)|bookings(\/(requests|offers)|\/[0-9a-f-]{36}\/(requests|demo-payment|contract(\/[0-9a-f-]{36}\/(pdf|accept))?))?)$/;
 async function proxy(
   request: NextRequest,
   context: { params: Promise<{ path: string[] }> },
@@ -62,6 +62,12 @@ async function proxy(
         signal: AbortSignal.timeout(10000),
       },
     );
+    if (path.endsWith("/pdf") && upstream.ok) {
+      return new NextResponse(await upstream.arrayBuffer(), {
+        status: upstream.status,
+        headers: { "Content-Type": "application/pdf", "Cache-Control": "no-store", "X-Content-Type-Options": "nosniff", "Content-Disposition": "inline; filename=contract.pdf" },
+      });
+    }
     let data = upstream.status === 204 ? null : await upstream.json();
     const session = isAuth && upstream.ok ? data : null;
     if (session)
