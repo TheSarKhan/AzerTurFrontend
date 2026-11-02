@@ -971,7 +971,7 @@ export default function CustomerCabinet({
                     <span>05</span>
                     {t("Documents", "Документы", "Sənədlər")}
                   </h2>
-                  <CustomerContract bookingId={b.id} locale={l} />
+                  <CustomerContract key={b.id} bookingId={b.id} locale={l} />
                 </section>
               </div>
               <aside className="cc-summary">
