@@ -1,4 +1,5 @@
 "use client";
+import CustomerContract from "@/components/customer-contract";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import Image from "next/image";
 import CustomerOfferView, {
@@ -195,9 +196,9 @@ export default function CustomerCabinet({
     </a>
   );
   const planned = t(
-    "Contract approval and staged payments are planned. Current payments are simulated.",
-    "Договор и поэтапная оплата запланированы. Текущие платежи — демонстрационные.",
-    "Müqavilə təsdiqi və mərhələli ödənişlər planlaşdırılır. Hazırkı ödənişlər demodur.",
+    "Contract approval is available when your team sends a document. Current payments are simulated.",
+    "Договор появится после отправки командой. Текущие платежи — демонстрационные.",
+    "Komanda göndərdikdə müqaviləyə baxıb təsdiqləyə bilərsiniz. Hazırkı ödənişlər demodur.",
   );
   const cancellation = t(
     "The team reviews every request. Terms and refunds depend on the service, provider and cancellation time.",
@@ -970,25 +971,7 @@ export default function CustomerCabinet({
                     <span>05</span>
                     {t("Documents", "Документы", "Sənədlər")}
                   </h2>
-                  <div className="cc-documents">
-                    <FileText size={28} />
-                    <div>
-                      <strong>
-                        {t(
-                          "No documents yet.",
-                          "Документов пока нет.",
-                          "Hələ sənəd yoxdur.",
-                        )}
-                      </strong>
-                      <p>
-                        {t(
-                          "Your confirmed offer and documents will appear here when available.",
-                          "Подтверждённое предложение и документы появятся здесь.",
-                          "Təsdiqlənmiş təklif və sənədlər hazır olduqda burada görünəcək.",
-                        )}
-                      </p>
-                    </div>
-                  </div>
+                  <CustomerContract bookingId={b.id} locale={l} />
                 </section>
               </div>
               <aside className="cc-summary">
