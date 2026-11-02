@@ -398,13 +398,15 @@ export function CustomerTrips({
   go,
   bookingId,
   cancellationView,
-}: Props & { bookingId?: string; cancellationView?: boolean }) {
+  paymentView,
+}: Props & { bookingId?: string; cancellationView?: boolean; paymentView?: boolean }) {
   return (
     <CustomerCabinet
       locale={locale}
       go={go}
       bookingId={bookingId}
       cancellationView={cancellationView}
+      paymentView={paymentView}
       renderAuth={(next) => (
         <CustomerAuth locale={locale} go={go} next={next} />
       )}

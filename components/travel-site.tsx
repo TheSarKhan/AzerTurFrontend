@@ -1263,6 +1263,7 @@ export default function Site({ initialPath }: { initialPath: string }) {
         go={go}
         bookingId={route.split("/")[1]}
         cancellationView={route.split("/")[2] === "cancellation"}
+        paymentView={route.split("/")[2] === "payments"}
       />
     ) : route === "services" ? (
       <Services />
