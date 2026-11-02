@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 const cookie = "azertur_session";
 const paths =
-  /^(auth\/(register|login|logout|me)|bookings(\/(requests|offers)|\/[0-9a-f-]{36}\/(requests|demo-payment|contract(\/[0-9a-f-]{36}\/(pdf|accept))?))?)$/;
+  /^(auth\/(register|login|logout|me)|bookings(\/(requests|offers)|\/[0-9a-f-]{36}\/(requests|cancellation|cancellation-updates(\/[0-9a-f-]{36}\/pdf)?|demo-payment|contract(\/[0-9a-f-]{36}\/(pdf|accept))?))?)$/;
 async function proxy(
   request: NextRequest,
   context: { params: Promise<{ path: string[] }> },
@@ -65,7 +65,14 @@ async function proxy(
     if (path.endsWith("/pdf") && upstream.ok) {
       return new NextResponse(await upstream.arrayBuffer(), {
         status: upstream.status,
-        headers: { "Content-Type": "application/pdf", "Cache-Control": "no-store", "X-Content-Type-Options": "nosniff", "Content-Disposition": "inline; filename=contract.pdf" },
+        headers: {
+          "Content-Type": "application/pdf",
+          "Cache-Control": "no-store",
+          "X-Content-Type-Options": "nosniff",
+          "Content-Disposition": path.includes("cancellation-updates")
+            ? "attachment; filename=cancellation-summary.pdf"
+            : "inline; filename=contract.pdf",
+        },
       });
     }
     let data = upstream.status === 204 ? null : await upstream.json();

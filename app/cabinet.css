@@ -1,3 +1,4 @@
+@import "./cancellation.css";
 .cabinet {
   background: #faf8f4;
   color: #19231f;
@@ -1009,10 +1010,38 @@
   }
 }
 
-.contract-review { border: 1px solid #deded8; padding: 20px; background: #fff; }
-.contract-review .cc-sage { margin-bottom: 16px; }
-.contract-review iframe { display: block; margin: 16px 0; background: #eceeea; }
-.contract-review label { display: flex; gap: 10px; align-items: flex-start; line-height: 1.5; }
-.contract-review input { margin-top: 5px; accent-color: #244b3d; }
-.contract-review button:disabled { opacity: .55; cursor: not-allowed; }
-@media (max-width: 600px) { .contract-review { padding: 14px; } .contract-review iframe { min-height: 420px; } }
+.contract-review {
+  border: 1px solid #deded8;
+  padding: 20px;
+  background: #fff;
+}
+.contract-review .cc-sage {
+  margin-bottom: 16px;
+}
+.contract-review iframe {
+  display: block;
+  margin: 16px 0;
+  background: #eceeea;
+}
+.contract-review label {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  line-height: 1.5;
+}
+.contract-review input {
+  margin-top: 5px;
+  accent-color: #244b3d;
+}
+.contract-review button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+@media (max-width: 600px) {
+  .contract-review {
+    padding: 14px;
+  }
+  .contract-review iframe {
+    min-height: 420px;
+  }
+}
