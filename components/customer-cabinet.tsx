@@ -1,4 +1,5 @@
 "use client";
+import CustomerCancellation from "./customer-cancellation";
 import CustomerContract from "@/components/customer-contract";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import Image from "next/image";
@@ -47,12 +48,14 @@ type Props = {
   locale: Locale;
   go: (path: string) => void;
   bookingId?: string;
+  cancellationView?: boolean;
   renderAuth: (next: string) => ReactNode;
 };
 export default function CustomerCabinet({
   locale: l,
   go,
   bookingId,
+  cancellationView,
   renderAuth,
 }: Props) {
   const t = (en: string, ru: string, az: string) =>
@@ -73,7 +76,9 @@ export default function CustomerCabinet({
   const dialogRef = useRef<HTMLDialogElement>(null),
     focusRef = useRef<HTMLElement | null>(null),
     paymentKeys = useRef<Record<string, string>>({});
-  const next = bookingId ? "/trips/" + bookingId : "/trips";
+  const next = bookingId
+    ? "/trips/" + bookingId + (cancellationView ? "/cancellation" : "")
+    : "/trips";
   function problem(e: unknown) {
     const code = e instanceof ApiError ? e.code : "";
     return code === "REQUEST_PENDING" || code === "CONFLICT"
@@ -306,6 +311,8 @@ export default function CustomerCabinet({
         {refresh}
       </section>
     );
+  if (cancellationView && b)
+    return <CustomerCancellation key={b.id} booking={b} locale={l} go={go} />;
   const account = (
     <div className="cc-account">
       <UserRound size={28} />
@@ -964,6 +971,16 @@ export default function CustomerCabinet({
                         <ArrowRight size={17} />
                       </button>
                     )}
+                  <button
+                    className="cc-outline"
+                    onClick={() => go("/trips/" + b.id + "/cancellation")}
+                  >
+                    {t(
+                      "Cancellation & refund details",
+                      "Отмена и возврат",
+                      "Ləğv və geri ödəniş",
+                    )}
+                  </button>
                   <p className="cc-caption">{cancellation}</p>
                 </section>
                 <section id="cc-documents">

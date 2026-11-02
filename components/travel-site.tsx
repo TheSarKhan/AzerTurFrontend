@@ -1258,7 +1258,12 @@ export default function Site({ initialPath }: { initialPath: string }) {
     ) : route.startsWith("checkout/") ? (
       <BookingCheckout locale={l} go={go} quoteId={route.split("/")[1]} />
     ) : route === "trips" || route.startsWith("trips/") ? (
-      <CustomerTrips locale={l} go={go} bookingId={route.split("/")[1]} />
+      <CustomerTrips
+        locale={l}
+        go={go}
+        bookingId={route.split("/")[1]}
+        cancellationView={route.split("/")[2] === "cancellation"}
+      />
     ) : route === "services" ? (
       <Services />
     ) : route === "credits" ? (
