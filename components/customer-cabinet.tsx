@@ -1,4 +1,5 @@
 "use client";
+import CustomerPayments from "./customer-payments";
 import CustomerCancellation from "./customer-cancellation";
 import CustomerContract from "@/components/customer-contract";
 import { useEffect, useRef, useState, type ReactNode } from "react";
@@ -49,6 +50,7 @@ type Props = {
   go: (path: string) => void;
   bookingId?: string;
   cancellationView?: boolean;
+  paymentView?: boolean;
   renderAuth: (next: string) => ReactNode;
 };
 export default function CustomerCabinet({
@@ -56,6 +58,7 @@ export default function CustomerCabinet({
   go,
   bookingId,
   cancellationView,
+  paymentView,
   renderAuth,
 }: Props) {
   const t = (en: string, ru: string, az: string) =>
@@ -77,7 +80,7 @@ export default function CustomerCabinet({
     focusRef = useRef<HTMLElement | null>(null),
     paymentKeys = useRef<Record<string, string>>({});
   const next = bookingId
-    ? "/trips/" + bookingId + (cancellationView ? "/cancellation" : "")
+    ? "/trips/" + bookingId + (cancellationView ? "/cancellation" : paymentView ? "/payments" : "")
     : "/trips";
   function problem(e: unknown) {
     const code = e instanceof ApiError ? e.code : "";
@@ -313,6 +316,7 @@ export default function CustomerCabinet({
     );
   if (cancellationView && b)
     return <CustomerCancellation key={b.id} booking={b} locale={l} go={go} />;
+  if (paymentView && b) return <CustomerPayments key={b.id} booking={b} locale={l} go={go} />;
   const account = (
     <div className="cc-account">
       <UserRound size={28} />
@@ -989,6 +993,7 @@ export default function CustomerCabinet({
                     {t("Documents", "Документы", "Sənədlər")}
                   </h2>
                   <CustomerContract key={b.id} bookingId={b.id} locale={l} />
+                  <button className="cc-outline" onClick={()=>go("/trips/"+b.id+"/payments")}>{t("Payments","Платежи","Ödənişlər")}</button>
                 </section>
               </div>
               <aside className="cc-summary">
