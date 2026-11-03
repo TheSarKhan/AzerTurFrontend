@@ -1,4 +1,5 @@
 "use client";
+import CustomerNotifications from "./customer-notifications";
 import CustomerPayments from "./customer-payments";
 import CustomerCancellation from "./customer-cancellation";
 import CustomerContract from "@/components/customer-contract";
@@ -63,6 +64,7 @@ export default function CustomerCabinet({
 }: Props) {
   const t = (en: string, ru: string, az: string) =>
     l === "az" ? az : l === "ru" ? ru : en;
+  const [unread, setUnread] = useState(0);
   const [offers, setOffers] = useState<CustomerOffer[]>([]);
   const [customer, setCustomer] = useState<Customer | null>(null),
     [bookings, setBookings] = useState<Booking[]>([]),
@@ -80,7 +82,9 @@ export default function CustomerCabinet({
     focusRef = useRef<HTMLElement | null>(null),
     paymentKeys = useRef<Record<string, string>>({});
   const next = bookingId
-    ? "/trips/" + bookingId + (cancellationView ? "/cancellation" : paymentView ? "/payments" : "")
+    ? "/trips/" +
+      bookingId +
+      (cancellationView ? "/cancellation" : paymentView ? "/payments" : "")
     : "/trips";
   function problem(e: unknown) {
     const code = e instanceof ApiError ? e.code : "";
@@ -107,11 +111,13 @@ export default function CustomerCabinet({
     setError("");
     try {
       const c = await customerApi<Customer>("auth/me");
-      const [b, r, o] = await Promise.all([
+      const [b, r, o, n] = await Promise.all([
         customerApi<Booking[]>("bookings"),
         customerApi<BookingRequest[]>("bookings/requests"),
         customerApi<CustomerOffer[]>("bookings/offers"),
+        customerApi<{ unread: number }>("bookings/notifications"),
       ]);
+      setUnread(n.unread);
       setCustomer(c);
       setBookings(b);
       setRequests(r);
@@ -316,7 +322,8 @@ export default function CustomerCabinet({
     );
   if (cancellationView && b)
     return <CustomerCancellation key={b.id} booking={b} locale={l} go={go} />;
-  if (paymentView && b) return <CustomerPayments key={b.id} booking={b} locale={l} go={go} />;
+  if (paymentView && b)
+    return <CustomerPayments key={b.id} booking={b} locale={l} go={go} />;
   const account = (
     <div className="cc-account">
       <UserRound size={28} />
@@ -350,12 +357,16 @@ export default function CustomerCabinet({
     <section
       className={
         "cabinet " +
-        (bookingId && bookingId !== "account" ? "cc-detail" : "cc-overview")
+        (bookingId && bookingId !== "account" && bookingId !== "notifications"
+          ? "cc-detail"
+          : "cc-overview")
       }
     >
       <div className="cc-container">
         {alerts}
-        {!bookingId || bookingId === "account" ? (
+        {!bookingId ||
+        bookingId === "account" ||
+        bookingId === "notifications" ? (
           <div className="cc-account-grid">
             <aside className="cc-sidebar">
               <nav
@@ -385,6 +396,18 @@ export default function CustomerCabinet({
                   </>,
                   bookingId === "account" ? "active" : "",
                 )}
+                {link(
+                  "/trips/notifications",
+                  t(
+                    "Notifications",
+                    "\u0423\u0432\u0435\u0434\u043e\u043c\u043b\u0435\u043d\u0438\u044f",
+                    "Bildiri\u015fl\u0259r",
+                  ) +
+                    " (" +
+                    unread +
+                    ")",
+                  bookingId === "notifications" ? "active" : "",
+                )}
               </nav>
               <button
                 className="cc-text"
@@ -410,7 +433,13 @@ export default function CustomerCabinet({
               </button>
             </aside>
             <div className="cc-content">
-              {bookingId === "account" ? (
+              {bookingId === "notifications" ? (
+                <CustomerNotifications
+                  locale={l}
+                  go={go}
+                  onUnreadChange={setUnread}
+                />
+              ) : bookingId === "account" ? (
                 <>
                   <h1>{t("Your account", "Ваш аккаунт", "Hesabın")}</h1>
                   {account}
@@ -993,7 +1022,12 @@ export default function CustomerCabinet({
                     {t("Documents", "Документы", "Sənədlər")}
                   </h2>
                   <CustomerContract key={b.id} bookingId={b.id} locale={l} />
-                  <button className="cc-outline" onClick={()=>go("/trips/"+b.id+"/payments")}>{t("Payments","Платежи","Ödənişlər")}</button>
+                  <button
+                    className="cc-outline"
+                    onClick={() => go("/trips/" + b.id + "/payments")}
+                  >
+                    {t("Payments", "Платежи", "Ödənişlər")}
+                  </button>
                 </section>
               </div>
               <aside className="cc-summary">

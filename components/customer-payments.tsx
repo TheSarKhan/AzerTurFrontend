@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import CustomerRevisedPlan from "./customer-revised-plan";
 import {
   ArrowLeft,
   Car,
@@ -39,6 +40,7 @@ type Context = {
   } | null;
   requests: Request[];
   paidMinor: number;
+  receivedMinor?:number;
   paymentBlocked: boolean;
 };
 export default function CustomerPayments({
@@ -140,6 +142,15 @@ export default function CustomerPayments({
           sizes="100vw"
         />
       </div>
+      <CustomerRevisedPlan
+        bookingId={booking.id}
+        locale={l}
+        onAccepted={() => {
+          customerApi<Context>("bookings/" + booking.id + "/payment-context")
+            .then(setData)
+            .catch(() => setError("Please refresh payments."));
+        }}
+      />
       {loading ? (
         <p role="status">{t("Loading…", "Загрузка…", "Yüklənir…")}</p>
       ) : error ? (
@@ -206,6 +217,7 @@ export default function CustomerPayments({
                 )}
               </p>
             )}
+            {data.receivedMinor!==undefined&&data.receivedMinor!==data.paidMinor&&<p className="pay-notice">{t("The payment history includes your original deposit. The revised balance covers funds allocated to active services after cancellation.","История содержит первоначальный депозит. Новый остаток учитывает средства на действующие услуги после отмены.","Ödəniş tarixçəsində ilkin beh də var. Yenilənmiş qalıq ləğvdən sonra aktiv xidmətlərə ayrılan məbləği nəzərə alır.")}</p>}
             <div className="pay-card">
               <h2>
                 {t(
@@ -270,7 +282,7 @@ export default function CustomerPayments({
                 <strong>{fmt(data.offer.total * 100)}</strong>
               </div>
               <div className="pay-row">
-                <span>{t("Paid", "Оплачено", "Ödənilib")}</span>
+                <span>{data.receivedMinor!==undefined&&data.receivedMinor!==data.paidMinor?t("Received for active services","Получено за действующие услуги","Aktiv xidmətlər üzrə alınıb"):t("Paid", "Оплачено", "Ödənilib")}</span>
                 <strong>{fmt(data.paidMinor)}</strong>
               </div>
               <div className="pay-row">
@@ -365,7 +377,7 @@ export default function CustomerPayments({
                 <strong>{fmt(data.offer.total * 100)}</strong>
               </div>
               <div className="pay-row">
-                <span>{t("Paid", "Оплачено", "Ödənilib")}</span>
+                <span>{data.receivedMinor!==undefined&&data.receivedMinor!==data.paidMinor?t("Received for active services","Получено за действующие услуги","Aktiv xidmətlər üzrə alınıb"):t("Paid", "Оплачено", "Ödənilib")}</span>
                 <strong>{fmt(data.paidMinor)}</strong>
               </div>
               <div className="pay-row">
