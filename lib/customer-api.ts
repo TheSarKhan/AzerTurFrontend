@@ -1,5 +1,6 @@
 export type Customer = {
   id: string;
+  emailVerified: boolean;
   email: string;
   name: string;
   locale: "en" | "ru" | "az";

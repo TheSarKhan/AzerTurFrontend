@@ -40,7 +40,7 @@ type Context = {
   } | null;
   requests: Request[];
   paidMinor: number;
-  receivedMinor?:number;
+  receivedMinor?: number;
   paymentBlocked: boolean;
 };
 export default function CustomerPayments({
@@ -89,7 +89,7 @@ export default function CustomerPayments({
   const active =
     data?.requests.filter(
       (r) =>
-        r.contract_id === data.contract?.id &&
+        (r.status === "PAID" || r.contract_id === data.contract?.id) &&
         r.status !== "CANCELLED" &&
         (!data.paymentBlocked || r.status === "PAID"),
     ) || [];
@@ -217,7 +217,16 @@ export default function CustomerPayments({
                 )}
               </p>
             )}
-            {data.receivedMinor!==undefined&&data.receivedMinor!==data.paidMinor&&<p className="pay-notice">{t("The payment history includes your original deposit. The revised balance covers funds allocated to active services after cancellation.","История содержит первоначальный депозит. Новый остаток учитывает средства на действующие услуги после отмены.","Ödəniş tarixçəsində ilkin beh də var. Yenilənmiş qalıq ləğvdən sonra aktiv xidmətlərə ayrılan məbləği nəzərə alır.")}</p>}
+            {data.receivedMinor !== undefined &&
+              data.receivedMinor !== data.paidMinor && (
+                <p className="pay-notice">
+                  {t(
+                    "The payment history includes your original deposit. The revised balance covers funds allocated to active services after service changes.",
+                    "История содержит первоначальный депозит. Новый остаток учитывает средства на действующие услуги после изменений услуг.",
+                    "Ödəniş tarixçəsində ilkin beh də var. Yenilənmiş qalıq xidmət dəyişikliklərindən sonra aktiv xidmətlərə ayrılan məbləği nəzərə alır.",
+                  )}
+                </p>
+              )}
             <div className="pay-card">
               <h2>
                 {t(
@@ -282,7 +291,16 @@ export default function CustomerPayments({
                 <strong>{fmt(data.offer.total * 100)}</strong>
               </div>
               <div className="pay-row">
-                <span>{data.receivedMinor!==undefined&&data.receivedMinor!==data.paidMinor?t("Received for active services","Получено за действующие услуги","Aktiv xidmətlər üzrə alınıb"):t("Paid", "Оплачено", "Ödənilib")}</span>
+                <span>
+                  {data.receivedMinor !== undefined &&
+                  data.receivedMinor !== data.paidMinor
+                    ? t(
+                        "Received for active services",
+                        "Получено за действующие услуги",
+                        "Aktiv xidmətlər üzrə alınıb",
+                      )
+                    : t("Paid", "Оплачено", "Ödənilib")}
+                </span>
                 <strong>{fmt(data.paidMinor)}</strong>
               </div>
               <div className="pay-row">
@@ -377,7 +395,16 @@ export default function CustomerPayments({
                 <strong>{fmt(data.offer.total * 100)}</strong>
               </div>
               <div className="pay-row">
-                <span>{data.receivedMinor!==undefined&&data.receivedMinor!==data.paidMinor?t("Received for active services","Получено за действующие услуги","Aktiv xidmətlər üzrə alınıb"):t("Paid", "Оплачено", "Ödənilib")}</span>
+                <span>
+                  {data.receivedMinor !== undefined &&
+                  data.receivedMinor !== data.paidMinor
+                    ? t(
+                        "Received for active services",
+                        "Получено за действующие услуги",
+                        "Aktiv xidmətlər üzrə alınıb",
+                      )
+                    : t("Paid", "Оплачено", "Ödənilib")}
+                </span>
                 <strong>{fmt(data.paidMinor)}</strong>
               </div>
               <div className="pay-row">
