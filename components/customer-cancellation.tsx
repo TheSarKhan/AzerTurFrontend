@@ -1,4 +1,5 @@
 "use client";
+import { refundState } from "./refund-state";
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import {
@@ -58,6 +59,7 @@ type Update = {
   unaffectedMinor?: number;
   lines?: Line[];
   refundStatus?: string;
+  refundMessage?: string;
 };
 const icons = {
   transport: Car,
@@ -419,11 +421,7 @@ export default function CustomerCancellation({
                           "Возврат не предусмотрен. Решение по отмене принято.",
                           "Geri ödəniş nəzərdə tutulmur. Ləğv qərarı tamamlanıb.",
                         )
-                      : t(
-                          "We will update you when the refund has been processed.",
-                          "Мы сообщим, когда возврат будет обработан.",
-                          "Geri ödəniş emal olunduqda məlumat verəcəyik.",
-                        )}
+                      : refundState(l, latest.refundStatus)}
               </p>
               {updates.length > 1 && (
                 <details>
@@ -511,11 +509,7 @@ export default function CustomerCancellation({
                     </dl>
                     <p>
                       {latest.refundMinor > 0
-                        ? t(
-                            "Transfer not completed.",
-                            "Перевод не завершён.",
-                            "Pul köçürülməyib.",
-                          )
+                        ? refundState(l, latest.refundStatus)
                         : t(
                             "No refund is due for this cancellation.",
                             "Возврат по этой отмене не предусмотрен.",
@@ -537,6 +531,7 @@ export default function CustomerCancellation({
                 <h2>
                   {t("Refund progress", "Ход возврата", "Geri ödənişin gedişi")}
                 </h2>
+                {latest.refundMessage && <p>{latest.refundMessage}</p>}
                 <ol className="cancel-timeline">
                   <li className="done">
                     {t("Request received", "Запрос получен", "Sorğu alınıb")}
@@ -562,7 +557,7 @@ export default function CustomerCancellation({
                           "Обработка возврата",
                           "Geri ödənişin emalı",
                         )}
-                        <small>{t("Pending", "Ожидается", "Gözlənilir")}</small>
+                        <small>{refundState(l, latest.refundStatus)}</small>
                       </li>
                       <li>
                         {t(
@@ -570,9 +565,7 @@ export default function CustomerCancellation({
                           "Деньги возвращены",
                           "Pul qaytarılıb",
                         )}
-                        <small>
-                          {t("Not completed", "Не выполнено", "Tamamlanmayıb")}
-                        </small>
+                        <small>{refundState(l, latest.refundStatus)}</small>
                       </li>
                     </>
                   )}
@@ -910,6 +903,7 @@ export default function CustomerCancellation({
                     "Ləğv necə işləyir",
                   )}
                 </h2>
+                {latest.refundMessage && <p>{latest.refundMessage}</p>}
                 <ol className="cancel-timeline">
                   <li>
                     {t("Request received", "Запрос получен", "Sorğu alınır")}
