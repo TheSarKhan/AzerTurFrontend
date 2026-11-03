@@ -47,6 +47,26 @@ export default function CustomerNotifications({
     void load();
   }, []);
   const names: Record<string, string> = {
+    AMENDMENT_SENT: t(
+      "A change proposal is ready",
+      "Предложение изменения готово",
+      "Dəyişiklik təklifi hazırdır",
+    ),
+    AMENDMENT_ACCEPTED: t(
+      "Your changes are confirmed",
+      "Изменения подтверждены",
+      "Dəyişikliklər təsdiqlənib",
+    ),
+    AMENDMENT_DECLINED: t(
+      "Change proposal declined",
+      "Предложение отклонено",
+      "Dəyişiklik təklifi rədd edilib",
+    ),
+    AMENDMENT_REFUND_UPDATED: t(
+      "Refund tracking updated",
+      "Статус возврата обновлён",
+      "Geri qaytarılmanın vəziyyəti yenilənib",
+    ),
     OFFER_SENT: t(
       "Your travel offer is ready",
       "Предложение поездки готово",
@@ -139,12 +159,14 @@ export default function CustomerNotifications({
                   go(
                     "/trips/" +
                       n.booking_id +
-                      (n.event === "REVISED_PLAN_SENT" ||
-                      n.event === "PAYMENT_REQUESTED"
-                        ? "/payments"
-                        : n.event === "REFUND_UPDATED"
-                          ? "/cancellation"
-                          : ""),
+                      (n.event.startsWith("AMENDMENT_")
+                        ? "/changes"
+                        : n.event === "REVISED_PLAN_SENT" ||
+                            n.event === "PAYMENT_REQUESTED"
+                          ? "/payments"
+                          : n.event === "REFUND_UPDATED"
+                            ? "/cancellation"
+                            : ""),
                   );
                 else await load();
               } catch {

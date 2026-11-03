@@ -60,9 +60,9 @@ export default function CustomerRevisedPlan({
     <section className="crp">
       <h2>
         {t(
-          "Revised plan after cancellation",
-          "Обновлённый план после отмены",
-          "Ləğvdən sonra yenilənmiş plan",
+          "Updated payment plan",
+          "Обновлённый план оплаты",
+          "Yenilənmiş ödəniş planı",
         )}{" "}
         · v{plan.version}
       </h2>

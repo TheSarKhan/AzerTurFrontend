@@ -1,4 +1,6 @@
 "use client";
+import CustomerAmendments from "./customer-amendments";
+import AccountSecurity from "./account-security";
 import CustomerNotifications from "./customer-notifications";
 import CustomerPayments from "./customer-payments";
 import CustomerCancellation from "./customer-cancellation";
@@ -52,6 +54,7 @@ type Props = {
   bookingId?: string;
   cancellationView?: boolean;
   paymentView?: boolean;
+  amendmentView?: boolean;
   renderAuth: (next: string) => ReactNode;
 };
 export default function CustomerCabinet({
@@ -60,6 +63,7 @@ export default function CustomerCabinet({
   bookingId,
   cancellationView,
   paymentView,
+  amendmentView,
   renderAuth,
 }: Props) {
   const t = (en: string, ru: string, az: string) =>
@@ -84,10 +88,22 @@ export default function CustomerCabinet({
   const next = bookingId
     ? "/trips/" +
       bookingId +
-      (cancellationView ? "/cancellation" : paymentView ? "/payments" : "")
+      (amendmentView
+        ? "/changes"
+        : cancellationView
+          ? "/cancellation"
+          : paymentView
+            ? "/payments"
+            : "")
     : "/trips";
   function problem(e: unknown) {
     const code = e instanceof ApiError ? e.code : "";
+    if (code === "EMAIL_VERIFICATION_REQUIRED")
+      return t(
+        "Verify your email in Account before continuing.",
+        "Подтвердите email в аккаунте.",
+        "Davam etmək üçün Hesab bölməsində emailini təsdiqlə.",
+      );
     return code === "REQUEST_PENDING" || code === "CONFLICT"
       ? t(
           "A request is already pending. Refresh to see its status.",
@@ -320,10 +336,39 @@ export default function CustomerCabinet({
         {refresh}
       </section>
     );
+  const verificationPrompt = !customer.emailVerified && (
+    <div className="container verification-prompt" role="status">
+      {t(
+        "Verify your email before sending requests or accepting documents.",
+        "Подтвердите email перед отправкой запросов и принятием документов.",
+        "Sorğu göndərmək və sənədləri təsdiqləmək üçün emailini təsdiqlə.",
+      )}{" "}
+      <a href={"/" + l + "/trips/account"}>
+        {t("Open account", "Открыть аккаунт", "Hesabı aç")}
+      </a>
+    </div>
+  );
+  if (amendmentView && b)
+    return (
+      <>
+        {verificationPrompt}
+        <CustomerAmendments key={b.id} booking={b} locale={l} go={go} />
+      </>
+    );
   if (cancellationView && b)
-    return <CustomerCancellation key={b.id} booking={b} locale={l} go={go} />;
+    return (
+      <>
+        {verificationPrompt}
+        <CustomerCancellation key={b.id} booking={b} locale={l} go={go} />
+      </>
+    );
   if (paymentView && b)
-    return <CustomerPayments key={b.id} booking={b} locale={l} go={go} />;
+    return (
+      <>
+        {verificationPrompt}
+        <CustomerPayments key={b.id} booking={b} locale={l} go={go} />
+      </>
+    );
   const account = (
     <div className="cc-account">
       <UserRound size={28} />
@@ -363,6 +408,7 @@ export default function CustomerCabinet({
       }
     >
       <div className="cc-container">
+        {bookingId !== "account" && verificationPrompt}
         {alerts}
         {!bookingId ||
         bookingId === "account" ||
@@ -443,6 +489,9 @@ export default function CustomerCabinet({
                 <>
                   <h1>{t("Your account", "Ваш аккаунт", "Hesabın")}</h1>
                   {account}
+                  {customer && (
+                    <AccountSecurity customer={customer} locale={l} />
+                  )}
                   {link(
                     "/trips",
                     t(
@@ -1012,6 +1061,16 @@ export default function CustomerCabinet({
                       "Cancellation & refund details",
                       "Отмена и возврат",
                       "Ləğv və geri ödəniş",
+                    )}
+                  </button>
+                  <button
+                    className="cc-text"
+                    onClick={() => go("/trips/" + b.id + "/changes")}
+                  >
+                    {t(
+                      "Review change proposals",
+                      "Предложения по изменению",
+                      "Dəyişiklik təkliflərinə bax",
                     )}
                   </button>
                   <p className="cc-caption">{cancellation}</p>

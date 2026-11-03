@@ -1,4 +1,5 @@
 "use client";
+import AccountLink from "./account-link";
 import Homepage from "./homepage";
 import TripPlanner from "./trip-planner";
 import { TourCatalog, TourDetail } from "./tour-experience";
@@ -1264,7 +1265,10 @@ export default function Site({ initialPath }: { initialPath: string }) {
         bookingId={route.split("/")[1]}
         cancellationView={route.split("/")[2] === "cancellation"}
         paymentView={route.split("/")[2] === "payments"}
+        amendmentView={route.split("/")[2] === "changes"}
       />
+    ) : route === "account/verify" || route === "account/reset" ? (
+      <AccountLink locale={l} reset={route === "account/reset"} />
     ) : route === "services" ? (
       <Services />
     ) : route === "credits" ? (

@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 const cookie = "azertur_session";
-const paths =
-  /^(auth\/(register|login|logout|me)|bookings(\/(requests|offers|notifications(\/(read-all|push-token|[0-9a-f-]{36}\/read))?)|\/[0-9a-f-]{36}\/(requests|revised-plan|payment-context|cancellation|cancellation-updates(\/[0-9a-f-]{36}\/pdf)?|demo-payment|contract(\/[0-9a-f-]{36}\/(pdf|accept))?))?)$/;
+const paths = new RegExp(
+  String.raw`^(auth\/(register|login|logout|me|forgot-password|reset-password|verify-email|email-verification/request|logout-all|sessions(/(revoke-others|[0-9a-f-]{36}/revoke))?)|bookings(\/(requests|offers|notifications(\/(read-all|push-token|[0-9a-f-]{36}\/read))?)|\/[0-9a-f-]{36}\/(requests|amendments(/(accept|decline|[0-9a-f-]{36}/(pdf|base-pdf)))?|revised-plan|payment-context|cancellation|cancellation-updates(\/[0-9a-f-]{36}\/pdf)?|demo-payment|contract(\/[0-9a-f-]{36}\/(pdf|accept))?))?)$`,
+);
 async function proxy(
   request: NextRequest,
   context: { params: Promise<{ path: string[] }> },
@@ -21,8 +22,15 @@ async function proxy(
       return NextResponse.json({ error: "JSON_REQUIRED" }, { status: 415 });
   }
   const isAuth = path === "auth/register" || path === "auth/login";
+  const isPublic =
+    isAuth ||
+    [
+      "auth/forgot-password",
+      "auth/reset-password",
+      "auth/verify-email",
+    ].includes(path);
   const token = request.cookies.get(cookie)?.value;
-  if (!isAuth && !token)
+  if (!isPublic && !token)
     return NextResponse.json({ error: "UNAUTHENTICATED" }, { status: 401 });
   let body: string | undefined;
   if (request.method === "POST") {
@@ -52,7 +60,10 @@ async function proxy(
         method: request.method,
         headers: {
           "Content-Type": "application/json",
-          ...(!isAuth && token ? { Authorization: "Bearer " + token } : {}),
+          "User-Agent": (
+            request.headers.get("user-agent") || "Other device"
+          ).slice(0, 512),
+          ...(!isPublic && token ? { Authorization: "Bearer " + token } : {}),
           ...(request.headers.has("idempotency-key")
             ? { "Idempotency-Key": request.headers.get("idempotency-key")! }
             : {}),
@@ -62,7 +73,7 @@ async function proxy(
         signal: AbortSignal.timeout(10000),
       },
     );
-    if (path.endsWith("/pdf") && upstream.ok) {
+    if ((path.endsWith("/pdf") || path.endsWith("/base-pdf")) && upstream.ok) {
       return new NextResponse(await upstream.arrayBuffer(), {
         status: upstream.status,
         headers: {
@@ -95,7 +106,13 @@ async function proxy(
         path: "/",
         expires: new Date(session.expires),
       });
-    if (path === "auth/logout" || (upstream.status === 401 && !isAuth))
+    if (
+      (["auth/logout", "auth/logout-all", "auth/reset-password"].includes(
+        path,
+      ) &&
+        upstream.ok) ||
+      (upstream.status === 401 && !isPublic)
+    )
       result.cookies.set(cookie, "", {
         httpOnly: true,
         sameSite: "lax",
