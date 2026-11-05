@@ -32,12 +32,12 @@ type Member = { name: string; role: string; photo: string };
 // Drop a square photo (about 600×600) at each `photo` path below, e.g.
 // public/pitch/team/serxan.jpg. Until the file exists, the initial is shown.
 const TEAM: Member[] = [
-  { name: "Sərxan Babayev", role: "Product Owner", photo: "/pitch/team/serxan.jpg" },
-  { name: "Ulker Əliyeva", role: "QA", photo: "/pitch/team/ulker.jpg" },
-  { name: "Pərvanə Əliyeva", role: "Design", photo: "/pitch/team/pervane.jpg" },
-  { name: "Bəhruz Sultanov", role: "Tourism", photo: "/pitch/team/behruz.jpg" },
+  { name: "Sarkhan Babayev", role: "Product Owner", photo: "/pitch/team/serxan.jpg" },
+  { name: "Ulkar Aliyeva", role: "QA", photo: "/pitch/team/ulker.jpg" },
+  { name: "Parvana Aliyeva", role: "Design", photo: "/pitch/team/pervane.jpg" },
+  { name: "Bahruz Sultanov", role: "Tourism", photo: "/pitch/team/behruz.jpg" },
   { name: "Zamiq Quliyev", role: "Tourism", photo: "/pitch/team/zamiq.jpg" },
-  { name: "Ayxan Hacıyev", role: "Business", photo: "/pitch/team/ayxan.jpg" },
+  { name: "Aykhan Hajiyev", role: "Business", photo: "/pitch/team/ayxan.jpg" },
 ];
 
 const ROLES = [
