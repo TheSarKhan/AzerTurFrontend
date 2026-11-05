@@ -551,7 +551,7 @@ function Thanks() {
         </Rise>
       </div>
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img className="pd-photo pd-photo-wide" src="/pitch/thanks.jpg" alt="Hikers on a mountain trail in Azerbaijan" />
+      <img className="pd-photo pd-photo-wide" src="/pitch/thanks.jpg" alt="A laptop and a phone showing a travel app on a terrace table with tea, overlooking a mountain village in Azerbaijan" />
     </>
   );
 }
