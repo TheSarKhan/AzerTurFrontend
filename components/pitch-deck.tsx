@@ -282,7 +282,7 @@ function Cover() {
         </Rise>
       </div>
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img className="pd-photo pd-photo-wide" src="/pitch/cover.jpg" alt="Mountain village in the Caucasus at sunset" />
+      <img className="pd-photo pd-photo-wide" src="/pitch/cover.jpg" alt="A traveler using a travel app on their phone above a mountain village in Azerbaijan" />
     </>
   );
 }
