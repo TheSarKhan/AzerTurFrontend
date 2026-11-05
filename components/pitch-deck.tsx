@@ -123,10 +123,15 @@ const SOLUTIONS = [
 ];
 
 const STEPS = [
-  { icon: MapPinned, title: "Discover events nearby", text: "See what is on in your city or close to you." },
-  { icon: Route, title: "Choose a route", text: "Pick a tour or build your own trip." },
-  { icon: Send, title: "Send a request", text: "Add your dates and the services you need." },
-  { icon: FolderOpen, title: "Find your travel documents", text: "Open them in the app when they are ready." },
+  {
+    icon: MapPinned,
+    title: "Discover hidden Azerbaijan",
+    text: ["Lesser-known sights, local flavors and events,", "near you or in any other city."],
+    top: 350,
+  },
+  { icon: Route, title: "Choose a route", text: ["Pick a tour or build your own trip."], top: 496 },
+  { icon: Send, title: "Send a request", text: ["Add your dates and the services you need."], top: 608 },
+  { icon: FolderOpen, title: "Find your travel documents", text: ["Open them in the app when they are ready."], top: 720 },
 ];
 
 const MARKET = [
@@ -341,11 +346,18 @@ function Product() {
         <br />
         travel documents
       </Rise>
-      {STEPS.map(({ icon: Icon, title, text }, i) => (
-        <Rise n={1 + i} key={title} className="pd-step" style={{ top: 350 + 112 * i }}>
+      {STEPS.map(({ icon: Icon, title, text, top }, i) => (
+        <Rise n={1 + i} key={title} className="pd-step" style={{ top }}>
           <Icon size={38} strokeWidth={1.8} className="pd-issue-icon" aria-hidden="true" />
           <h3>{title}</h3>
-          <p>{text}</p>
+          <p>
+            {text.map((line, j) => (
+              <span key={j}>
+                {j > 0 ? <br /> : null}
+                {line}
+              </span>
+            ))}
+          </p>
         </Rise>
       ))}
       <div className="pd-rule" />

@@ -341,7 +341,7 @@
   left: 156px;
   top: 50px;
   font-size: 28px;
-  line-height: 1;
+  line-height: 34px;
   color: var(--muted);
   white-space: nowrap;
 }
