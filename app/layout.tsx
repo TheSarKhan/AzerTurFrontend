@@ -4,6 +4,7 @@ import "./homepage.css";
 import "./tours.css";
 import "./planner.css";
 import "./cabinet.css";
+import "./events.css";
 export const metadata: Metadata = {
   title: "Azertur — Take the scenic route",
   description:

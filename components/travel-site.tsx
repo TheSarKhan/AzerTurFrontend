@@ -9,6 +9,7 @@ import {
   BookingCheckout,
   CustomerTrips,
 } from "./customer-portal";
+import { EventsPage, EventDetail } from "./events-page";
 import {
   useState,
   useEffect,
@@ -1201,7 +1202,10 @@ export default function Site({ initialPath }: { initialPath: string }) {
           services: tr("Services", "Услуги"),
           faq: "FAQ",
           about: tr("Our story", "О нас"),
+          events: homeText(["Events", "События", "Tədbirlər"], l),
         }[route];
+    // An event page sets its own title once the event has loaded.
+    if (route.startsWith("events/")) return;
     document.title =
       (title ||
         (route === ""
@@ -1244,6 +1248,15 @@ export default function Site({ initialPath }: { initialPath: string }) {
     } catch {}
     setCookie(false);
   }
+  // Pages that use the new homepage-style shell and header.
+  const homeShell =
+    route === "" ||
+    route.startsWith("tours") ||
+    route === "plan" ||
+    route === "trips" ||
+    route.startsWith("trips/") ||
+    route === "events" ||
+    route.startsWith("events/");
   let content: ReactNode =
     route === "" ? (
       <Home />
@@ -1275,6 +1288,10 @@ export default function Site({ initialPath }: { initialPath: string }) {
         "legal/cancellation",
       ].includes(route) ? (
       <Info type={route} />
+    ) : route === "events" ? (
+      <EventsPage locale={l} go={go} />
+    ) : route.startsWith("events/") ? (
+      <EventDetail locale={l} slug={route.split("/")[1]} go={go} />
     ) : route === "login" ? (
       <CustomerAuth locale={l} go={go} />
     ) : (
@@ -1284,11 +1301,7 @@ export default function Site({ initialPath }: { initialPath: string }) {
     <Context.Provider value={env}>
       <div
         className={
-          route === "" ||
-          route.startsWith("tours") ||
-          route === "plan" ||
-          route === "trips" ||
-          route.startsWith("trips/")
+          homeShell
             ? "homepage-shell" +
               (route.startsWith("tours") ? " tours-shell" : "")
             : "site-shell"
@@ -1303,11 +1316,7 @@ export default function Site({ initialPath }: { initialPath: string }) {
               <Logo />
             </Link>
             <nav aria-label={tr("Main navigation", "Главная навигация")}>
-              {route === "" ||
-              route.startsWith("tours") ||
-              route === "plan" ||
-              route === "trips" ||
-              route.startsWith("trips/") ? (
+              {homeShell ? (
                 <>
                   <Link
                     to="/tours"
@@ -1331,6 +1340,12 @@ export default function Site({ initialPath }: { initialPath: string }) {
                       l,
                     )}
                   </Link>
+                  <Link
+                    to="/events"
+                    className={route.startsWith("events") ? "active" : ""}
+                  >
+                    {homeText(["Events", "События", "Tədbirlər"], l)}
+                  </Link>
                   <Link to="/about">
                     {homeText(["About us", "О нас", "Haqqımızda"], l)}
                   </Link>
@@ -1345,6 +1360,9 @@ export default function Site({ initialPath }: { initialPath: string }) {
                   </Link>
                   <Link to="/plan" className={route === "plan" ? "active" : ""}>
                     {tr("Build your trip", "Создать маршрут")}
+                  </Link>
+                  <Link to="/events">
+                    {homeText(["Events", "События", "Tədbirlər"], l)}
                   </Link>
                   <Link to="/how-it-works">
                     {tr("How it works", "Как это работает")}
@@ -1378,11 +1396,7 @@ export default function Site({ initialPath }: { initialPath: string }) {
                 <option value="az">AZ</option>
               </select>
               <Link to="/trips" className="header-trip">
-                {route === "" ||
-                route.startsWith("tours") ||
-                route === "plan" ||
-                route === "trips" ||
-                route.startsWith("trips/")
+                {homeShell
                   ? homeText(["My account", "Мой аккаунт", "Hesabım"], l)
                   : tr("My trips", "Мои поездки")}
                 <ArrowUpRight size={16} />
@@ -1419,6 +1433,9 @@ export default function Site({ initialPath }: { initialPath: string }) {
                 <Link to="/tours">{tr("Journeys", "Маршруты")}</Link>
                 <Link to="/plan">
                   {tr("Build your trip", "Создать маршрут")}
+                </Link>
+                <Link to="/events">
+                  {homeText(["Events", "События", "Tədbirlər"], l)}
                 </Link>
                 <Link to="/services">
                   {tr("Services & prices", "Услуги и цены")}
