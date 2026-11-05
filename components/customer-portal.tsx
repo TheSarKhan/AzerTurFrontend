@@ -1,6 +1,7 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import CustomerCabinet from "./customer-cabinet";
+import { AuthShowcase } from "./auth-showcase";
 import { ArrowUpRight } from "lucide-react";
 import {
   customerApi,
@@ -27,6 +28,26 @@ const text = (l: Locale, en: string, ru: string, az: string) =>
 function errorMessage(error: unknown, l: Locale) {
   const code = error instanceof ApiError ? error.code : "";
   const messages: Record<string, [string, string, string]> = {
+    INVALID_GOOGLE_TOKEN: [
+      "Google sign-in could not be verified. Please try again.",
+      "Не удалось подтвердить вход через Google. Повторите попытку.",
+      "Google ilə giriş təsdiqlənmədi. Yenidən cəhd edin.",
+    ],
+    GOOGLE_EMAIL_NOT_VERIFIED: [
+      "Your Google email address is not verified.",
+      "Email в вашем аккаунте Google не подтверждён.",
+      "Google hesabınızın email ünvanı təsdiqlənməyib.",
+    ],
+    GOOGLE_UNAVAILABLE: [
+      "Google is not reachable right now. Try again shortly or use your password.",
+      "Google сейчас недоступен. Повторите позже или войдите по паролю.",
+      "Google hazırda əlçatmazdır. Bir az sonra cəhd edin və ya şifrə ilə daxil olun.",
+    ],
+    EMAIL_VERIFICATION_REQUIRED: [
+      "Verify your email in Account before continuing.",
+      "Подтвердите email в аккаунте.",
+      "Davam etmək üçün Hesab bölməsində email ünvanını təsdiqlə.",
+    ],
     INVALID_CREDENTIALS: [
       "Email or password is incorrect.",
       "Неверный email или пароль.",
@@ -78,6 +99,95 @@ function errorMessage(error: unknown, l: Locale) {
         "Sorğu tamamlanmadı. Məlumatları yoxlayıb yenidən cəhd edin.",
       );
 }
+type GoogleConfig = { enabled: boolean; webClientId: string };
+declare global {
+  interface Window {
+    google?: {
+      accounts: {
+        id: {
+          initialize: (o: {
+            client_id: string;
+            callback: (r: { credential: string }) => void;
+            use_fedcm_for_prompt?: boolean;
+          }) => void;
+          renderButton: (el: HTMLElement, o: Record<string, unknown>) => void;
+        };
+      };
+    };
+  }
+}
+/** Hidden until the API reports a configured Google client ID. */
+function GoogleButton({
+  locale: l,
+  onCredential,
+}: {
+  locale: Locale;
+  onCredential: (credential: string) => void;
+}) {
+  const [config, setConfig] = useState<GoogleConfig | null>(null),
+    [node, setNode] = useState<HTMLDivElement | null>(null),
+    callback = useRef(onCredential);
+  callback.current = onCredential;
+  useEffect(() => {
+    let active = true;
+    customerApi<GoogleConfig>("auth/google/config")
+      .then((c) => active && c.enabled && c.webClientId && setConfig(c))
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
+  useEffect(() => {
+    if (!config || !node) return;
+    let cancelled = false;
+    const render = () => {
+      const gsi = window.google?.accounts.id;
+      if (cancelled || !gsi) return;
+      gsi.initialize({
+        client_id: config.webClientId,
+        callback: (r) => callback.current(r.credential),
+      });
+      gsi.renderButton(node, {
+        type: "standard",
+        theme: "outline",
+        size: "large",
+        text: "continue_with",
+        shape: "rectangular",
+        logo_alignment: "left",
+        width: Math.min(400, Math.max(240, node.clientWidth)),
+        locale: l,
+      });
+    };
+    if (window.google?.accounts) render();
+    else {
+      let script = document.querySelector<HTMLScriptElement>("script[data-gsi]");
+      if (!script) {
+        script = document.createElement("script");
+        script.src = "https://accounts.google.com/gsi/client?hl=" + l;
+        script.async = true;
+        script.dataset.gsi = "1";
+        document.head.appendChild(script);
+      }
+      script.addEventListener("load", render);
+      return () => {
+        cancelled = true;
+        script.removeEventListener("load", render);
+      };
+    }
+    return () => {
+      cancelled = true;
+    };
+  }, [config, node, l]);
+  if (!config) return null;
+  return (
+    <div className="auth-google">
+      <div ref={setNode} className="auth-google-button" />
+      <p className="auth-or">
+        <span>{text(l, "or", "или", "və ya")}</span>
+      </p>
+    </div>
+  );
+}
 export function CustomerAuth({
   locale: l,
   go,
@@ -87,8 +197,10 @@ export function CustomerAuth({
     [busy, setBusy] = useState(false),
     [error, setError] = useState("");
   const t = (en: string, ru: string, az: string) => text(l, en, ru, az);
+  const finish = (to: string) => window.location.assign("/" + l + to);
   return (
-    <section className="container page-content customer-auth">
+    <section className="auth-split">
+      <div className="auth-panel customer-auth">
       <h1>
         {mode === "login"
           ? t("Welcome back.", "С возвращением.", "Xoş gəlmisiniz.")
@@ -105,6 +217,23 @@ export function CustomerAuth({
           "Rezervasiya sorğusu yaratmaq və idarə etmək üçün qeydiyyat vacibdir.",
         )}
       </p>
+      {mode !== "forgot-password" && (
+        <GoogleButton
+          locale={l}
+          onCredential={async (credential) => {
+            if (busy) return;
+            setBusy(true);
+            setError("");
+            try {
+              await customerApi("auth/google", { credential, locale: l });
+              finish(next);
+            } catch (e) {
+              setError(errorMessage(e, l));
+              setBusy(false);
+            }
+          }}
+        />
+      )}
       <div className="auth-tabs">
         <button
           aria-pressed={mode === "login"}
@@ -207,13 +336,18 @@ export function CustomerAuth({
           <ArrowUpRight size={18} />
         </button>
       </form>
-      <p className="field-help">
-        {t(
-          "Email verification and password recovery will be enabled with the SMTP integration.",
-          "Подтверждение почты и восстановление пароля будут включены после SMTP-интеграции.",
-          "Email təsdiqi və şifrənin bərpası SMTP inteqrasiyası ilə aktivləşdiriləcək.",
-        )}
-      </p>
+      <button
+        className="cc-text"
+        onClick={() => {
+          setMode("forgot-password");
+          setError("");
+          setSent(false);
+        }}
+      >
+        {t("Forgot password?", "Забыли пароль?", "Şifrəni unutmusan?")}
+      </button>
+      </div>
+      <AuthShowcase locale={l} />
     </section>
   );
 }

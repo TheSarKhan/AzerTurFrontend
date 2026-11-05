@@ -177,3 +177,324 @@
 .payment-overlay::backdrop {
   background: #222923bb;
 }
+
+.security-session {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 0;
+  border-bottom: 1px solid #ddd;
+}
+.security-session p {
+  font-size: 13px;
+  color: #64716b;
+}
+.security-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  padding: 24px 0;
+}
+.customer-changes {
+  padding-top: 50px;
+  padding-bottom: 80px;
+}
+.customer-changes header {
+  max-width: 800px;
+  margin: 30px 0;
+}
+.customer-changes h1 {
+  font-size: clamp(34px, 4vw, 58px);
+  letter-spacing: -0.04em;
+}
+.change-layout {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: 24px;
+  margin-top: 24px;
+}
+.change-card {
+  border: 1px solid #dce2dd;
+  border-radius: 5px;
+  background: #fff;
+  padding: 28px;
+  margin-bottom: 24px;
+}
+.change-day {
+  border-top: 1px solid #e2e5e1;
+  padding: 20px 0;
+}
+.change-day span {
+  float: right;
+}
+.change-finance {
+  background: #edf1e9;
+}
+.change-finance > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 14px 0;
+  border-bottom: 1px solid #d4ddd3;
+}
+.change-finance > p {
+  font-size: 14px;
+  color: #526259;
+}
+.change-agree {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.change-agree input {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+.customer-changes select,
+.customer-changes textarea {
+  padding: 12px;
+  border: 1px solid #cbd4ce;
+  display: block;
+  width: 100%;
+  font: inherit;
+}
+.amendment-pdf {
+  width: 100%;
+  height: 560px;
+  border: 1px solid #cbd4ce;
+  margin: 20px 0;
+}
+@media (max-width: 800px) {
+  .change-layout {
+    grid-template-columns: 1fr;
+  }
+  .change-card {
+    padding: 20px;
+  }
+}
+
+.account-security {
+  display: block;
+  margin: 32px 0;
+  padding: 28px;
+  border: 1px solid #d8ded8;
+  background: #fff;
+  border-radius: 5px;
+  max-width: 850px;
+}
+.account-security h2 {
+  font-size: 26px;
+  letter-spacing: -0.03em;
+  margin: 0 0 12px;
+}
+.account-security h3 {
+  margin-top: 32px;
+}
+.account-security > p {
+  max-width: 650px;
+  line-height: 1.6;
+}
+.account-security .button {
+  margin: 16px 0 0;
+}
+.account-security .security-session p {
+  margin: 8px 0;
+}
+.account-security .cc-text {
+  flex-shrink: 0;
+}
+@media (max-width: 600px) {
+  .account-security {
+    padding: 20px;
+  }
+  .security-session {
+    flex-wrap: wrap;
+  }
+}
+
+.cc .account-security h3 {
+  margin: 28px 0 12px;
+}
+.cc .account-security h2 {
+  margin: 0 0 12px;
+}
+.account-security .button {
+  margin-bottom: 8px;
+}
+
+.customer-changes h1 {
+  line-height: 1.12;
+  margin: 16px 0 18px;
+}
+.customer-changes .change-card h2 {
+  font-size: 28px;
+  line-height: 1.2;
+  letter-spacing: -0.035em;
+  margin: 12px 0 16px;
+}
+.customer-changes .change-card h3 {
+  font-size: 22px;
+  margin: 24px 0 14px;
+}
+.customer-changes .change-card p {
+  line-height: 1.6;
+  margin: 10px 0;
+}
+.customer-changes .change-finance h3 {
+  margin-top: 0;
+}
+
+.verification-prompt {
+  margin: 24px auto;
+  padding: 18px 22px;
+  border-left: 3px solid #c2643e;
+  background: #f0ece2;
+  color: #183e30;
+  line-height: 1.6;
+}
+.verification-prompt a {
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+/* Sign-in: form on the left, slow photo showcase on the right. */
+.auth-split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  width: min(1320px, calc(100% - 64px));
+  min-height: min(760px, calc(100dvh - 140px));
+  margin: 32px auto 96px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  overflow: hidden;
+}
+.auth-panel.customer-auth {
+  max-width: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(28px, 5vw, 72px);
+}
+.auth-panel h1 {
+  margin: 0 0 12px;
+  font-size: clamp(34px, 3.4vw, 52px);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+}
+.auth-panel > p {
+  margin: 0 0 4px;
+}
+.auth-panel .auth-tabs {
+  margin: 8px 0 24px;
+}
+.auth-panel form {
+  gap: 16px;
+}
+.auth-panel form .button {
+  justify-content: center;
+}
+.auth-google {
+  margin-top: 20px;
+}
+.auth-google-button {
+  display: flex;
+  justify-content: center;
+  min-height: 44px;
+}
+.auth-or {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 24px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+.auth-or::before,
+.auth-or::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+.auth-showcase {
+  position: relative;
+  overflow: hidden;
+  min-height: 100%;
+  background: #222923;
+}
+.auth-slide {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  animation: auth-fade 28s infinite both;
+  animation-delay: -2s;
+}
+.auth-slide:nth-child(2) { animation-delay: 5s; }
+.auth-slide:nth-child(3) { animation-delay: 12s; }
+.auth-slide:nth-child(4) { animation-delay: 19s; }
+.auth-slide img {
+  object-fit: cover;
+  animation: auth-pan 28s infinite both;
+  animation-delay: inherit;
+}
+.auth-slide::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(20, 26, 21, 0.78), rgba(20, 26, 21, 0) 58%);
+}
+.auth-slide figcaption {
+  position: absolute;
+  z-index: 1;
+  left: clamp(24px, 4vw, 48px);
+  bottom: clamp(88px, 11vw, 124px);
+  color: #fff;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.9;
+}
+.auth-quote {
+  position: absolute;
+  z-index: 2;
+  left: clamp(24px, 4vw, 48px);
+  right: clamp(24px, 4vw, 48px);
+  bottom: clamp(24px, 4vw, 48px);
+  margin: 0;
+  color: #fff;
+  font-size: clamp(22px, 2.4vw, 34px);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+@keyframes auth-fade {
+  0% { opacity: 0; }
+  6% { opacity: 1; }
+  25% { opacity: 1; }
+  32% { opacity: 0; }
+  100% { opacity: 0; }
+}
+@keyframes auth-pan {
+  0% { transform: scale(1) translate(0, 0); }
+  32% { transform: scale(1.14) translate(-2%, -1.5%); }
+  100% { transform: scale(1.14) translate(-2%, -1.5%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .auth-slide:first-child { opacity: 1; }
+}
+@media (max-width: 900px) {
+  .auth-split {
+    grid-template-columns: 1fr;
+    width: calc(100% - 32px);
+    margin: 16px auto 64px;
+  }
+  .auth-showcase {
+    order: -1;
+    min-height: 0;
+    height: 190px;
+  }
+  .auth-quote { display: none; }
+  .auth-slide figcaption { bottom: 20px; }
+}
