@@ -35,7 +35,7 @@ const TEAM: Member[] = [
   { name: "Pervane", role: "Design", photo: "/pitch/team/pervane.jpg" },
   { name: "Behruz", role: "Tourism", photo: "/pitch/team/behruz.jpg" },
   { name: "Zamiq", role: "Tourism", photo: "/pitch/team/zamiq.jpg" },
-  { name: "Ayxan", role: "Tourism", photo: "/pitch/team/ayxan.jpg" },
+  { name: "Ayxan", role: "Business", photo: "/pitch/team/ayxan.jpg" },
 ];
 
 const ROLES = [
@@ -55,6 +55,18 @@ const ROLES = [
     title: "Tourism",
     text: "Designs tours and itineraries, and works with local hotels, guides and drivers to confirm availability.",
   },
+  {
+    title: "Business",
+    text: "Studies the market and customers, and shapes pricing, partnerships and the business model.",
+  },
+];
+// Left edge and width of each role column on the team slide (stage px).
+const ROLE_COLS = [
+  [94, 440],
+  [574, 283],
+  [897, 283],
+  [1220, 283],
+  [1543, 283],
 ];
 
 const PROBLEMS = [
@@ -438,7 +450,7 @@ function Team() {
       <div className="pd-roles">
         <small>WHAT EACH ROLE DOES</small>
         {ROLES.map((r, i) => (
-          <Rise n={8 + i} key={r.title} className="pd-role" style={{ left: 94 + 450 * i }}>
+          <Rise n={8 + i} key={r.title} className="pd-role" style={{ left: ROLE_COLS[i][0], width: ROLE_COLS[i][1] }}>
             <strong>{r.title}</strong>
             <span>{r.text}</span>
           </Rise>

@@ -655,7 +655,6 @@
 .pd-role {
   position: absolute;
   top: 100px;
-  width: 420px;
 }
 .pd-role strong {
   display: block;
@@ -666,8 +665,8 @@
 .pd-role span {
   display: block;
   margin-top: 16px;
-  font-size: 23px;
-  line-height: 1.38;
+  font-size: 22px;
+  line-height: 1.36;
   color: var(--mist);
 }
 
