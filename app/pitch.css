@@ -583,59 +583,92 @@
 .pd-team {
   position: absolute;
   left: 90px;
-  top: 300px;
+  top: 276px;
   width: 1740px;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  grid-auto-rows: 320px;
-  gap: 30px;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 24px;
 }
 .pd-member {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 36px;
-  padding: 0 40px;
+  height: 392px;
+  padding: 34px 16px 0;
   border: 2px solid #dce3d9;
   border-radius: 26px;
   background: #fff;
+  text-align: center;
 }
 .pd-avatar {
-  flex: none;
   display: grid;
   place-items: center;
-  width: 164px;
-  height: 164px;
+  width: 184px;
+  height: 184px;
+  margin-bottom: 26px;
   border-radius: 50%;
   overflow: hidden;
   background: var(--mist);
   color: var(--forest);
+  font-size: 78px;
+  line-height: 1;
+}
+.pd-avatar b {
+  font-weight: 700;
 }
 .pd-avatar img {
+  font-size: 0; /* hide alt text if the file is missing */
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
-.pd-member-text {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  min-width: 0;
-}
-.pd-member-text small {
-  font-size: 22px;
-  line-height: 1;
-  font-weight: 700;
-  color: var(--rust);
-}
-.pd-member-text strong {
-  font-size: 38px;
+.pd-member strong {
+  font-size: 36px;
   line-height: 1.1;
   color: var(--ink);
 }
-.pd-member-text span {
-  font-size: 26px;
-  line-height: 1.2;
-  color: var(--muted);
+.pd-member span {
+  margin-top: 12px;
+  font-size: 23px;
+  line-height: 1.25;
+  font-weight: 700;
+  color: var(--rust);
+}
+.pd-roles {
+  position: absolute;
+  left: 0;
+  top: 730px;
+  width: 1920px;
+  height: 350px;
+  background: var(--forest);
+  color: var(--paper);
+}
+.pd-roles > small {
+  position: absolute;
+  left: 94px;
+  top: 44px;
+  font-size: 23px;
+  line-height: 1;
+  font-weight: 700;
+  color: var(--peach);
+}
+.pd-role {
+  position: absolute;
+  top: 100px;
+  width: 420px;
+}
+.pd-role strong {
+  display: block;
+  white-space: nowrap;
+  font-size: 29px;
+  line-height: 1.1;
+}
+.pd-role span {
+  display: block;
+  margin-top: 16px;
+  font-size: 23px;
+  line-height: 1.38;
+  color: var(--mist);
 }
 
 /* ---------- controls ---------- */

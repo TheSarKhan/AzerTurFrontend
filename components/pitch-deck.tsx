@@ -17,7 +17,6 @@ import {
   Route,
   Send,
   Tickets,
-  User,
 } from "lucide-react";
 
 /* ------------------------------------------------------------------ */
@@ -27,17 +26,35 @@ import {
 const APP_URL = "https://app.aztrip.online";
 const APP_LABEL = "app.aztrip.online";
 
-type Member = { name: string; role: string; photo?: string };
-// Replace with the confirmed names and roles. `photo` is optional: put a
-// square image in /public/pitch/ and set e.g. "/pitch/team-01.jpg".
-// Without one, a neutral silhouette is shown.
+type Member = { name: string; role: string; photo: string };
+// Drop a square photo (about 600×600) at each `photo` path below, e.g.
+// public/pitch/team/serxan.jpg. Until the file exists, the initial is shown.
 const TEAM: Member[] = [
-  { name: "Full name", role: "Role" },
-  { name: "Full name", role: "Role" },
-  { name: "Full name", role: "Role" },
-  { name: "Full name", role: "Role" },
-  { name: "Full name", role: "Role" },
-  { name: "Full name", role: "Role" },
+  { name: "Serxan", role: "Product Owner + Developer", photo: "/pitch/team/serxan.jpg" },
+  { name: "Ulker", role: "QA", photo: "/pitch/team/ulker.jpg" },
+  { name: "Pervane", role: "Design", photo: "/pitch/team/pervane.jpg" },
+  { name: "Behruz", role: "Tourism", photo: "/pitch/team/behruz.jpg" },
+  { name: "Zamiq", role: "Tourism", photo: "/pitch/team/zamiq.jpg" },
+  { name: "Ayxan", role: "Tourism", photo: "/pitch/team/ayxan.jpg" },
+];
+
+const ROLES = [
+  {
+    title: "Product Owner + Developer",
+    text: "Sets the product vision and priorities, and builds the website, mobile app and operator dashboard.",
+  },
+  {
+    title: "QA",
+    text: "Tests each release on web and mobile, so requests, offers and documents work as promised.",
+  },
+  {
+    title: "Design",
+    text: "Shapes the brand and the website and app screens, so planning a trip feels simple.",
+  },
+  {
+    title: "Tourism",
+    text: "Designs tours and itineraries, and works with local hotels, guides and drivers to confirm availability.",
+  },
 ];
 
 const PROBLEMS = [
@@ -379,6 +396,26 @@ function Market() {
   );
 }
 
+function Avatar({ member }: { member: Member }) {
+  const [failed, setFailed] = useState(false);
+  const img = useRef<HTMLImageElement>(null);
+  // The server-rendered <img> can fail before React attaches onError, so check once on mount too.
+  useEffect(() => {
+    const el = img.current;
+    if (el && el.complete && el.naturalWidth === 0) setFailed(true);
+  }, []);
+  return (
+    <div className="pd-avatar">
+      {failed ? (
+        <b aria-hidden="true">{member.name.charAt(0)}</b>
+      ) : (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img ref={img} src={member.photo} alt={member.name} onError={() => setFailed(true)} />
+      )}
+    </div>
+  );
+}
+
 function Team() {
   return (
     <>
@@ -391,20 +428,19 @@ function Team() {
       </Rise>
       <div className="pd-team">
         {TEAM.map((m, i) => (
-          <Rise n={2 + i} key={i} className="pd-member">
-            <div className="pd-avatar">
-              {m.photo ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={m.photo} alt={m.name} />
-              ) : (
-                <User size={64} strokeWidth={1.4} aria-hidden="true" />
-              )}
-            </div>
-            <div className="pd-member-text">
-              <small>{String(i + 1).padStart(2, "0")}</small>
-              <strong>{m.name}</strong>
-              <span>{m.role}</span>
-            </div>
+          <Rise n={2 + i} key={m.name} className="pd-member">
+            <Avatar member={m} />
+            <strong>{m.name}</strong>
+            <span>{m.role}</span>
+          </Rise>
+        ))}
+      </div>
+      <div className="pd-roles">
+        <small>WHAT EACH ROLE DOES</small>
+        {ROLES.map((r, i) => (
+          <Rise n={8 + i} key={r.title} className="pd-role" style={{ left: 94 + 450 * i }}>
+            <strong>{r.title}</strong>
+            <span>{r.text}</span>
           </Rise>
         ))}
       </div>
