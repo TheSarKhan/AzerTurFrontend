@@ -174,30 +174,31 @@
 }
 .pd-cover-left > .pd-cover-qrs.pd-in,
 .pd-thanks-left > .pd-cover-qrs.pd-in {
-  top: 676px;
+  top: 626px;
   display: flex;
   align-items: flex-start;
-  gap: 56px;
+  gap: 80px;
 }
 .pd-cover-qrs > div {
   display: flex;
   flex-direction: column;
+  width: 290px;
   gap: 12px;
   white-space: nowrap;
 }
 .pd-cover-qrs .pd-qr {
-  width: 200px;
-  height: 200px;
+  width: 290px;
+  height: 290px;
   margin-bottom: 8px;
 }
 .pd-cover-qrs strong {
-  font-size: 28px;
-  line-height: 28px;
+  font-size: 30px;
+  line-height: 30px;
   color: var(--ink);
 }
 .pd-cover-qrs a {
-  font-size: 24px;
-  line-height: 24px;
+  font-size: 26px;
+  line-height: 26px;
   color: var(--rust);
 }
 .pd .pd-cover-title {

@@ -123,9 +123,9 @@ const SOLUTIONS = [
 ];
 
 const STEPS = [
+  { icon: MapPinned, title: "Discover events nearby", text: "See what is on in your city or close to you." },
   { icon: Route, title: "Choose a route", text: "Pick a tour or build your own trip." },
   { icon: Send, title: "Send a request", text: "Add your dates and the services you need." },
-  { icon: MapPinned, title: "Discover events nearby", text: "See what is on in your city or close to you." },
   { icon: FolderOpen, title: "Find your travel documents", text: "Open them in the app when they are ready." },
 ];
 
