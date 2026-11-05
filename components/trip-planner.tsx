@@ -1,12 +1,12 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { convertedServiceTotal } from "@/lib/planner-pricing";
 import {
   ArrowRight,
   Plus,
   Minus,
   X,
+  Pencil,
   Car,
   BedDouble,
   Users,
@@ -14,12 +14,11 @@ import {
   Flower2,
   Link as LinkIcon,
 } from "lucide-react";
+import { RouteMap, type RouteStop } from "./route-map";
 import {
   tours,
   transitions,
   dateLimit,
-  money,
-  rates,
   type Locale,
   type Currency,
   type Quote,
@@ -38,15 +37,50 @@ const photo = (city: string) =>
       : city === "Sheki"
         ? "sheki"
         : "khinalug";
+const MAX_DAYS = 14;
 const valid = (route: string[]) =>
   route.length > 0 &&
-  route.length <= 14 &&
+  route.length <= MAX_DAYS &&
   route.every(
     (city, i) =>
       Object.hasOwn(transitions, city) &&
       (i === 0 || transitions[route[i - 1]].includes(city)),
   );
+// The route is stored one city per day (it is also what the quote API and share links use);
+// the form works with stops: a destination and how many days are spent there.
+const toStops = (route: string[]) =>
+  route.reduce<RouteStop[]>((all, city) => {
+    const last = all[all.length - 1];
+    if (last && last.city === city) last.days++;
+    else all.push({ city, days: 1 });
+    return all;
+  }, []);
+const toRoute = (stops: RouteStop[]) =>
+  stops.flatMap((s) => Array<string>(s.days).fill(s.city));
 const keys = ["driver", "stay", "guide", "transfer", "activity"] as const;
+const places: Record<string, { name: [string, string, string]; note: [string, string, string] }> = {
+  Baku: {
+    name: ["Baku", "Баку", "Bakı"],
+    note: ["The capital and its Old City", "Столица и Старый город", "Paytaxt və İçərişəhər"],
+  },
+  Quba: {
+    name: ["Quba", "Куба", "Quba"],
+    note: ["Forests, orchards and the Caucasus foothills", "Леса, сады и предгорья Кавказа", "Meşələr, bağlar və Qafqaz ətəkləri"],
+  },
+  Khinalug: {
+    name: ["Khinalug", "Хыналыг", "Xınalıq"],
+    note: ["One of the highest villages in Europe", "Одно из самых высокогорных сёл Европы", "Avropanın ən hündürdə yerləşən kəndlərindən"],
+  },
+  Gabala: {
+    name: ["Gabala", "Габала", "Qəbələ"],
+    note: ["Mountain lakes, forests and fresh air", "Горные озёра, леса и свежий воздух", "Dağ gölləri, meşələr və təmiz hava"],
+  },
+  Sheki: {
+    name: ["Sheki", "Шеки", "Şəki"],
+    note: ["Silk Road caravanserais and the Khan's Palace", "Караван-сараи и Дворец ханов", "İpək yolu karvansaraları və Xan sarayı"],
+  },
+};
+
 export default function TripPlanner({
   locale: l,
   currency: c,
@@ -60,9 +94,9 @@ export default function TripPlanner({
 }) {
   const t = (en: string, ru: string, az: string) =>
     l === "az" ? az : l === "ru" ? ru : en;
-  const fmt = (value: number) => money(value * rates[c], c, l);
+  const idx = l === "az" ? 2 : l === "ru" ? 1 : 0;
+  const cityName = (city: string) => places[city]?.name[idx] ?? city;
   const [route, setRoute] = useState(["Quba", "Khinalug"]),
-    [active, setActive] = useState(0),
     [ready, setReady] = useState(false);
   const [input, setInput] = useState<QuoteInput>({
     slug: "quba-khinalug",
@@ -84,23 +118,27 @@ export default function TripPlanner({
     [notice, setNotice] = useState(""),
     [notes, setNotes] = useState(""),
     [shared, setShared] = useState("");
-  const [dialog, setDialog] = useState<"stay" | "tours" | null>(null),
-    [stay, setStay] = useState("comfort"),
+  const [dialog, setDialog] = useState<"stop" | "tours" | null>(null),
+    [draft, setDraft] = useState<{ index: number; city: string; days: number }>({
+      index: 0,
+      city: "",
+      days: 1,
+    }),
     [chosen, setChosen] = useState<string[]>([]),
     [search, setSearch] = useState("");
   const dialogRef = useRef<HTMLDialogElement>(null),
     formRef = useRef<HTMLFormElement>(null),
     returnFocus = useRef<HTMLElement | null>(null);
-  const days = route.length,
-    nights = days - 1,
-    rooms = Math.ceil(input.pax / 2);
+  const stops = toStops(route),
+    days = route.length,
+    nights = days - 1;
   const labels = {
     driver: t(
       "Private car & driver",
       "Автомобиль с водителем",
       "Şəxsi avtomobil və sürücü",
     ),
-    stay: t("Your stay", "Проживание", "Qalma yeri"),
+    stay: t("Accommodation", "Проживание", "Qalma yeri"),
     guide: t("Local guide", "Местный гид", "Yerli gid"),
     transfer: t(
       "Airport transfer",
@@ -113,26 +151,35 @@ export default function TripPlanner({
       "Yerli sənətkarlıq təcrübəsi",
     ),
   };
-  const amounts = {
-    driver: days * (input.pax <= 3 ? 90 : input.pax <= 7 ? 135 : 180),
-    stay:
-      nights *
-      rooms *
-      { standard: 65, comfort: 110, premium: 190 }[input.hotel],
-    guide: days * 65,
-    transfer: 35,
-    activity: input.pax * 20,
+  const hints = {
+    driver: t(
+      "A private car with a driver every day",
+      "Личный автомобиль с водителем каждый день",
+      "Hər gün sürücülü şəxsi avtomobil",
+    ),
+    stay: t(
+      "Our team confirms the property",
+      "Отель подтвердит наша команда",
+      "Oteli komandamız təsdiqləyir",
+    ),
+    guide: t(
+      "A local guide for the whole trip",
+      "Местный гид на всё путешествие",
+      "Bütün səfər boyu yerli gid",
+    ),
+    transfer: t(
+      "Pick-up on arrival",
+      "Встреча по прилёту",
+      "Gəlişdə qarşılanma",
+    ),
+    activity: t(
+      "A hands-on workshop with local makers",
+      "Мастер-класс у местных мастеров",
+      "Yerli ustalarla praktik təcrübə",
+    ),
   };
   const selected = keys.filter(
     (key) => input[key] && (key !== "stay" || nights > 0),
-  );
-  const displayedTotal = money(
-    convertedServiceTotal(
-      selected.map((key) => amounts[key]),
-      rates[c],
-    ),
-    c,
-    l,
   );
   const icons = {
     driver: Car,
@@ -141,16 +188,16 @@ export default function TripPlanner({
     transfer: Plane,
     activity: Flower2,
   };
-  const unit = (key: (typeof keys)[number]) =>
-    key === "driver"
-      ? `${days} × ${fmt(input.pax <= 3 ? 90 : input.pax <= 7 ? 135 : 180)}`
-      : key === "stay"
-        ? `${rooms} ${t("room(s)", "ном.", "otaq")} × ${nights} ${t("night(s)", "ноч.", "gecə")} × ${fmt({ standard: 65, comfort: 110, premium: 190 }[input.hotel])}`
-        : key === "guide"
-          ? `${days} × ${fmt(65)}`
-          : key === "transfer"
-            ? `1 × ${fmt(35)}`
-            : `${input.pax} × ${fmt(20)}`;
+  const hotels = {
+    standard: t("Standard", "Стандарт", "Standart"),
+    comfort: t("Comfort", "Комфорт", "Komfort"),
+    premium: t("Premium", "Премиум", "Premium"),
+  };
+  const langNames: Record<Locale, string> = {
+    en: "English",
+    ru: "Русский",
+    az: "Azərbaycanca",
+  };
   useEffect(() => {
     const p = new URLSearchParams(location.search);
     const template = templates[p.get("template") || ""];
@@ -200,6 +247,7 @@ export default function TripPlanner({
       sessionStorage.setItem("azertur-planner-notes", notes);
     } catch {}
   }, [ready, route, input, notes]);
+  // The server still prices the request internally; the customer never sees amounts here.
   useEffect(() => {
     setQuote(null);
     setError("");
@@ -234,9 +282,9 @@ export default function TripPlanner({
           setBusy(false);
           setError(
             t(
-              "Could not confirm this estimate. Retry or request a manual offer.",
-              "Не удалось подтвердить расчёт. Повторите или запросите предложение.",
-              "Hesablamanı təsdiqləmək olmadı. Yenidən yoxlayın və ya təklif istəyin.",
+              "Could not prepare your request. Retry or write to our team.",
+              "Не удалось подготовить заявку. Повторите или напишите нам.",
+              "Sorğunu hazırlamaq olmadı. Yenidən yoxlayın və ya bizə yazın.",
             ),
           );
         }
@@ -251,10 +299,10 @@ export default function TripPlanner({
     const el = dialogRef.current;
     if (dialog && el && !el.open) el.showModal();
   }, [dialog]);
-  function open(kind: "stay" | "tours") {
+  function open(kind: "stop" | "tours") {
     returnFocus.current = document.activeElement as HTMLElement;
-    setStay(input.stay ? input.hotel : "own");
     setSearch("");
+    setNotice("");
     setDialog(kind);
   }
   function close() {
@@ -266,30 +314,57 @@ export default function TripPlanner({
     setQuote(null);
     setInput((s) => ({ ...s, [key]: value }));
   }
-  function resize(n: number) {
-    if (n < 1 || n > 14) return;
-    setQuote(null);
-    setRoute((s) =>
-      Array.from({ length: n }, (_, i) => s[i] || s[s.length - 1]),
+  // Destinations a stop at this position may take: connected to both neighbours and never equal
+  // to one (that would just be more days at the same place).
+  function options(index: number) {
+    const before = stops[index - 1]?.city,
+      after = index < stops.length ? stops[index + 1]?.city : undefined;
+    return Object.keys(transitions).filter(
+      (city) =>
+        (!before || (city !== before && transitions[before].includes(city))) &&
+        (!after || (city !== after && transitions[city].includes(after))),
     );
-    setActive((a) => Math.min(a, n - 1));
   }
-  function city(value: string) {
-    const next = [...route];
-    next[active] = value;
-    if (!valid(next)) {
-      setNotice(
-        t(
-          "Choose a stop connected to both neighbouring days, or remove the following day first.",
-          "Выберите остановку, связанную с соседними днями, или сначала удалите следующий день.",
-          "Qonşu günlərlə əlaqəli dayanacaq seçin və ya əvvəlcə sonrakı günü silin.",
-        ),
-      );
-      return;
-    }
-    setNotice("");
+  function daysLeft(index: number) {
+    return MAX_DAYS - (days - (stops[index]?.days ?? 0));
+  }
+  function openStop(index: number) {
+    const existing = stops[index];
+    const first = options(index)[0] ?? "";
+    setDraft({
+      index,
+      city: existing ? existing.city : first,
+      days: existing ? existing.days : 1,
+    });
+    open("stop");
+  }
+  function mergeNeighbours(list: RouteStop[]) {
+    return list.reduce<RouteStop[]>((all, s) => {
+      const last = all[all.length - 1];
+      if (last && last.city === s.city) last.days += s.days;
+      else all.push({ ...s });
+      return all;
+    }, []);
+  }
+  function saveStop() {
+    const next = stops.map((s) => ({ ...s }));
+    if (draft.index >= next.length) next.push({ city: draft.city, days: draft.days });
+    else next[draft.index] = { city: draft.city, days: draft.days };
+    const route2 = toRoute(next);
+    if (!valid(route2)) return;
     setQuote(null);
-    setRoute(next);
+    setRoute(route2);
+    close();
+  }
+  function stopsWithout(index: number) {
+    return mergeNeighbours(stops.filter((_, i) => i !== index));
+  }
+  const canRemove = (index: number) =>
+    stops.length > 1 && valid(toRoute(stopsWithout(index)));
+  function removeStop(index: number) {
+    if (!canRemove(index)) return;
+    setQuote(null);
+    setRoute(toRoute(stopsWithout(index)));
   }
   function applyTours() {
     const next = chosen.flatMap((slug) => templates[slug] || []);
@@ -305,7 +380,6 @@ export default function TripPlanner({
     }
     setQuote(null);
     setRoute(next);
-    setActive(0);
     setNotice("");
     close();
   }
@@ -327,10 +401,19 @@ export default function TripPlanner({
     book(quote);
   }
   const action = t(
-    "Review my request",
-    "Проверить заявку",
-    "Sorğumu nəzərdən keçir",
+    "Send to our team",
+    "Отправить команде",
+    "Komandaya göndər",
   );
+  const dayWord = (n: number) =>
+    n === 1 ? t("day", "день", "gün") : t("days", "дн.", "gün");
+  const dayRange = (index: number) => {
+    const from = stops.slice(0, index).reduce((n, s) => n + s.days, 0) + 1,
+      to = from + stops[index].days - 1;
+    return from === to ? `${t("Day", "День", "Gün")} ${from}` : `${t("Days", "Дни", "Günlər")} ${from}–${to}`;
+  };
+  const choices = options(draft.index);
+  const submitDisabled = busy || !selected.length || (!quote && !!input.date);
   return (
     <section className="trip-planner">
       <div className="tp-container">
@@ -357,46 +440,33 @@ export default function TripPlanner({
             </h1>
             <p>
               {t(
-                "Shape the route. Choose the details. We bring it together.",
-                "Создайте маршрут. Выберите детали. Остальное — за нами.",
-                "Marşrutu qur. Detalları seç. Biz bir araya gətirək.",
+                "Pick the route and what you need. Our team replies with a personal offer.",
+                "Выберите маршрут и нужные услуги. Команда пришлёт персональное предложение.",
+                "Marşrutu və lazım olanları seç. Komandamız fərdi təklif göndərəcək.",
               )}
             </p>
           </div>
           <div>
-            <button onClick={() => open("tours")}>
+            <button type="button" onClick={() => open("tours")}>
               {t(
                 "Start with a ready-made tour",
                 "Начать с готового тура",
                 "Hazır turla başla",
               )}{" "}
-              <ArrowRight size={16} />
+              <ArrowRight size={14} />
             </button>
             <button
+              type="button"
               onClick={() => {
+                setQuote(null);
                 setRoute(["Baku"]);
-                setActive(0);
-                setChosen([]);
+                setNotice("");
               }}
             >
               {t("Start from scratch", "Начать с нуля", "Sıfırdan başla")}
             </button>
           </div>
         </header>
-        <nav
-          className="tp-steps"
-          aria-label={t("Planner sections", "Разделы", "Planlayıcı bölmələri")}
-        >
-          {[
-            t("Route", "Маршрут", "Marşrut"),
-            t("Services", "Услуги", "Xidmətlər"),
-            t("Review", "Проверка", "Baxış"),
-          ].map((name, i) => (
-            <a key={name} href={"#tp-" + i}>
-              0{i + 1} {name}
-            </a>
-          ))}
-        </nav>
         <form
           ref={formRef}
           onSubmit={(e) => {
@@ -404,9 +474,9 @@ export default function TripPlanner({
             review();
           }}
         >
-          <div className="tp-grid">
-            <div>
-              <div className="tp-fields">
+          <div className="tpx-layout">
+            <div className="tpx-card">
+              <section className="tpx-basics">
                 <label>
                   {t("Start date", "Дата начала", "Başlama tarixi")}
                   <input
@@ -431,226 +501,144 @@ export default function TripPlanner({
                     ))}
                   </select>
                 </label>
-                <div>
+                <p className="tpx-length">
+                  <strong>
+                    {days} {dayWord(days)}
+                  </strong>
                   <span>
-                    {t("Trip length", "Длительность", "Səfər müddəti")}
+                    {nights} {t("night(s)", "ноч.", "gecə")}
                   </span>
-                  <div className="tp-stepper">
-                    <button
-                      type="button"
-                      disabled={days <= 1}
-                      aria-label={t("Remove day", "Убрать день", "Günü sil")}
-                      onClick={() => resize(days - 1)}
-                    >
-                      <Minus size={16} />
-                    </button>
-                    <output>
-                      {days} {t("days", "дн.", "gün")}
-                    </output>
-                    <button
-                      type="button"
-                      disabled={days >= 14}
-                      aria-label={t("Add day", "Добавить день", "Gün əlavə et")}
-                      onClick={() => resize(days + 1)}
-                    >
-                      <Plus size={16} />
-                    </button>
-                  </div>
-                  <small>
-                    {nights}{" "}
+                </p>
+              </section>
+              <section className="tpx-route" aria-labelledby="tpx-route">
+                <div>
+                  <h2 id="tpx-route">{t("Route", "Маршрут", "Marşrut")}</h2>
+                  <ol className="tpx-stops">
+                    {stops.map((stop, i) => (
+                      <li key={i}>
+                        <b aria-hidden="true">{i + 1}</b>
+                        <div>
+                          <strong>{cityName(stop.city)}</strong>
+                          <small>
+                            {dayRange(i)} · {stop.days} {dayWord(stop.days)}
+                          </small>
+                        </div>
+                        <button
+                          type="button"
+                          aria-label={`${t("Edit", "Изменить", "Dəyiş")}: ${cityName(stop.city)}`}
+                          onClick={() => openStop(i)}
+                        >
+                          <Pencil size={15} />
+                        </button>
+                        <button
+                          type="button"
+                          aria-label={`${t("Remove", "Убрать", "Sil")}: ${cityName(stop.city)}`}
+                          disabled={!canRemove(i)}
+                          onClick={() => removeStop(i)}
+                        >
+                          <X size={16} />
+                        </button>
+                      </li>
+                    ))}
+                  </ol>
+                  <button
+                    type="button"
+                    className="tpx-add"
+                    disabled={days >= MAX_DAYS || !options(stops.length).length}
+                    onClick={() => openStop(stops.length)}
+                  >
+                    <Plus size={16} />
+                    {t("Add a stop", "Добавить остановку", "Dayanacaq əlavə et")}
+                  </button>
+                  {notice && !dialog && <p role="status">{notice}</p>}
+                  <small className="tpx-return">
                     {t(
-                      "night(s) · up to 14 days",
-                      "ноч. · до 14 дней",
-                      "gecə · 14 günədək",
+                      "Your return route is arranged with our team.",
+                      "Обратный маршрут согласуется с командой.",
+                      "Geri dönüş marşrutu komandamızla razılaşdırılır.",
                     )}
                   </small>
                 </div>
-              </div>
-              <section id="tp-0">
-                <h2>
-                  <span>01</span>
-                  {t("Your route", "Ваш маршрут", "Marşrutun")}
-                </h2>
-                <p>
-                  {t(
-                    "Choose your destinations, in order. Connected stops only.",
-                    "Выберите направления по порядку. Только связанные остановки.",
-                    "İstiqamətləri ardıcıllıqla seç. Yalnız əlaqəli dayanacaqlar.",
-                  )}
-                </p>
-                <div className="tp-days">
-                  {route.map((name, i) => (
-                    <button
-                      type="button"
-                      key={i}
-                      aria-pressed={active === i}
-                      onClick={() => setActive(i)}
-                    >
-                      {t("Day", "День", "Gün")} {i + 1} · {name}
-                    </button>
-                  ))}
-                  <button
-                    type="button"
-                    disabled={days === 14}
-                    onClick={() => resize(days + 1)}
-                  >
-                    <Plus size={15} />
-                    {t("Add day", "Добавить", "Gün əlavə et")}
-                  </button>
-                </div>
-                <div className="tp-day-editor">
-                  <label>
-                    {t("Destination", "Направление", "İstiqamət")}
-                    <select
-                      value={route[active]}
-                      onChange={(e) => city(e.target.value)}
-                    >
-                      {Object.keys(transitions).map((name) => (
-                        <option
-                          key={name}
-                          disabled={
-                            active > 0 &&
-                            !transitions[route[active - 1]].includes(name)
-                          }
-                        >
-                          {name}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <button
-                    type="button"
-                    disabled={days === 1}
-                    onClick={() => {
-                      const next = route.filter((_, i) => i !== active);
-                      if (valid(next)) {
-                        setRoute(next);
-                        setActive(Math.max(0, active - 1));
-                        setNotice("");
-                      } else
-                        setNotice(
-                          t(
-                            "Reconnect neighbouring stops before removing this day.",
-                            "Сначала соедините соседние остановки.",
-                            "Əvvəlcə qonşu dayanacaqları əlaqələndir.",
-                          ),
-                        );
-                    }}
-                  >
-                    {t("Remove this day", "Удалить день", "Bu günü sil")}
-                  </button>
-                </div>
-                {notice && !dialog && <p role="status">{notice}</p>}
-                <Image
-                  className="tp-route-photo"
-                  src={"/images/homepage-v3/" + photo(route[active]) + ".png"}
-                  alt={route[active]}
-                  width={1000}
-                  height={420}
+                <RouteMap
+                  stops={stops}
+                  name={cityName}
+                  label={
+                    t("Route: ", "Маршрут: ", "Marşrut: ") +
+                    stops.map((s) => cityName(s.city)).join(" → ")
+                  }
                 />
-                <div className="tp-route-line">
-                  {route.map((city, i) => (
-                    <span key={i}>{city}</span>
-                  ))}
-                </div>
-                <p className="tp-caption">
-                  {t(
-                    "Your return route is arranged with our team.",
-                    "Обратный маршрут согласуем с нашей командой.",
-                    "Geri dönüş marşrutu komandamızla razılaşdırılır.",
-                  )}
-                </p>
               </section>
-              <section id="tp-1">
-                <h2>
-                  <span>02</span>
-                  {t(
-                    "Choose your services",
-                    "Выберите услуги",
-                    "Xidmətlərini seç",
-                  )}
+              <section aria-labelledby="tpx-services">
+                <h2 id="tpx-services">
+                  {t("What do you need?", "Что вам нужно?", "Nələr lazımdır?")}
                 </h2>
-                <p>
-                  {t(
-                    "Add only what you need. Prices update with your choices.",
-                    "Добавляйте нужное. Цена меняется вместе с выбором.",
-                    "Ehtiyacın olanı əlavə et. Qiymət seçimlərinə görə yenilənir.",
-                  )}
-                </p>
-                <div className="tp-services">
+                <div className="tpx-services">
                   {keys.map((key) => {
                     const Icon = icons[key];
+                    const off = key === "stay" && nights === 0;
                     return (
-                      <div className="tp-service" key={key}>
-                        <input
-                          aria-label={labels[key]}
-                          type="checkbox"
-                          checked={!!input[key]}
-                          disabled={key === "stay" && !nights}
-                          onChange={(e) => change(key, e.target.checked)}
-                        />
-                        <Icon size={28} />
-                        <div>
-                          <strong>{labels[key]}</strong>
-                          {key === "stay" && (
-                            <>
-                              <Image
-                                src="/images/homepage-v3/guesthouse.png"
-                                alt={t(
-                                  "Illustrative stay",
-                                  "Пример проживания",
-                                  "Nümunə qalma yeri",
-                                )}
-                                width={86}
-                                height={70}
-                              />
-                              <small>
-                                {input.hotel} ·{" "}
-                                {t(
-                                  "Property confirmed by our team",
-                                  "Отель подтвердит команда",
-                                  "Oteli komandamız təsdiqləyir",
-                                )}
-                              </small>
-                            </>
-                          )}
-                          <small>{unit(key)}</small>
-                          {key === "guide" && (
-                            <select
-                              aria-label={t(
-                                "Guide language",
-                                "Язык гида",
-                                "Gid dili",
-                              )}
-                              value={input.guideLanguage}
-                              onChange={(e) =>
-                                change(
-                                  "guideLanguage",
-                                  e.target.value as Locale,
-                                )
-                              }
-                            >
-                              <option value="en">English</option>
-                              <option value="ru">Русский</option>
-                              <option value="az">Azərbaycanca</option>
-                            </select>
-                          )}
-                        </div>
-                        <strong>{fmt(input[key] ? amounts[key] : 0)}</strong>
-                        {key === "stay" && (
-                          <button
-                            type="button"
-                            disabled={!nights}
-                            onClick={() => open("stay")}
+                      <div
+                        className={"tpx-service" + (input[key] && !off ? " on" : "")}
+                        key={key}
+                      >
+                        <label>
+                          <input
+                            type="checkbox"
+                            checked={!!input[key] && !off}
+                            disabled={off}
+                            onChange={(e) => change(key, e.target.checked)}
+                          />
+                          <Icon size={20} aria-hidden="true" />
+                          <span>
+                            <strong>{labels[key]}</strong>
+                            <small>
+                              {off
+                                ? t(
+                                    "Needs a trip of two days or more",
+                                    "Нужна поездка от двух дней",
+                                    "İki gün və daha uzun səfər lazımdır",
+                                  )
+                                : hints[key]}
+                            </small>
+                          </span>
+                        </label>
+                        {key === "stay" && input.stay && !off && (
+                          <select
+                            aria-label={t("Accommodation category", "Категория проживания", "Qalma yerinin kateqoriyası")}
+                            value={input.hotel}
+                            onChange={(e) =>
+                              change("hotel", e.target.value as QuoteInput["hotel"])
+                            }
                           >
-                            {t("Change", "Изменить", "Dəyiş")}
-                          </button>
+                            {Object.entries(hotels).map(([value, name]) => (
+                              <option key={value} value={value}>
+                                {name}
+                              </option>
+                            ))}
+                          </select>
+                        )}
+                        {key === "guide" && input.guide && (
+                          <select
+                            aria-label={t("Guide language", "Язык гида", "Gid dili")}
+                            value={input.guideLanguage}
+                            onChange={(e) =>
+                              change("guideLanguage", e.target.value as Locale)
+                            }
+                          >
+                            {(Object.keys(langNames) as Locale[]).map((code) => (
+                              <option key={code} value={code}>
+                                {langNames[code]}
+                              </option>
+                            ))}
+                          </select>
                         )}
                       </div>
                     );
                   })}
                 </div>
-                <label className="tp-notes">
+              </section>
+              <section className="tpx-notes">
+                <label>
                   {t(
                     "Anything else we should know?",
                     "Что ещё нам нужно знать?",
@@ -659,7 +647,7 @@ export default function TripPlanner({
                   <textarea
                     value={notes}
                     maxLength={2000}
-                    rows={3}
+                    rows={2}
                     onChange={(e) => setNotes(e.target.value)}
                     placeholder={t(
                       "Your pace, luggage or accessibility needs…",
@@ -683,69 +671,63 @@ export default function TripPlanner({
                 </a>
               </section>
             </div>
-            <aside className="tp-summary">
-              <Image
-                src={
-                  "/images/homepage-v3/" +
-                  photo(route[route.length - 1]) +
-                  ".png"
-                }
-                alt={route[route.length - 1]}
-                width={600}
-                height={350}
-              />
-              <h2>
-                {t(
-                  "Your trip at a glance",
-                  "Ваше путешествие",
-                  "Səfərinə ümumi baxış",
-                )}
-              </h2>
-              <p>
-                {route.join(" · ")}
-                <br />
-                {days} {t("days", "дн.", "gün")} · {nights}{" "}
-                {t("night(s)", "ноч.", "gecə")} · {input.pax}{" "}
-                {t("travelers", "чел.", "nəfər")}
+            <aside className="tpx-aside">
+              <h2>{t("Your request", "Ваша заявка", "Sənin sorğun")}</h2>
+              <p className="tpx-route-line">
+                {stops.map((s) => cityName(s.city)).join(" → ")}
               </p>
-              <div className="tp-lines">
+              <dl>
+                <div>
+                  <dt>{t("Dates", "Даты", "Tarix")}</dt>
+                  <dd>
+                    {input.date || (
+                      <em>{t("Choose a start date", "Выберите дату", "Başlama tarixini seç")}</em>
+                    )}
+                  </dd>
+                </div>
+                <div>
+                  <dt>{t("Length", "Длительность", "Müddət")}</dt>
+                  <dd>
+                    {days} {dayWord(days)} · {nights} {t("night(s)", "ноч.", "gecə")}
+                  </dd>
+                </div>
+                <div>
+                  <dt>{t("Travelers", "Путешественники", "Səyahətçilər")}</dt>
+                  <dd>{input.pax}</dd>
+                </div>
+              </dl>
+              <ul className="tpx-picked">
                 {selected.map((key) => {
                   const Icon = icons[key];
+                  const extra =
+                    key === "stay"
+                      ? hotels[input.hotel]
+                      : key === "guide"
+                        ? langNames[input.guideLanguage as Locale]
+                        : "";
                   return (
-                    <div key={key}>
-                      <Icon size={20} />
-                      <span>{labels[key]}</span>
-                      <strong>{fmt(amounts[key])}</strong>
-                    </div>
+                    <li key={key}>
+                      <Icon size={16} aria-hidden="true" />
+                      {labels[key]}
+                      {extra && <small>{extra}</small>}
+                    </li>
                   );
                 })}
-              </div>
-              <div className="tp-total">
-                <strong>
-                  {t("Estimated total", "Примерная сумма", "Təxmini cəm")}
-                </strong>
-                <strong>{displayedTotal}</strong>
-              </div>
-              <small>
-                {t(
-                  "For your group · sample prices. Final services and price confirmed by our team.",
-                  "Для всей группы · примерные цены. Услуги и цену подтвердит команда.",
-                  "Bütün qrup üçün · nümunə qiymətlər. Yekun xidmət və qiyməti komandamız təsdiqləyir.",
+                {!selected.length && (
+                  <li>
+                    <em>{t("No services selected", "Услуги не выбраны", "Xidmət seçilməyib")}</em>
+                  </li>
                 )}
-              </small>
-              <button
-                className="tp-primary"
-                type="submit"
-                disabled={busy || !selected.length || (!quote && !!input.date)}
-              >
-                {busy ? t("Updating…", "Обновляем…", "Yenilənir…") : action}
+              </ul>
+              <button className="tp-primary" type="submit" disabled={submitDisabled}>
+                {busy ? t("Preparing…", "Готовим…", "Hazırlanır…") : action}
                 <ArrowRight size={18} />
               </button>
               <small>
                 {t(
-                  "Sign in or create an account to continue. Your choices will be kept.",
-                  "Войдите или создайте аккаунт. Ваш выбор сохранится.",
-                  "Davam etmək üçün daxil ol və ya qeydiyyatdan keç. Seçimlərin saxlanılacaq.",
+                  "No payment now. Our team checks availability and replies with an offer. You sign in to send it.",
+                  "Оплата сейчас не нужна. Команда проверит доступность и пришлёт предложение. Для отправки нужен вход.",
+                  "İndi ödəniş yoxdur. Komandamız mövcudluğu yoxlayıb təklif göndərəcək. Göndərmək üçün daxil olursan.",
                 )}
               </small>
               {error && (
@@ -763,175 +745,72 @@ export default function TripPlanner({
                       (typeof window !== "undefined" ? location.search : "")
                     }
                   >
-                    {t("Manual offer", "Предложение", "Fərdi təklif")}
+                    {t("Write to our team", "Написать команде", "Komandaya yaz")}
                   </a>
                 </div>
               )}
-              <button type="button" className="tp-share" onClick={share}>
-                <LinkIcon size={18} />
-                {t(
-                  "Copy plan link",
-                  "Скопировать ссылку",
-                  "Plan linkini kopyala",
-                )}
+              <button type="button" className="tpx-share" onClick={share}>
+                <LinkIcon size={16} />
+                {t("Copy plan link", "Скопировать ссылку", "Plan linkini kopyala")}
               </button>
-              {shared && <output className="tp-shared">{shared}</output>}
-              <small>
-                {t(
-                  "Route and service choices only.",
-                  "Только маршрут и услуги.",
-                  "Yalnız marşrut və xidmət seçimləri.",
-                )}
-              </small>
+              {shared && <output className="tpx-shared">{shared}</output>}
             </aside>
           </div>
-          <section className="tp-review" id="tp-2">
-            <h2>
-              <span>03</span>
-              {t("Review your plan", "Проверьте план", "Planına nəzər sal")}
-            </h2>
-            <div className="tp-review-strip">
-              <span>
-                {input.date ||
-                  t("Choose a date", "Выберите дату", "Tarixi seç")}
-              </span>
-              <span>
-                {input.pax} {t("travelers", "чел.", "nəfər")}
-              </span>
-              <span>{route.join(" → ")}</span>
-              <span>
-                {selected.length}{" "}
-                {t("selected services", "услуг", "seçilmiş xidmət")}
-              </span>
-            </div>
-            <div className="tp-next">
-              {[
-                t(
-                  "1. Send a request",
-                  "1. Отправьте заявку",
-                  "1. Sorğu göndər",
-                ),
-                t(
-                  "2. Our team checks",
-                  "2. Команда проверяет",
-                  "2. Komandamız yoxlayır",
-                ),
-                t(
-                  "3. Review your offer",
-                  "3. Рассмотрите предложение",
-                  "3. Təklifə bax",
-                ),
-              ].map((name, i) => (
-                <div key={name}>
-                  <h3>{name}</h3>
-                  <p>
-                    {
-                      [
-                        t(
-                          "Sign in and review before explicitly submitting.",
-                          "Войдите и проверьте перед отправкой.",
-                          "Daxil ol və göndərməzdən əvvəl yoxla.",
-                        ),
-                        t(
-                          "We confirm availability and prepare your offer.",
-                          "Мы проверим доступность и подготовим предложение.",
-                          "Mövcudluğu yoxlayıb təklif hazırlayırıq.",
-                        ),
-                        t(
-                          "Review your itinerary, final prices and contract.",
-                          "Проверьте маршрут, цены и договор.",
-                          "Marşrut, yekun qiymətlər və müqavilə ilə tanış ol.",
-                        ),
-                      ][i]
-                    }
-                  </p>
-                </div>
-              ))}
-            </div>
-            <p>
-              {t(
-                "No booking or payment is made at this stage.",
-                "На этом этапе нет бронирования и оплаты.",
-                "Bu mərhələdə rezervasiya və ödəniş edilmir.",
-              )}
-            </p>
-          </section>
         </form>
         <div className="tp-faq">
-          <div>
-            <h2>{t("Good to know", "Полезно знать", "Bilmək faydalıdır")}</h2>
-            {[
-              [
-                t(
-                  "Can I change these choices later?",
-                  "Можно изменить выбор?",
-                  "Seçimləri sonra dəyişə bilərəm?",
-                ),
-                t(
-                  "Yes. Our office team handles changes to your request.",
-                  "Да. Изменения обрабатывает офисная команда.",
-                  "Bəli. Sorğudakı dəyişiklikləri ofis komandamız idarə edir.",
-                ),
-              ],
-              [
-                t(
-                  "How do payments work?",
-                  "Как проходит оплата?",
-                  "Ödəniş necə işləyir?",
-                ),
-                t(
-                  "After operator review and contract approval, a deposit is requested. Later payments follow service requirements. Contract approval and staged payments are planned; current payments are simulated.",
-                  "После проверки и одобрения договора запрашивается депозит. Следующие платежи зависят от услуг. Договор и поэтапная оплата запланированы; сейчас платежи демонстрационные.",
-                  "Operator yoxlaması və müqavilə təsdiqindən sonra beh tələb olunur. Sonrakı ödənişlər xidmətlərə görə istənilir. Müqavilə və mərhələli ödənişlər planlaşdırılır; hazırkı ödənişlər demodur.",
-                ),
-              ],
-              [
-                t(
-                  "Changes and cancellation",
-                  "Изменения и отмена",
-                  "Dəyişiklik və ləğv",
-                ),
-                t(
-                  "Terms vary by service, provider and cancellation time. Our team reviews each request.",
-                  "Условия зависят от услуги, поставщика и времени отмены. Команда рассмотрит запрос.",
-                  "Şərtlər xidmət, təchizatçı və ləğv vaxtından asılıdır. Hər sorğu komandamız tərəfindən yoxlanılır.",
-                ),
-              ],
-            ].map(([q, a]) => (
-              <details key={q}>
-                <summary>{q}</summary>
-                <p>{a}</p>
-              </details>
-            ))}
-          </div>
-          <div>
-            <Image
-              src="/images/homepage-v3/hiking.png"
-              alt={t(
-                "Illustrative mountain journey",
-                "Иллюстрация похода",
-                "Nümunə dağ səyahəti",
-              )}
-              width={500}
-              height={300}
-            />
-            <small>
-              {t(
-                "Illustrative imagery and sample prices.",
-                "Иллюстрации и примерные цены.",
-                "İllüstrativ şəkillər və nümunə qiymətlər.",
-              )}
-            </small>
-          </div>
+          <h2>{t("Good to know", "Полезно знать", "Bilmək faydalıdır")}</h2>
+          {[
+            [
+              t(
+                "Can I change these choices later?",
+                "Можно изменить выбор?",
+                "Seçimləri sonra dəyişə bilərəm?",
+              ),
+              t(
+                "Yes. Our office team handles changes to your request.",
+                "Да. Изменения обрабатывает офисная команда.",
+                "Bəli. Sorğudakı dəyişiklikləri ofis komandamız idarə edir.",
+              ),
+            ],
+            [
+              t(
+                "How do payments work?",
+                "Как проходит оплата?",
+                "Ödəniş necə işləyir?",
+              ),
+              t(
+                "After our offer and contract approval, a deposit is requested. Later payments follow the services.",
+                "После предложения и одобрения договора запрашивается депозит. Следующие платежи зависят от услуг.",
+                "Təklif və müqavilə təsdiqindən sonra beh tələb olunur. Sonrakı ödənişlər xidmətlərə görə istənilir.",
+              ),
+            ],
+            [
+              t(
+                "Changes and cancellation",
+                "Изменения и отмена",
+                "Dəyişiklik və ləğv",
+              ),
+              t(
+                "Terms vary by service, provider and cancellation time. Our team reviews each request.",
+                "Условия зависят от услуги, поставщика и времени отмены. Команда рассмотрит запрос.",
+                "Şərtlər xidmət, təchizatçı və ləğv vaxtından asılıdır. Hər sorğu komandamız tərəfindən yoxlanılır.",
+              ),
+            ],
+          ].map(([q, a]) => (
+            <details key={q}>
+              <summary>{q}</summary>
+              <p>{a}</p>
+            </details>
+          ))}
         </div>
-        <div className="tp-mobile-action">
+        <div className="tpx-mobile-action">
           <span>
-            {t("Estimate", "Примерно", "Təxmini")}
-            <strong>{displayedTotal}</strong>
+            {days} {dayWord(days)} · {selected.length}{" "}
+            {t("services", "услуг", "xidmət")}
           </span>
           <button
             className="tp-primary"
-            disabled={busy || !selected.length || (!quote && !!input.date)}
+            disabled={submitDisabled}
             onClick={() => formRef.current?.requestSubmit()}
           >
             {action}
@@ -944,8 +823,10 @@ export default function TripPlanner({
           ref={dialogRef}
           className="tp-dialog"
           aria-label={
-            dialog === "stay"
-              ? t("Choose your stay", "Выберите проживание", "Qalma yerini seç")
+            dialog === "stop"
+              ? draft.index >= stops.length
+                ? t("Add a stop", "Добавить остановку", "Dayanacaq əlavə et")
+                : t("Edit the stop", "Изменить остановку", "Dayanacağı dəyiş")
               : t(
                   "Add tours to your route",
                   "Добавьте туры в маршрут",
@@ -965,84 +846,84 @@ export default function TripPlanner({
           >
             <X />
           </button>
-          {dialog === "stay" ? (
+          {dialog === "stop" ? (
             <>
               <h2>
-                {t(
-                  "Choose your stay",
-                  "Выберите проживание",
-                  "Qalma yerini seç",
-                )}
+                {draft.index >= stops.length
+                  ? t("Add a stop", "Добавить остановку", "Dayanacaq əlavə et")
+                  : t("Edit the stop", "Изменить остановку", "Dayanacağı dəyiş")}
               </h2>
               <p>
-                {rooms} {t("room(s)", "ном.", "otaq")} · {nights}{" "}
-                {t("night(s)", "ноч.", "gecə")}
-              </p>
-              <p>
                 {t(
-                  "Choose a category. Our team confirms the property.",
-                  "Выберите категорию. Отель подтвердит команда.",
-                  "Kateqoriyanı seç. Oteli komandamız təsdiqləyir.",
+                  "Choose where you go next and how many days you stay. Only connected destinations are shown.",
+                  "Выберите, куда едете дальше и сколько дней остаётесь. Показаны только связанные направления.",
+                  "Növbəti istiqaməti və orada neçə gün qalacağını seç. Yalnız əlaqəli istiqamətlər göstərilir.",
                 )}
               </p>
-              {["standard", "comfort", "premium", "own"].map((key, i) => (
-                <label className="tp-stay-option" key={key}>
-                  <input
-                    type="radio"
-                    name="stay-category"
-                    checked={stay === key}
-                    onChange={() => setStay(key)}
-                  />
-                  {key === "comfort" && (
-                    <Image
-                      src="/images/homepage-v3/guesthouse.png"
-                      alt=""
-                      width={90}
-                      height={76}
-                    />
+              {choices.length ? (
+                <div className="tpx-choices" role="radiogroup" aria-label={t("Destination", "Направление", "İstiqamət")}>
+                  {choices.map((city) => (
+                    <label key={city} className={draft.city === city ? "on" : ""}>
+                      <input
+                        type="radio"
+                        name="stop-city"
+                        checked={draft.city === city}
+                        onChange={() => setDraft((d) => ({ ...d, city }))}
+                      />
+                      <strong>{cityName(city)}</strong>
+                      <small>{places[city]?.note[idx]}</small>
+                    </label>
+                  ))}
+                </div>
+              ) : (
+                <p role="status">
+                  {t(
+                    "No destination connects to the neighbouring stops. Remove a neighbouring stop first.",
+                    "Нет направления, связанного с соседними остановками. Сначала уберите соседнюю остановку.",
+                    "Qonşu dayanacaqlarla əlaqəli istiqamət yoxdur. Əvvəlcə qonşu dayanacağı sil.",
                   )}
-                  <strong>
-                    {
-                      [
-                        t("Standard", "Стандарт", "Standart"),
-                        t("Comfort", "Комфорт", "Komfort"),
-                        t("Premium", "Премиум", "Premium"),
-                        t(
-                          "I’ll arrange my own stay",
-                          "Организую проживание сам",
-                          "Özüm təşkil edəcəyəm",
-                        ),
-                      ][i]
-                    }
-                  </strong>
-                  <span>
-                    {fmt([65, 110, 190, 0][i])}
-                    <small>
-                      {t("per room / night", "за номер / ночь", "otaq / gecə")}
-                    </small>
-                  </span>
-                </label>
-              ))}
+                </p>
+              )}
+              <div className="tpx-days">
+                <span>{t("Days at this stop", "Дней на остановке", "Bu dayanacaqda neçə gün")}</span>
+                <div className="tp-stepper">
+                  <button
+                    type="button"
+                    disabled={draft.days <= 1}
+                    aria-label={t("Fewer days", "Меньше дней", "Daha az gün")}
+                    onClick={() => setDraft((d) => ({ ...d, days: d.days - 1 }))}
+                  >
+                    <Minus size={16} />
+                  </button>
+                  <output>
+                    {draft.days} {dayWord(draft.days)}
+                  </output>
+                  <button
+                    type="button"
+                    disabled={draft.days >= daysLeft(draft.index)}
+                    aria-label={t("More days", "Больше дней", "Daha çox gün")}
+                    onClick={() => setDraft((d) => ({ ...d, days: d.days + 1 }))}
+                  >
+                    <Plus size={16} />
+                  </button>
+                </div>
+                <small>
+                  {t("Up to", "Всего до", "Ümumilikdə")} {MAX_DAYS} {t("days in total", "дней", "günədək")}
+                </small>
+              </div>
               <div className="tp-dialog-actions">
-                <button onClick={close}>
-                  {t("Cancel", "Отмена", "Ləğv et")}
-                </button>
+                <span>
+                  {draft.city ? cityName(draft.city) : "—"} · {draft.days} {dayWord(draft.days)}
+                </span>
                 <button
+                  type="button"
                   className="tp-primary"
-                  onClick={() => {
-                    setInput((s) => ({
-                      ...s,
-                      stay: stay !== "own",
-                      hotel:
-                        stay === "own"
-                          ? s.hotel
-                          : (stay as QuoteInput["hotel"]),
-                    }));
-                    setQuote(null);
-                    close();
-                  }}
+                  disabled={!draft.city || !choices.includes(draft.city)}
+                  onClick={saveStop}
                 >
-                  {t("Apply stay", "Применить", "Tətbiq et")}
+                  {draft.index >= stops.length
+                    ? t("Add to route", "Добавить в маршрут", "Marşruta əlavə et")
+                    : t("Save", "Сохранить", "Yadda saxla")}
                   <ArrowRight size={16} />
                 </button>
               </div>
