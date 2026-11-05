@@ -1,5 +1,7 @@
 "use client";
 import Image from "next/image";
+import { RouteMap } from "./route-map";
+import { cityName } from "@/lib/places";
 import {
   useEffect,
   useId,
@@ -937,14 +939,21 @@ export function TourDetail({
           <h2>{t(copy.routeTitle)}</h2>
           <div className="tx-route">
             <h3>{t(copy.routeOverview)}</h3>
-            <ol>
-              {stops.map((stop, n) => (
-                <li key={stop + n}>
-                  <span aria-hidden="true" />
-                  {stop}
-                </li>
-              ))}
-            </ol>
+            <div className="tx-route-body">
+              <RouteMap
+                stops={stops.map((city) => ({ city, days: 1 }))}
+                name={(city) => cityName(city, locale)}
+                label={stops.map((city) => cityName(city, locale)).join(" → ")}
+              />
+              <ol>
+                {stops.map((stop, n) => (
+                  <li key={stop + n}>
+                    <span aria-hidden="true">{n + 1}</span>
+                    {cityName(stop, locale)}
+                  </li>
+                ))}
+              </ol>
+            </div>
           </div>
           {tour.plans.map((day, n) => (
             <details key={n} open>

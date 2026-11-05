@@ -15,6 +15,7 @@ import {
   Link as LinkIcon,
 } from "lucide-react";
 import { RouteMap, type RouteStop } from "./route-map";
+import { places } from "@/lib/places";
 import {
   tours,
   transitions,
@@ -58,28 +59,6 @@ const toStops = (route: string[]) =>
 const toRoute = (stops: RouteStop[]) =>
   stops.flatMap((s) => Array<string>(s.days).fill(s.city));
 const keys = ["driver", "stay", "guide", "transfer", "activity"] as const;
-const places: Record<string, { name: [string, string, string]; note: [string, string, string] }> = {
-  Baku: {
-    name: ["Baku", "Баку", "Bakı"],
-    note: ["The capital and its Old City", "Столица и Старый город", "Paytaxt və İçərişəhər"],
-  },
-  Quba: {
-    name: ["Quba", "Куба", "Quba"],
-    note: ["Forests, orchards and the Caucasus foothills", "Леса, сады и предгорья Кавказа", "Meşələr, bağlar və Qafqaz ətəkləri"],
-  },
-  Khinalug: {
-    name: ["Khinalug", "Хыналыг", "Xınalıq"],
-    note: ["One of the highest villages in Europe", "Одно из самых высокогорных сёл Европы", "Avropanın ən hündürdə yerləşən kəndlərindən"],
-  },
-  Gabala: {
-    name: ["Gabala", "Габала", "Qəbələ"],
-    note: ["Mountain lakes, forests and fresh air", "Горные озёра, леса и свежий воздух", "Dağ gölləri, meşələr və təmiz hava"],
-  },
-  Sheki: {
-    name: ["Sheki", "Шеки", "Şəki"],
-    note: ["Silk Road caravanserais and the Khan's Palace", "Караван-сараи и Дворец ханов", "İpək yolu karvansaraları və Xan sarayı"],
-  },
-};
 
 export default function TripPlanner({
   locale: l,
