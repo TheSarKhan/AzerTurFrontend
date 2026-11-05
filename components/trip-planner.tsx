@@ -594,16 +594,6 @@ export default function TripPlanner({
                           <strong>{labels[key]}</strong>
                           {key === "stay" && (
                             <>
-                              <Image
-                                src="/images/homepage-v3/guesthouse.png"
-                                alt={t(
-                                  "Illustrative stay",
-                                  "Пример проживания",
-                                  "Nümunə qalma yeri",
-                                )}
-                                width={86}
-                                height={70}
-                              />
                               <small>
                                 {input.hotel} ·{" "}
                                 {t(
@@ -993,14 +983,6 @@ export default function TripPlanner({
                     checked={stay === key}
                     onChange={() => setStay(key)}
                   />
-                  {key === "comfort" && (
-                    <Image
-                      src="/images/homepage-v3/guesthouse.png"
-                      alt=""
-                      width={90}
-                      height={76}
-                    />
-                  )}
                   <strong>
                     {
                       [
