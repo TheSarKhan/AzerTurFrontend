@@ -172,7 +172,34 @@
   left: 96px;
   top: 696px;
 }
-.pd-cover-title {
+.pd-cover-left > .pd-cover-qrs.pd-in {
+  top: 676px;
+  display: flex;
+  align-items: flex-start;
+  gap: 56px;
+}
+.pd-cover-qrs > div {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  white-space: nowrap;
+}
+.pd-cover-qrs .pd-qr {
+  width: 200px;
+  height: 200px;
+  margin-bottom: 8px;
+}
+.pd-cover-qrs strong {
+  font-size: 28px;
+  line-height: 28px;
+  color: var(--ink);
+}
+.pd-cover-qrs a {
+  font-size: 24px;
+  line-height: 24px;
+  color: var(--rust);
+}
+.pd .pd-cover-title {
   font-family: var(--sans); /* the site's global h1 rule uses Manrope */
   font-size: 169px;
   font-weight: 700;

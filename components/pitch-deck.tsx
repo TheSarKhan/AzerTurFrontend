@@ -268,10 +268,15 @@ function Cover() {
             for Azerbaijan
           </p>
         </Rise>
-        <Rise n={3} className="pd-cover-scan">
-          <Qr />
+        <Rise n={3} className="pd-cover-qrs">
           <div>
-            <strong>Scan to open the app</strong>
+            <Qr src="/pitch/qr-web.svg" alt="QR code for aztrip.online" />
+            <strong>Live website</strong>
+            <SiteLink href={WEB_URL} label={WEB_LABEL} />
+          </div>
+          <div>
+            <Qr />
+            <strong>Live app demo</strong>
             <SiteLink />
           </div>
         </Rise>
