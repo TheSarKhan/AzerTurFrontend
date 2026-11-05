@@ -25,6 +25,8 @@ import {
 
 const APP_URL = "https://app.aztrip.online";
 const APP_LABEL = "app.aztrip.online";
+const WEB_URL = "https://aztrip.online";
+const WEB_LABEL = "aztrip.online";
 
 type Member = { name: string; role: string; photo: string };
 // Drop a square photo (about 600×600) at each `photo` path below, e.g.
@@ -216,15 +218,31 @@ function Rise({
   );
 }
 
-function Qr({ className = "" }: { className?: string }) {
+function Qr({
+  src = "/pitch/qr.svg",
+  alt = "QR code for app.aztrip.online",
+  className = "",
+}: {
+  src?: string;
+  alt?: string;
+  className?: string;
+}) {
   // eslint-disable-next-line @next/next/no-img-element
-  return <img className={`pd-qr ${className}`} src="/pitch/qr.svg" alt="QR code for app.aztrip.online" />;
+  return <img className={`pd-qr ${className}`} src={src} alt={alt} />;
 }
 
-function AppLink({ className = "" }: { className?: string }) {
+function SiteLink({
+  href = APP_URL,
+  label = APP_LABEL,
+  className = "",
+}: {
+  href?: string;
+  label?: string;
+  className?: string;
+}) {
   return (
-    <a className={className} href={APP_URL} target="_blank" rel="noopener noreferrer">
-      {APP_LABEL}
+    <a className={className} href={href} target="_blank" rel="noopener noreferrer">
+      {label}
     </a>
   );
 }
@@ -254,7 +272,7 @@ function Cover() {
           <Qr />
           <div>
             <strong>Scan to open the app</strong>
-            <AppLink />
+            <SiteLink />
           </div>
         </Rise>
       </div>
@@ -346,11 +364,18 @@ function Product() {
         Mobile app
       </div>
 
-      <Rise n={6} className="pd-demo">
+      <Rise n={6} className="pd-demo" style={{ left: 863 }}>
+        <Qr src="/pitch/qr-web.svg" alt="QR code for aztrip.online" />
+        <div>
+          <strong>Live website</strong>
+          <SiteLink href={WEB_URL} label={WEB_LABEL} />
+        </div>
+      </Rise>
+      <Rise n={7} className="pd-demo" style={{ left: 1350 }}>
         <Qr />
         <div>
-          <strong>Live demo</strong>
-          <AppLink />
+          <strong>Live app demo</strong>
+          <SiteLink />
         </div>
       </Rise>
     </>
@@ -381,28 +406,42 @@ function Market() {
       </Rise>
 
       <div className="pd-band">
-        <p>Annual spending on stays, tour packages, culture, sports and entertainment</p>
-        <div className="pd-band-line" />
+        <Rise n={3} className="pd-ring pd-ring-tam">
+          <small>TAM</small>
+          <b>{MARKET[0].value}</b>
+        </Rise>
+        <Rise n={4} className="pd-ring pd-ring-sam">
+          <small>SAM</small>
+          <b>{MARKET[1].value}</b>
+        </Rise>
+        <Rise n={5} className="pd-ring pd-ring-som">
+          <small>SOM</small>
+          <b>{MARKET[2].value}</b>
+        </Rise>
+
+        <p className="pd-band-intro">Annual spending on stays, tour packages, culture, sports and entertainment</p>
         {MARKET.map((m, i) => (
-          <Rise n={3 + i} key={m.key} className="pd-tam" style={{ left: 94 + 600 * i }}>
-            <small>{m.key}</small>
-            <b>{m.value}</b>
+          <Rise n={4 + i} key={m.key} className={`pd-tier pd-tier-${m.key.toLowerCase()}`} style={{ top: 82 + 125 * i }}>
+            <i aria-hidden="true" />
+            <header>
+              <strong>{m.key}</strong>
+              <em>{m.sub}</em>
+            </header>
             <span>
               {m.lines[0]}
               <br />
               {m.lines[1]}
             </span>
-            <em>{m.sub}</em>
           </Rise>
         ))}
-        <div className="pd-band-v" style={{ left: 643 }} />
-        <div className="pd-band-v" style={{ left: 1243 }} />
-        <div className="pd-band-note">SOM is a capacity scenario. AZN 252K is gross booking value.</div>
-      </div>
 
-      <div className="pd-source">
-        Source: State Statistical Committee of Azerbaijan, Domestic Tourism 2025 (tables 1, 22) and Inbound Tourism
-        2025 (tables 1, 12).
+        <div className="pd-band-note">
+          SOM is a capacity scenario. AZN 252K is gross booking value. Circles are schematic, not to scale.
+        </div>
+        <div className="pd-source">
+          Source: State Statistical Committee of Azerbaijan, Domestic Tourism 2025 (tables 1, 22) and Inbound Tourism
+          2025 (tables 1, 12).
+        </div>
       </div>
     </>
   );
@@ -485,7 +524,7 @@ function Thanks() {
           <Qr />
           <div>
             <strong>Try the live app</strong>
-            <AppLink />
+            <SiteLink />
           </div>
         </Rise>
       </div>

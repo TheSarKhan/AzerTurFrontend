@@ -409,30 +409,29 @@
 }
 .pd-demo {
   position: absolute;
-  left: 863px;
-  top: 800px;
+  top: 810px;
   display: flex;
   align-items: flex-start;
-  gap: 49px;
+  gap: 30px;
 }
 .pd-demo .pd-qr {
-  width: 205px;
-  height: 205px;
+  width: 180px;
+  height: 180px;
 }
 .pd-demo > div {
-  padding-top: 56px;
+  padding-top: 46px;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 14px;
   white-space: nowrap;
 }
 .pd-demo strong {
-  font-size: 35px;
-  line-height: 35px;
+  font-size: 31px;
+  line-height: 31px;
 }
 .pd-demo a {
-  font-size: 26px;
-  line-height: 26px;
+  font-size: 24px;
+  line-height: 24px;
   color: var(--rust);
 }
 
@@ -494,89 +493,142 @@
   left: 0;
   top: 478px;
   width: 1920px;
-  height: 477px;
+  height: 602px;
   background: var(--forest);
   color: var(--paper);
 }
-.pd-band > p {
+/* nested circles: TAM ⊃ SAM ⊃ SOM, bottom-aligned (schematic, not to scale) */
+.pd-ring {
   position: absolute;
-  left: 94px;
-  top: 38px;
-  font-size: 29px;
-  line-height: 1;
-  color: var(--mist);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-radius: 50%;
+  text-align: center;
   white-space: nowrap;
 }
-.pd-band-line {
-  position: absolute;
-  left: 94px;
-  top: 87px;
-  width: 1732px;
-  height: 2px;
-  background: rgba(139, 160, 141, 0.7);
-}
-.pd-band-v {
-  position: absolute;
-  top: 112px;
-  width: 2px;
-  height: 275px;
-  background: rgba(139, 160, 141, 0.7);
-}
-.pd-tam {
-  position: absolute;
-  top: 0;
-  width: 560px;
-  height: 477px;
-}
-.pd-tam > * {
-  position: absolute;
-  left: 0;
-  display: block;
-  font-style: normal;
-  white-space: nowrap;
-}
-.pd-tam small {
-  top: 108px;
-  font-size: 26px;
+.pd-ring small {
+  font-size: 24px;
   line-height: 1;
   font-weight: 700;
   color: var(--peach);
 }
-.pd-tam b {
-  top: 164px;
-  font-size: 73px;
+.pd-ring b {
+  margin-top: 8px;
   line-height: 1;
   font-weight: 700;
 }
-.pd-tam span {
-  left: 2px;
-  top: 261px;
-  font-size: 27px;
-  line-height: 37px;
+.pd-ring-tam {
+  left: 70px;
+  top: 41px;
+  width: 520px;
+  height: 520px;
+  padding-top: 30px;
+  background: rgba(246, 245, 239, 0.07);
+  border: 2px solid rgba(226, 235, 224, 0.55);
 }
-.pd-tam em {
-  left: 2px;
-  top: 362px;
-  font-size: 21px;
+.pd-ring-tam b {
+  font-size: 38px;
+}
+.pd-ring-sam {
+  left: 145px;
+  top: 155px;
+  width: 370px;
+  height: 370px;
+  padding-top: 28px;
+  background: rgba(226, 235, 224, 0.2);
+  border: 2px solid rgba(226, 235, 224, 0.7);
+}
+.pd-ring-sam b {
+  font-size: 34px;
+}
+.pd-ring-som {
+  left: 225px;
+  top: 279px;
+  width: 210px;
+  height: 210px;
+  justify-content: center;
+  background: var(--peach);
+  color: var(--ink);
+}
+.pd-ring-som small {
+  color: var(--ink);
+}
+.pd-ring-som b {
+  font-size: 30px;
+}
+.pd-band-intro {
+  position: absolute;
+  left: 700px;
+  top: 30px;
+  font-size: 28px;
   line-height: 1;
   color: var(--mist);
+  white-space: nowrap;
+}
+.pd-tier {
+  position: absolute;
+  left: 700px;
+  width: 1126px;
+  height: 110px;
+  padding-left: 44px;
+  white-space: nowrap;
+}
+.pd-tier > i {
+  position: absolute;
+  left: 0;
+  top: 3px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid rgba(226, 235, 224, 0.85);
+}
+.pd-tier-sam > i {
+  background: rgba(226, 235, 224, 0.35);
+}
+.pd-tier-som > i {
+  background: var(--peach);
+  border-color: var(--peach);
+}
+.pd-tier header {
+  display: flex;
+  align-items: baseline;
+  gap: 18px;
+  line-height: 1;
+}
+.pd-tier strong {
+  font-size: 28px;
+  color: var(--peach);
+}
+.pd-tier em {
+  font-style: normal;
+  font-size: 22px;
+  color: var(--mist);
+}
+.pd-tier span {
+  display: block;
+  margin-top: 12px;
+  font-size: 28px;
+  line-height: 36px;
 }
 .pd-band-note {
   position: absolute;
-  left: 96px;
-  top: 420px;
-  font-size: 23px;
+  left: 700px;
+  top: 470px;
+  font-size: 22px;
   line-height: 1;
   color: var(--mist);
+  white-space: nowrap;
 }
 .pd-source {
   position: absolute;
-  left: 96px;
-  top: 999px;
-  font-size: 22px;
-  line-height: 1;
-  color: var(--forest);
-  white-space: nowrap;
+  left: 700px;
+  top: 512px;
+  width: 1126px;
+  font-size: 20px;
+  line-height: 1.4;
+  color: rgba(226, 235, 224, 0.8);
+  text-wrap: balance;
 }
 
 /* ---------- team ---------- */
