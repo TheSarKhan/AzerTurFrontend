@@ -6,10 +6,10 @@ import {
   CalendarHeart,
   ChevronLeft,
   ChevronRight,
-  ClipboardCheck,
   Compass,
   FolderOpen,
   Handshake,
+  MapPinned,
   Maximize,
   MessagesSquare,
   Minimize,
@@ -125,7 +125,7 @@ const SOLUTIONS = [
 const STEPS = [
   { icon: Route, title: "Choose a route", text: "Pick a tour or build your own trip." },
   { icon: Send, title: "Send a request", text: "Add your dates and the services you need." },
-  { icon: ClipboardCheck, title: "Review your offer", text: "Check the price, itinerary and contract." },
+  { icon: MapPinned, title: "Discover events nearby", text: "See what is on in your city or close to you." },
   { icon: FolderOpen, title: "Find your travel documents", text: "Open them in the app when they are ready." },
 ];
 
