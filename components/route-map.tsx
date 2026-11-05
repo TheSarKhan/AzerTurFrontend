@@ -2,18 +2,18 @@ import { useId } from "react";
 import { cityPoints, outline } from "@/lib/route-geo";
 
 export type RouteStop = { city: string; days: number };
-// Crop to the north of the country, where every destination sits.
-const view = { x: 135, y: 24, width: 262, height: 150 };
+// The whole country, with a small margin.
+const view = { x: -6, y: -6, width: 412, height: 338 };
 // Where each label sits relative to its dot so close neighbours do not collide.
 const anchor: Record<
   string,
   { dx: number; dy: number; align: "start" | "end" | "middle" }
 > = {
-  Baku: { dx: -12, dy: 4, align: "end" },
-  Quba: { dx: 11, dy: -8, align: "start" },
-  Khinalug: { dx: 11, dy: 3, align: "start" },
-  Gabala: { dx: 0, dy: 22, align: "middle" },
-  Sheki: { dx: 0, dy: -13, align: "middle" },
+  Baku: { dx: -14, dy: 4, align: "end" },
+  Quba: { dx: 13, dy: -9, align: "start" },
+  Khinalug: { dx: 13, dy: 5, align: "start" },
+  Gabala: { dx: 0, dy: 24, align: "middle" },
+  Sheki: { dx: 0, dy: -14, align: "middle" },
 };
 
 /** The route drawn over Azerbaijan: numbered stops joined by arrows in travel order. */
@@ -47,8 +47,8 @@ export function RouteMap({
           viewBox="0 0 10 10"
           refX="7"
           refY="5"
-          markerWidth="5"
-          markerHeight="5"
+          markerWidth="4.5"
+          markerHeight="4.5"
           orient="auto"
         >
           <path d="M0 0 L10 5 L0 10 z" fill="#b54126" />
@@ -58,7 +58,7 @@ export function RouteMap({
       {Object.entries(cityPoints).map(([city, p]) => (
         <g key={city}>
           {!order.has(city) && (
-            <circle cx={p.x} cy={p.y} r={2.5} className="tpx-map-idle" />
+            <circle cx={p.x} cy={p.y} r={3} className="tpx-map-idle" />
           )}
           <text
             x={p.x + anchor[city].dx}
@@ -77,11 +77,11 @@ export function RouteMap({
           dy = b.y - a.y,
           len = Math.hypot(dx, dy) || 1;
         // Stop short of both dots; bow alternate legs so out-and-back trips stay readable.
-        const sx = a.x + (dx / len) * 7,
-          sy = a.y + (dy / len) * 7,
-          ex = b.x - (dx / len) * 8.5,
-          ey = b.y - (dy / len) * 8.5,
-          bow = (i % 2 ? -1 : 1) * Math.min(14, len / 5);
+        const sx = a.x + (dx / len) * 9,
+          sy = a.y + (dy / len) * 9,
+          ex = b.x - (dx / len) * 11,
+          ey = b.y - (dy / len) * 11,
+          bow = (i % 2 ? -1 : 1) * Math.min(16, len / 5);
         const cx = (sx + ex) / 2 - (dy / len) * bow,
           cy = (sy + ey) / 2 + (dx / len) * bow;
         return (
@@ -101,12 +101,12 @@ export function RouteMap({
             <circle
               cx={p.x}
               cy={p.y}
-              r={text.length > 1 ? 8 : 6.5}
+              r={text.length > 1 ? 10 : 8}
               className="tpx-map-stop"
             />
             <text
               x={p.x}
-              y={p.y + 2.9}
+              y={p.y + 3.6}
               textAnchor="middle"
               className="tpx-map-number"
             >
