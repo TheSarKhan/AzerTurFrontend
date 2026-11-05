@@ -1,0 +1,673 @@
+"use client";
+import { useCallback, useEffect, useRef, useState } from "react";
+import type { CSSProperties, ReactNode } from "react";
+import {
+  CalendarClock,
+  CalendarHeart,
+  ChevronLeft,
+  ChevronRight,
+  ClipboardCheck,
+  Compass,
+  FolderOpen,
+  Handshake,
+  Maximize,
+  MessagesSquare,
+  Minimize,
+  Printer,
+  Route,
+  Send,
+  Tickets,
+  User,
+} from "lucide-react";
+
+/* ------------------------------------------------------------------ */
+/* Editable content                                                    */
+/* ------------------------------------------------------------------ */
+
+const APP_URL = "https://app.aztrip.online";
+const APP_LABEL = "app.aztrip.online";
+
+type Member = { name: string; role: string; photo?: string };
+// Replace with the confirmed names and roles. `photo` is optional: put a
+// square image in /public/pitch/ and set e.g. "/pitch/team-01.jpg".
+// Without one, a neutral silhouette is shown.
+const TEAM: Member[] = [
+  { name: "Full name", role: "Role" },
+  { name: "Full name", role: "Role" },
+  { name: "Full name", role: "Role" },
+  { name: "Full name", role: "Role" },
+  { name: "Full name", role: "Role" },
+  { name: "Full name", role: "Role" },
+];
+
+const PROBLEMS = [
+  {
+    icon: Tickets,
+    title: "Bookings are scattered",
+    lines: [
+      "Travelers juggle separate bookings for tickets, stays,",
+      "transfers and guides.",
+    ],
+  },
+  {
+    icon: CalendarClock,
+    title: "Fixed tours limit choice",
+    lines: [
+      "Fixed dates and generic AI tips make it hard to find",
+      "interesting local activities that fit the trip.",
+    ],
+  },
+  {
+    icon: MessagesSquare,
+    title: "Prices and availability take follow-up",
+    lines: [
+      "Travelers and agencies chase several providers",
+      "to confirm what is available and what it costs.",
+    ],
+  },
+];
+
+const SOLUTIONS = [
+  {
+    icon: Compass,
+    title: "Travel on your terms",
+    lines: ["Choose the pace, destinations and services", "that suit you."],
+  },
+  {
+    icon: CalendarHeart,
+    title: "Ideas tailored to your trip",
+    lines: [
+      "Our team suggests local places and activities",
+      "based on your dates and interests.",
+    ],
+  },
+  {
+    icon: Handshake,
+    title: "Local support for agencies",
+    lines: [
+      "International agencies arrange services in",
+      "Azerbaijan through one local team.",
+    ],
+  },
+];
+
+const STEPS = [
+  { icon: Route, title: "Choose a route", text: "Pick a tour or build your own trip." },
+  { icon: Send, title: "Send a request", text: "Add your dates and the services you need." },
+  { icon: ClipboardCheck, title: "Review your offer", text: "Check the price, itinerary and contract." },
+  { icon: FolderOpen, title: "Find your travel documents", text: "Open them in the app when they are ready." },
+];
+
+const MARKET = [
+  {
+    key: "TAM",
+    value: "AZN 2.10B",
+    lines: ["Domestic and inbound spending", "across Azerbaijan"],
+    sub: "AZN 1.40B domestic + AZN 695M inbound",
+  },
+  {
+    key: "SAM",
+    value: "AZN 1.32B",
+    lines: [
+      "Domestic trips to Baku, Quba, Gabala, Sheki",
+      "plus visitors from the four target countries",
+    ],
+    sub: "AZN 1.00B domestic + AZN 313M inbound",
+  },
+  {
+    key: "SOM",
+    value: "AZN 252K",
+    lines: ["Year 1 target for a 10-person team", "720 bookings × AZN 350 average"],
+    sub: "4 operators × 1 booking/day × 20 days × 9 months",
+  },
+];
+
+const LABELS = [
+  "Cover",
+  "Problem",
+  "Solution",
+  "Product",
+  "Market size",
+  "Team",
+  "Thank you",
+];
+
+/* ------------------------------------------------------------------ */
+/* Small building blocks                                               */
+/* ------------------------------------------------------------------ */
+
+function Mark({ color = "#B54126", size = 48 }: { color?: string; size?: number }) {
+  return (
+    <svg viewBox="0 0 48 48" width={size} height={size} fill="none" aria-hidden="true">
+      <path
+        d="M7 38 23 8 40 38M14 27h17M26 38l7-13"
+        stroke={color}
+        strokeWidth="4"
+        strokeLinecap="square"
+        strokeLinejoin="miter"
+      />
+    </svg>
+  );
+}
+
+function Top({ label, dark = false, edge }: { label?: string; dark?: boolean; edge?: number }) {
+  return (
+    <>
+      <div className="pd-brand">
+        <Mark color={dark ? "#F6F5EF" : "#B54126"} />
+        <span>AzTrip</span>
+      </div>
+      {label ? (
+        <div className="pd-label" style={edge ? { right: 1920 - edge } : undefined}>
+          {label}
+        </div>
+      ) : null}
+    </>
+  );
+}
+
+function Rise({
+  n = 0,
+  className = "",
+  style,
+  children,
+}: {
+  n?: number;
+  className?: string;
+  style?: CSSProperties;
+  children: ReactNode;
+}) {
+  return (
+    <div
+      className={`pd-in ${className}`}
+      style={{ ...style, ["--i" as string]: n } as CSSProperties}
+    >
+      {children}
+    </div>
+  );
+}
+
+function Qr({ className = "" }: { className?: string }) {
+  // eslint-disable-next-line @next/next/no-img-element
+  return <img className={`pd-qr ${className}`} src="/pitch/qr.svg" alt="QR code for app.aztrip.online" />;
+}
+
+function AppLink({ className = "" }: { className?: string }) {
+  return (
+    <a className={className} href={APP_URL} target="_blank" rel="noopener noreferrer">
+      {APP_LABEL}
+    </a>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Slides                                                              */
+/* ------------------------------------------------------------------ */
+
+function Cover() {
+  return (
+    <>
+      <div className="pd-cover-left">
+        <Rise n={0} className="pd-cover-mark">
+          <Mark size={78} />
+        </Rise>
+        <Rise n={1}>
+          <h1 className="pd-cover-title">AzTrip</h1>
+        </Rise>
+        <Rise n={2}>
+          <p className="pd-cover-sub">
+            A digital travel experience
+            <br />
+            for Azerbaijan
+          </p>
+        </Rise>
+        <Rise n={3} className="pd-cover-scan">
+          <Qr />
+          <div>
+            <strong>Scan to open the app</strong>
+            <AppLink />
+          </div>
+        </Rise>
+      </div>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img className="pd-photo pd-photo-wide" src="/pitch/cover.jpg" alt="Mountain village in the Caucasus at sunset" />
+    </>
+  );
+}
+
+function Issues({
+  items,
+  title,
+  lead,
+  label,
+  dark,
+  photo,
+  alt,
+}: {
+  items: typeof PROBLEMS;
+  title: [string, string];
+  lead: string;
+  label: string;
+  dark?: boolean;
+  photo: string;
+  alt: string;
+}) {
+  return (
+    <>
+      <Top label={label} dark={dark} edge={1066} />
+      <Rise n={0} className="pd-h2">
+        {title[0]}
+        <br />
+        {title[1]}
+      </Rise>
+      <Rise n={1} className="pd-lead">
+        {lead}
+      </Rise>
+      {items.map(({ icon: Icon, title: t, lines }, i) => (
+        <Rise n={2 + i} key={t} className="pd-issue" style={{ top: 438 + 177 * i }}>
+          <Icon size={41} strokeWidth={1.8} className="pd-issue-icon" aria-hidden="true" />
+          <h3>{t}</h3>
+          <p>
+            {lines[0]}
+            <br />
+            {lines[1]}
+          </p>
+        </Rise>
+      ))}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img className="pd-photo pd-photo-narrow" src={photo} alt={alt} />
+    </>
+  );
+}
+
+function Product() {
+  return (
+    <>
+      <Top label="Product" edge={1826} />
+      <Rise n={0} className="pd-h2 pd-h2-product">
+        From trip idea to
+        <br />
+        travel documents
+      </Rise>
+      {STEPS.map(({ icon: Icon, title, text }, i) => (
+        <Rise n={1 + i} key={title} className="pd-step" style={{ top: 350 + 112 * i }}>
+          <Icon size={38} strokeWidth={1.8} className="pd-issue-icon" aria-hidden="true" />
+          <h3>{title}</h3>
+          <p>{text}</p>
+        </Rise>
+      ))}
+      <div className="pd-rule" />
+      <Rise n={5} className="pd-operator">
+        <strong>Operator dashboard</strong>
+        <span>One workspace for requests, offers and updates.</span>
+      </Rise>
+
+      <div className="pd-cap" style={{ left: 862, top: 157 }}>
+        Website
+      </div>
+      <Rise n={2} className="pd-laptop">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/pitch/web-live.jpg" alt="AzTrip website home page" />
+      </Rise>
+      <Rise n={3} className="pd-phone">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/pitch/mobile-app-live.jpg" alt="AzTrip mobile app home screen" />
+      </Rise>
+      <div className="pd-cap" style={{ left: 1601, top: 716 }}>
+        Mobile app
+      </div>
+
+      <Rise n={6} className="pd-demo">
+        <Qr />
+        <div>
+          <strong>Live demo</strong>
+          <AppLink />
+        </div>
+      </Rise>
+    </>
+  );
+}
+
+function Market() {
+  return (
+    <>
+      <Top label="Market Size" edge={1826} />
+      <Rise n={0} className="pd-h2 pd-h2-market">
+        The travel market in Azerbaijan
+      </Rise>
+      <div className="pd-market-sub">Official figures for 2025</div>
+
+      <Rise n={1} className="pd-stat" style={{ left: 94 }}>
+        <small>INBOUND TOURISM</small>
+        <b>2.57M</b>
+        <strong>International arrivals across all travel purposes</strong>
+        <span>1.28M from Russia, Türkiye, Georgia and Kazakhstan</span>
+      </Rise>
+      <div className="pd-stat-rule" />
+      <Rise n={2} className="pd-stat" style={{ left: 1000 }}>
+        <small>DOMESTIC TOURISM</small>
+        <b>10.14M</b>
+        <strong>Domestic trips for leisure and entertainment</strong>
+        <span>AZN 237.4M on sports and entertainment, plus AZN 84.2M on culture</span>
+      </Rise>
+
+      <div className="pd-band">
+        <p>Annual spending on stays, tour packages, culture, sports and entertainment</p>
+        <div className="pd-band-line" />
+        {MARKET.map((m, i) => (
+          <Rise n={3 + i} key={m.key} className="pd-tam" style={{ left: 94 + 600 * i }}>
+            <small>{m.key}</small>
+            <b>{m.value}</b>
+            <span>
+              {m.lines[0]}
+              <br />
+              {m.lines[1]}
+            </span>
+            <em>{m.sub}</em>
+          </Rise>
+        ))}
+        <div className="pd-band-v" style={{ left: 643 }} />
+        <div className="pd-band-v" style={{ left: 1243 }} />
+        <div className="pd-band-note">SOM is a capacity scenario. AZN 252K is gross booking value.</div>
+      </div>
+
+      <div className="pd-source">
+        Source: State Statistical Committee of Azerbaijan, Domestic Tourism 2025 (tables 1, 22) and Inbound Tourism
+        2025 (tables 1, 12).
+      </div>
+    </>
+  );
+}
+
+function Team() {
+  return (
+    <>
+      <Top label="Team" edge={1826} />
+      <Rise n={0} className="pd-h2 pd-h2-market">
+        The team behind AzTrip
+      </Rise>
+      <Rise n={1} className="pd-market-sub">
+        Six people building a digital travel experience for Azerbaijan.
+      </Rise>
+      <div className="pd-team">
+        {TEAM.map((m, i) => (
+          <Rise n={2 + i} key={i} className="pd-member">
+            <div className="pd-avatar">
+              {m.photo ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={m.photo} alt={m.name} />
+              ) : (
+                <User size={64} strokeWidth={1.4} aria-hidden="true" />
+              )}
+            </div>
+            <div className="pd-member-text">
+              <small>{String(i + 1).padStart(2, "0")}</small>
+              <strong>{m.name}</strong>
+              <span>{m.role}</span>
+            </div>
+          </Rise>
+        ))}
+      </div>
+    </>
+  );
+}
+
+function Thanks() {
+  return (
+    <>
+      <div className="pd-thanks-left">
+        <Rise n={0} className="pd-cover-mark">
+          <Mark size={78} color="#F6F5EF" />
+        </Rise>
+        <Rise n={1}>
+          <h1 className="pd-cover-title pd-thanks-title">Thank you</h1>
+        </Rise>
+        <Rise n={2}>
+          <p className="pd-cover-sub">
+            Azerbaijan.
+            <br />
+            Your kind of journey.
+          </p>
+        </Rise>
+        <Rise n={3} className="pd-cover-scan">
+          <Qr />
+          <div>
+            <strong>Try the live app</strong>
+            <AppLink />
+          </div>
+        </Rise>
+      </div>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img className="pd-photo pd-photo-wide" src="/pitch/thanks.jpg" alt="Hikers on a mountain trail in Azerbaijan" />
+    </>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Deck                                                                */
+/* ------------------------------------------------------------------ */
+
+const SLIDES: { node: ReactNode; theme: "paper" | "forest" }[] = [
+  { node: <Cover />, theme: "paper" },
+  {
+    node: (
+      <Issues
+        items={PROBLEMS}
+        title={["Planning a trip", "takes too much work"]}
+        lead="For local and international travelers and the agencies that help them."
+        label="Problem"
+        photo="/pitch/problem.jpg"
+        alt="A traveler planning a trip with a map, laptop and phone"
+      />
+    ),
+    theme: "paper",
+  },
+  {
+    node: (
+      <Issues
+        items={SOLUTIONS}
+        title={["Your trip,", "your choices"]}
+        lead="AzTrip takes care of the planning and bookings."
+        label="Solution"
+        dark
+        photo="/pitch/solution.jpg"
+        alt="A local potter teaching a traveler to shape clay"
+      />
+    ),
+    theme: "forest",
+  },
+  { node: <Product />, theme: "paper" },
+  { node: <Market />, theme: "paper" },
+  { node: <Team />, theme: "paper" },
+  { node: <Thanks />, theme: "forest" },
+];
+
+const W = 1920;
+const H = 1080;
+
+export default function PitchDeck() {
+  const [index, setIndex] = useState(0);
+  const [scale, setScale] = useState(0.5);
+  const [full, setFull] = useState(false);
+  const [idle, setIdle] = useState(false);
+  const root = useRef<HTMLDivElement>(null);
+  const touch = useRef<{ x: number; y: number } | null>(null);
+  const last = SLIDES.length - 1;
+
+  const go = useCallback(
+    (n: number) => setIndex(Math.max(0, Math.min(last, n))),
+    [last],
+  );
+
+  // Read #n on load and follow back/forward.
+  useEffect(() => {
+    const read = () => {
+      const n = parseInt(location.hash.slice(1), 10);
+      if (n >= 1 && n <= SLIDES.length) setIndex(n - 1);
+    };
+    read();
+    window.addEventListener("hashchange", read);
+    return () => window.removeEventListener("hashchange", read);
+  }, []);
+
+  const synced = useRef(false);
+  useEffect(() => {
+    // Skip the first run so a deep link like /pitch#6 is read before it is rewritten.
+    if (!synced.current) {
+      synced.current = true;
+      return;
+    }
+    const target = "#" + (index + 1);
+    if (location.hash !== target) history.replaceState(null, "", target);
+  }, [index]);
+
+  // Fit the 1920×1080 stage inside the viewport.
+  useEffect(() => {
+    const fit = () => setScale(Math.min(innerWidth / W, innerHeight / H));
+    fit();
+    window.addEventListener("resize", fit);
+    return () => window.removeEventListener("resize", fit);
+  }, []);
+
+  useEffect(() => {
+    const sync = () => setFull(document.fullscreenElement === root.current);
+    document.addEventListener("fullscreenchange", sync);
+    return () => document.removeEventListener("fullscreenchange", sync);
+  }, []);
+
+  const toggleFull = useCallback(() => {
+    if (document.fullscreenElement) void document.exitFullscreen();
+    else void root.current?.requestFullscreen?.();
+  }, []);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      const t = e.target as HTMLElement | null;
+      if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
+      const onButton = t?.tagName === "BUTTON" || t?.tagName === "A";
+      switch (e.key) {
+        case "ArrowRight":
+        case "ArrowDown":
+        case "PageDown":
+          go(index + 1);
+          break;
+        case " ":
+          if (onButton) return;
+          go(index + (e.shiftKey ? -1 : 1));
+          break;
+        case "ArrowLeft":
+        case "ArrowUp":
+        case "PageUp":
+          go(index - 1);
+          break;
+        case "Home":
+          go(0);
+          break;
+        case "End":
+          go(last);
+          break;
+        case "f":
+        case "F":
+          toggleFull();
+          break;
+        default:
+          return;
+      }
+      e.preventDefault();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [go, index, last, toggleFull]);
+
+  // Hide the control bar when the pointer rests.
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout>;
+    const wake = () => {
+      setIdle(false);
+      clearTimeout(timer);
+      timer = setTimeout(() => setIdle(true), 2800);
+    };
+    wake();
+    window.addEventListener("mousemove", wake);
+    window.addEventListener("touchstart", wake);
+    window.addEventListener("keydown", wake);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("mousemove", wake);
+      window.removeEventListener("touchstart", wake);
+      window.removeEventListener("keydown", wake);
+    };
+  }, []);
+
+  const stageStyle = { transform: `translate(-50%, -50%) scale(${scale})` };
+
+  return (
+    <div
+      ref={root}
+      className="pd"
+      onTouchStart={(e) => {
+        const p = e.touches[0];
+        touch.current = { x: p.clientX, y: p.clientY };
+      }}
+      onTouchEnd={(e) => {
+        const s = touch.current;
+        touch.current = null;
+        if (!s) return;
+        const p = e.changedTouches[0];
+        const dx = p.clientX - s.x;
+        const dy = p.clientY - s.y;
+        if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) go(index + (dx < 0 ? 1 : -1));
+      }}
+    >
+      <div className="pd-stage" style={stageStyle}>
+        {SLIDES.map((s, i) => (
+          <section
+            key={i}
+            className={`pd-slide pd-${s.theme}${i === index ? " is-active" : ""}`}
+            aria-hidden={i !== index}
+            aria-label={`${i + 1} of ${SLIDES.length}: ${LABELS[i]}`}
+            inert={i !== index}
+          >
+            {s.node}
+          </section>
+        ))}
+      </div>
+
+      <p className="pd-rotate">Rotate your phone for the best view</p>
+
+      <nav className={`pd-controls${idle ? " is-idle" : ""}`} aria-label="Presentation controls">
+        <button type="button" onClick={() => go(index - 1)} disabled={index === 0} aria-label="Previous slide">
+          <ChevronLeft size={20} />
+        </button>
+        <ol>
+          {LABELS.map((label, i) => (
+            <li key={label}>
+              <button
+                type="button"
+                className={i === index ? "is-current" : ""}
+                onClick={() => go(i)}
+                aria-label={`Go to slide ${i + 1}: ${label}`}
+                aria-current={i === index ? "step" : undefined}
+                title={label}
+              />
+            </li>
+          ))}
+        </ol>
+        <span className="pd-count" aria-live="polite">
+          {index + 1} / {SLIDES.length}
+        </span>
+        <button type="button" onClick={() => go(index + 1)} disabled={index === last} aria-label="Next slide">
+          <ChevronRight size={20} />
+        </button>
+        <i aria-hidden="true" />
+        <button type="button" onClick={toggleFull} aria-label={full ? "Exit full screen" : "Full screen"}>
+          {full ? <Minimize size={18} /> : <Maximize size={18} />}
+        </button>
+        <button type="button" onClick={() => window.print()} aria-label="Print or save as PDF">
+          <Printer size={18} />
+        </button>
+      </nav>
+    </div>
+  );
+}
