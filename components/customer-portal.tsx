@@ -160,7 +160,8 @@ function GoogleButton({
     };
     if (window.google?.accounts) render();
     else {
-      let script = document.querySelector<HTMLScriptElement>("script[data-gsi]");
+      let script =
+        document.querySelector<HTMLScriptElement>("script[data-gsi]");
       if (!script) {
         script = document.createElement("script");
         script.src = "https://accounts.google.com/gsi/client?hl=" + l;
@@ -201,23 +202,22 @@ export function CustomerAuth({
   return (
     <section className="auth-split">
       <div className="auth-panel customer-auth">
-      <h1>
-        {mode === "login"
-          ? t("Welcome back.", "С возвращением.", "Xoş gəlmisiniz.")
-          : t(
-              "Your journey starts here.",
-              "Ваше путешествие начинается здесь.",
-              "Səyahətiniz buradan başlayır.",
-            )}
-      </h1>
-      <p>
-        {t(
-          "An account is required to request and manage a reservation.",
-          "Для запроса и управления бронированием нужен аккаунт.",
-          "Rezervasiya sorğusu yaratmaq və idarə etmək üçün qeydiyyat vacibdir.",
-        )}
-      </p>
-      {mode !== "forgot-password" && (
+        <h1>
+          {mode === "login"
+            ? t("Welcome back.", "С возвращением.", "Xoş gəlmisiniz.")
+            : t(
+                "Your journey starts here.",
+                "Ваше путешествие начинается здесь.",
+                "Səyahətiniz buradan başlayır.",
+              )}
+        </h1>
+        <p>
+          {t(
+            "An account is required to request and manage a reservation.",
+            "Для запроса и управления бронированием нужен аккаунт.",
+            "Rezervasiya sorğusu yaratmaq və idarə etmək üçün qeydiyyat vacibdir.",
+          )}
+        </p>
         <GoogleButton
           locale={l}
           onCredential={async (credential) => {
@@ -233,119 +233,108 @@ export function CustomerAuth({
             }
           }}
         />
-      )}
-      <div className="auth-tabs">
-        <button
-          aria-pressed={mode === "login"}
-          onClick={() => {
-            setMode("login");
+        <div className="auth-tabs">
+          <button
+            aria-pressed={mode === "login"}
+            onClick={() => {
+              setMode("login");
+              setError("");
+            }}
+          >
+            {t("Sign in", "Войти", "Daxil ol")}
+          </button>
+          <button
+            aria-pressed={mode === "register"}
+            onClick={() => {
+              setMode("register");
+              setError("");
+            }}
+          >
+            {t("Create account", "Создать аккаунт", "Qeydiyyat")}
+          </button>
+        </div>
+        <form
+          key={mode}
+          onSubmit={async (e) => {
+            e.preventDefault();
+            if (busy) return;
+            const f = new FormData(e.currentTarget);
+            setBusy(true);
             setError("");
+            try {
+              await customerApi("auth/" + mode, {
+                email: String(f.get("email")),
+                password: String(f.get("password")),
+                ...(mode === "register"
+                  ? { name: String(f.get("name")), locale: l }
+                  : {}),
+              });
+              window.location.assign("/" + l + next);
+            } catch (e) {
+              setError(errorMessage(e, l));
+            } finally {
+              setBusy(false);
+            }
           }}
         >
-          {t("Sign in", "Войти", "Daxil ol")}
-        </button>
-        <button
-          aria-pressed={mode === "register"}
-          onClick={() => {
-            setMode("register");
-            setError("");
-          }}
-        >
-          {t("Create account", "Создать аккаунт", "Qeydiyyat")}
-        </button>
-      </div>
-      <form
-        key={mode}
-        onSubmit={async (e) => {
-          e.preventDefault();
-          if (busy) return;
-          const f = new FormData(e.currentTarget);
-          setBusy(true);
-          setError("");
-          try {
-            await customerApi("auth/" + mode, {
-              email: String(f.get("email")),
-              password: String(f.get("password")),
-              ...(mode === "register"
-                ? { name: String(f.get("name")), locale: l }
-                : {}),
-            });
-            window.location.assign("/" + l + next);
-          } catch (e) {
-            setError(errorMessage(e, l));
-          } finally {
-            setBusy(false);
-          }
-        }}
-      >
-        {mode === "register" && (
+          {mode === "register" && (
+            <label>
+              {t("Full name", "Имя и фамилия", "Ad və soyad")}
+              <input
+                name="name"
+                required
+                minLength={2}
+                maxLength={100}
+                autoComplete="name"
+              />
+            </label>
+          )}
           <label>
-            {t("Full name", "Имя и фамилия", "Ad və soyad")}
+            {t("Email address", "Email", "Email ünvanı")}
             <input
-              name="name"
+              name="email"
               required
-              minLength={2}
-              maxLength={100}
-              autoComplete="name"
+              type="email"
+              maxLength={254}
+              autoComplete="email"
             />
           </label>
-        )}
-        <label>
-          {t("Email address", "Email", "Email ünvanı")}
-          <input
-            name="email"
-            required
-            type="email"
-            maxLength={254}
-            autoComplete="email"
-          />
-        </label>
-        <label>
-          {t("Password", "Пароль", "Şifrə")}
-          <input
-            name="password"
-            type="password"
-            required
-            minLength={mode === "register" ? 12 : 1}
-            maxLength={72}
-            autoComplete={
-              mode === "register" ? "new-password" : "current-password"
-            }
-          />
-        </label>
-        {mode === "register" && (
-          <p className="field-help">
-            {t(
-              "At least 12 characters; maximum 72 UTF-8 bytes.",
-              "Не менее 12 символов; максимум 72 байта UTF-8.",
-              "Ən azı 12 simvol; maksimum 72 UTF-8 baytı.",
-            )}
-          </p>
-        )}
-        {error && (
-          <p role="alert" className="error-message">
-            {error}
-          </p>
-        )}
-        <button className="button" disabled={busy}>
-          {busy
-            ? t("Please wait…", "Подождите…", "Gözləyin…")
-            : mode === "login"
-              ? t("Sign in", "Войти", "Daxil ol")
-              : t("Create account", "Создать аккаунт", "Qeydiyyatdan keç")}
-          <ArrowUpRight size={18} />
-        </button>
-      </form>
-      <button
-        className="cc-text"
-        onClick={() => {
-          setMode("forgot-password");
-          setError("");
-          setSent(false);
-        }}
-      >
-        {t("Forgot password?", "Забыли пароль?", "Şifrəni unutmusan?")}
-      </button>
+          <label>
+            {t("Password", "Пароль", "Şifrə")}
+            <input
+              name="password"
+              type="password"
+              required
+              minLength={mode === "register" ? 12 : 1}
+              maxLength={72}
+              autoComplete={
+                mode === "register" ? "new-password" : "current-password"
+              }
+            />
+          </label>
+          {mode === "register" && (
+            <p className="field-help">
+              {t(
+                "At least 12 characters; maximum 72 UTF-8 bytes.",
+                "Не менее 12 символов; максимум 72 байта UTF-8.",
+                "Ən azı 12 simvol; maksimum 72 UTF-8 baytı.",
+              )}
+            </p>
+          )}
+          {error && (
+            <p role="alert" className="error-message">
+              {error}
+            </p>
+          )}
+          <button className="button" disabled={busy}>
+            {busy
+              ? t("Please wait…", "Подождите…", "Gözləyin…")
+              : mode === "login"
+                ? t("Sign in", "Войти", "Daxil ol")
+                : t("Create account", "Создать аккаунт", "Qeydiyyatdan keç")}
+            <ArrowUpRight size={18} />
+          </button>
+        </form>
       </div>
       <AuthShowcase locale={l} />
     </section>
