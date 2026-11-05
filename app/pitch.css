@@ -625,7 +625,7 @@
   object-fit: cover;
 }
 .pd-member strong {
-  font-size: 36px;
+  font-size: 34px;
   line-height: 1.1;
   color: var(--ink);
 }

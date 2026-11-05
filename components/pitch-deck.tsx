@@ -30,18 +30,18 @@ type Member = { name: string; role: string; photo: string };
 // Drop a square photo (about 600×600) at each `photo` path below, e.g.
 // public/pitch/team/serxan.jpg. Until the file exists, the initial is shown.
 const TEAM: Member[] = [
-  { name: "Serxan", role: "Product Owner + Developer", photo: "/pitch/team/serxan.jpg" },
-  { name: "Ulker", role: "QA", photo: "/pitch/team/ulker.jpg" },
-  { name: "Pervane", role: "Design", photo: "/pitch/team/pervane.jpg" },
-  { name: "Behruz", role: "Tourism", photo: "/pitch/team/behruz.jpg" },
-  { name: "Zamiq", role: "Tourism", photo: "/pitch/team/zamiq.jpg" },
-  { name: "Ayxan", role: "Business", photo: "/pitch/team/ayxan.jpg" },
+  { name: "Sərxan Babayev", role: "Product Owner", photo: "/pitch/team/serxan.jpg" },
+  { name: "Ulker Əliyeva", role: "QA", photo: "/pitch/team/ulker.jpg" },
+  { name: "Pərvanə Əliyeva", role: "Design", photo: "/pitch/team/pervane.jpg" },
+  { name: "Bəhruz Sultanov", role: "Tourism", photo: "/pitch/team/behruz.jpg" },
+  { name: "Zamiq Quliyev", role: "Tourism", photo: "/pitch/team/zamiq.jpg" },
+  { name: "Ayxan Hacıyev", role: "Business", photo: "/pitch/team/ayxan.jpg" },
 ];
 
 const ROLES = [
   {
-    title: "Product Owner + Developer",
-    text: "Sets the product vision and priorities, and builds the website, mobile app and operator dashboard.",
+    title: "Product Owner",
+    text: "Sets the product vision and priorities, and decides what the team builds next.",
   },
   {
     title: "QA",
@@ -442,7 +442,11 @@ function Team() {
         {TEAM.map((m, i) => (
           <Rise n={2 + i} key={m.name} className="pd-member">
             <Avatar member={m} />
-            <strong>{m.name}</strong>
+            <strong>
+              {m.name.split(" ")[0]}
+              <br />
+              {m.name.split(" ").slice(1).join(" ")}
+            </strong>
             <span>{m.role}</span>
           </Rise>
         ))}
