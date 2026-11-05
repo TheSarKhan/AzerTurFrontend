@@ -9,7 +9,7 @@ import {
   type Booking,
   type BookingRequest,
 } from "@/lib/customer-api";
-import { money, type Locale, type Quote, tours } from "@/lib/travel";
+import { type Locale, type Quote, tours } from "@/lib/travel";
 type Props = { locale: Locale; go: (path: string) => void };
 const serviceName = (key: string, l: Locale) => {
   const names: Record<string, [string, string, string]> = {
@@ -373,19 +373,14 @@ export function BookingCheckout({
             {quote.lines.map((line) => (
               <div key={line.label}>
                 <span>{serviceName(line.label, l)}</span>
-                <strong>{money(line.amount, quote.currency, l)}</strong>
               </div>
             ))}
-            <div className="summary-total">
-              <span>{t("Total", "Всего", "Cəmi")}</span>
-              <strong>{money(quote.total, quote.currency, l)}</strong>
-            </div>
           </div>
           <p>
             {t(
-              "Demo prices. Deposit is available only after operator approval.",
-              "Демо-цены. Депозит доступен после одобрения оператора.",
-              "Demo qiymətlər. Depozit yalnız operator təsdiqindən sonra açılır.",
+              "Our team checks availability and replies with a personal offer, including prices.",
+              "Команда проверит доступность и пришлёт персональное предложение с ценами.",
+              "Komandamız mövcudluğu yoxlayıb qiymətlərlə birlikdə fərdi təklif göndərəcək.",
             )}
           </p>
         </aside>
