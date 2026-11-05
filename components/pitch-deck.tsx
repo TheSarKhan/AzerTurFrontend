@@ -7,11 +7,11 @@ import {
   ChevronLeft,
   ChevronRight,
   Compass,
+  Layers,
+  LayoutTemplate,
   FolderOpen,
-  Handshake,
   MapPinned,
   Maximize,
-  MessagesSquare,
   Minimize,
   Printer,
   Route,
@@ -74,50 +74,53 @@ const ROLE_COLS = [
 const PROBLEMS = [
   {
     icon: Tickets,
-    title: "Bookings are scattered",
+    title: "Services are spread across platforms",
     lines: [
-      "Travelers juggle separate bookings for tickets, stays,",
-      "transfers and guides.",
+      "Tickets, hotels and transfers are booked in different",
+      "places, and documents are kept somewhere else.",
     ],
   },
   {
     icon: CalendarClock,
-    title: "Fixed tours limit choice",
+    title: "Fixed tours ignore personal interests",
     lines: [
-      "Fixed dates and generic AI tips make it hard to find",
-      "interesting local activities that fit the trip.",
+      "Travelers often have to visit stops that do not interest",
+      "them, because the route cannot be adjusted.",
     ],
   },
   {
-    icon: MessagesSquare,
-    title: "Prices and availability take follow-up",
+    icon: LayoutTemplate,
+    title: "Trips feel templated",
     lines: [
-      "Travelers and agencies chase several providers",
-      "to confirm what is available and what it costs.",
+      "Agencies and AI tools tend to repeat the same places,",
+      "so interesting and different activities stay hidden.",
     ],
   },
 ];
 
 const SOLUTIONS = [
   {
-    icon: Compass,
-    title: "Travel on your terms",
-    lines: ["Choose the pace, destinations and services", "that suit you."],
-  },
-  {
-    icon: CalendarHeart,
-    title: "Ideas tailored to your trip",
+    icon: Layers,
+    title: "One platform for the whole trip",
     lines: [
-      "Our team suggests local places and activities",
-      "based on your dates and interests.",
+      "We digitize the process. Requests, offers, contracts",
+      "and travel documents live in one place.",
     ],
   },
   {
-    icon: Handshake,
-    title: "Local support for agencies",
+    icon: CalendarHeart,
+    title: "Tours built around you",
     lines: [
-      "International agencies arrange services in",
-      "Azerbaijan through one local team.",
+      "We organize each trip around your requests and",
+      "manage it dynamically as your plans change.",
+    ],
+  },
+  {
+    icon: Compass,
+    title: "New places, found for you",
+    lines: [
+      "We keep discovering new and different places and",
+      "activities that you can browse and go to via the app.",
     ],
   },
 ];
