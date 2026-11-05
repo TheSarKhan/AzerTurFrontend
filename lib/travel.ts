@@ -209,13 +209,11 @@ export function dateLimit(offset: number) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-export const transitions: Record<string, string[]> = {
-  Baku: ["Baku", "Quba", "Gabala"],
-  Quba: ["Quba", "Baku", "Khinalug"],
-  Khinalug: ["Khinalug", "Quba"],
-  Gabala: ["Gabala", "Baku", "Sheki"],
-  Sheki: ["Sheki", "Gabala"],
-};
+// Any destination may follow any other; the team arranges the transfers between them.
+const destinations = ["Baku", "Quba", "Khinalug", "Gabala", "Sheki"];
+export const transitions: Record<string, string[]> = Object.fromEntries(
+  destinations.map((city) => [city, [...destinations]]),
+);
 
 for (const tour of tours) {
   const az = tourAz[tour.slug];

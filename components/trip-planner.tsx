@@ -293,8 +293,8 @@ export default function TripPlanner({
     setQuote(null);
     setInput((s) => ({ ...s, [key]: value }));
   }
-  // Destinations a stop at this position may take: connected to both neighbours and never equal
-  // to one (that would just be more days at the same place).
+  // Destinations a stop at this position may take: anything except a neighbour's destination
+  // (that would just be more days at the same place).
   function options(index: number) {
     const before = stops[index - 1]?.city,
       after = index < stops.length ? stops[index + 1]?.city : undefined;
@@ -350,9 +350,9 @@ export default function TripPlanner({
     if (!valid(next)) {
       setNotice(
         t(
-          "These tours need a connecting stop or a different order. Reorder your selection.",
-          "Нужна пересадка или другой порядок туров. Измените порядок.",
-          "Bu turlar üçün əlaqələndirici dayanacaq və ya başqa ardıcıllıq lazımdır.",
+          "A trip can be 14 days at most. Remove a tour from your selection.",
+          "Поездка длится не более 14 дней. Уберите один из туров.",
+          "Səfər ən çox 14 gün ola bilər. Seçimdən bir turu çıxarın.",
         ),
       );
       return;
@@ -834,9 +834,9 @@ export default function TripPlanner({
               </h2>
               <p>
                 {t(
-                  "Choose where you go next and how many days you stay. Only connected destinations are shown.",
-                  "Выберите, куда едете дальше и сколько дней остаётесь. Показаны только связанные направления.",
-                  "Növbəti istiqaməti və orada neçə gün qalacağını seç. Yalnız əlaqəli istiqamətlər göstərilir.",
+                  "Choose where you go next and how many days you stay. Our team arranges the transfers.",
+                  "Выберите, куда едете дальше и сколько дней остаётесь. Переезды организует команда.",
+                  "Növbəti istiqaməti və orada neçə gün qalacağını seç. Yerdəyişmələri komandamız təşkil edir.",
                 )}
               </p>
               {choices.length ? (
@@ -857,9 +857,9 @@ export default function TripPlanner({
               ) : (
                 <p role="status">
                   {t(
-                    "No destination connects to the neighbouring stops. Remove a neighbouring stop first.",
-                    "Нет направления, связанного с соседними остановками. Сначала уберите соседнюю остановку.",
-                    "Qonşu dayanacaqlarla əlaqəli istiqamət yoxdur. Əvvəlcə qonşu dayanacağı sil.",
+                    "No other destination is available here.",
+                    "Других направлений здесь нет.",
+                    "Burada başqa istiqamət yoxdur.",
                   )}
                 </p>
               )}
@@ -1017,9 +1017,9 @@ export default function TripPlanner({
               ))}
               <p>
                 {t(
-                  "Only connected stops can be combined. Prices come from your selected services.",
-                  "Можно объединить связанные остановки. Цена зависит от выбранных услуг.",
-                  "Yalnız əlaqəli dayanacaqlar birləşdirilir. Qiymət seçilmiş xidmətlərə görə hesablanır.",
+                  "Combine as many tours as you like; our team arranges the transfers between them.",
+                  "Объединяйте любое число туров; переезды между ними организует команда.",
+                  "İstədiyin qədər turu birləşdirə bilərsən; aralarındakı yerdəyişmələri komandamız təşkil edir.",
                 )}
               </p>
               {notice && <p role="status">{notice}</p>}
