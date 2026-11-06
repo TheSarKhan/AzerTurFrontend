@@ -638,38 +638,28 @@
   text-wrap: balance;
 }
 
-/* ---------- team ---------- */
-.pd-team {
+/* ---------- team (org chart) ---------- */
+.pd-tree-lines {
   position: absolute;
-  left: 90px;
-  top: 276px;
-  width: 1740px;
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 24px;
-}
-.pd-member {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  height: 400px;
-  padding: 30px 12px 0;
-  border: 2px solid #dce3d9;
-  border-radius: 26px;
-  background: #fff;
-  text-align: center;
+  inset: 0;
+  width: 1920px;
+  height: 1080px;
+  fill: none;
+  stroke: #aebbad;
+  stroke-width: 3;
+  stroke-linecap: round;
 }
 .pd-avatar {
   display: grid;
   place-items: center;
-  width: 172px;
-  height: 172px;
-  margin-bottom: 22px;
+  flex: none;
+  width: 140px;
+  height: 140px;
   border-radius: 50%;
   overflow: hidden;
   background: var(--mist);
   color: var(--forest);
-  font-size: 78px;
+  font-size: 64px;
   line-height: 1;
 }
 .pd-avatar b {
@@ -683,53 +673,80 @@
   height: 100%;
   object-fit: cover;
 }
-.pd-member strong {
-  font-size: 34px;
+.pd-lead-card {
+  position: absolute;
+  width: 560px;
+  display: flex;
+  align-items: center;
+  gap: 26px;
+  padding: 0 30px;
+  border-radius: 26px;
+  background: var(--forest);
+  color: var(--paper);
+  box-shadow: 0 14px 34px rgba(64, 91, 70, 0.22);
+}
+.pd-lead-card .pd-avatar {
+  width: 138px;
+  height: 138px;
+  border: 3px solid rgba(246, 245, 239, 0.45);
+}
+.pd-lead-card strong {
+  display: block;
+  font-size: 32px;
+  line-height: 1.1;
+}
+.pd-lead-card em {
+  display: block;
+  margin-top: 8px;
+  font-style: normal;
+  font-size: 22px;
+  line-height: 1.2;
+  font-weight: 700;
+  color: var(--peach);
+}
+.pd-lead-card span {
+  display: block;
+  margin-top: 10px;
+  font-size: 20px;
+  line-height: 1.3;
+  color: var(--mist);
+}
+.pd-kid {
+  position: absolute;
+  height: 400px;
+  padding: 28px 24px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  border: 2px solid #dce3d9;
+  border-radius: 26px;
+  background: #fff;
+}
+.pd-kid .pd-avatar {
+  width: 142px;
+  height: 142px;
+  margin-bottom: 16px;
+}
+.pd-kid strong {
+  font-size: 30px;
   line-height: 1.1;
   color: var(--ink);
 }
-.pd-member span {
-  margin-top: 10px;
-  font-size: 21px;
-  line-height: 1.25;
+.pd-kid em {
+  margin-top: 8px;
+  font-style: normal;
+  font-size: 22px;
+  line-height: 1.2;
   font-weight: 700;
   color: var(--rust);
   text-wrap: balance;
 }
-.pd-roles {
-  position: absolute;
-  left: 0;
-  top: 730px;
-  width: 1920px;
-  height: 350px;
-  background: var(--forest);
-  color: var(--paper);
-}
-.pd-roles > small {
-  position: absolute;
-  left: 94px;
-  top: 26px;
-  font-size: 23px;
-  line-height: 1;
-  font-weight: 700;
-  color: var(--peach);
-}
-.pd-role {
-  position: absolute;
-  width: 540px;
-}
-.pd-role strong {
-  display: block;
-  white-space: nowrap;
-  font-size: 27px;
-  line-height: 1.1;
-}
-.pd-role span {
-  display: block;
-  margin-top: 10px;
+.pd-kid span {
+  margin-top: 12px;
   font-size: 21px;
   line-height: 1.3;
-  color: var(--mist);
+  color: var(--muted);
 }
 
 /* ---------- controls ---------- */

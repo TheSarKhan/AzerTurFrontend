@@ -28,47 +28,66 @@ const APP_LABEL = "app.aztrip.online";
 const WEB_URL = "https://aztrip.online";
 const WEB_LABEL = "aztrip.online";
 
-type Member = { name: string; role: string; photo: string };
+type Member = { name: string; role: string; about: string; photo: string };
 // Drop a square photo (about 600×600) at each `photo` path below, e.g.
 // public/pitch/team/serxan.jpg. Until the file exists, the initial is shown.
-const TEAM: Member[] = [
-  { name: "Sarkhan Babayev", role: "Chief Technology Officer", photo: "/pitch/team/serxan.jpg" },
-  { name: "Ulkar Aliyeva", role: "QA", photo: "/pitch/team/ulker.jpg" },
-  { name: "Parvana Aliyeva", role: "Design", photo: "/pitch/team/pervane.jpg" },
-  { name: "Bahruz Sultanov", role: "Chief Executive Officer", photo: "/pitch/team/behruz.jpg" },
-  { name: "Zamiq Quliyev", role: "Incoming and Outgoing Coordinator", photo: "/pitch/team/zamiq.jpg" },
-  { name: "Aykhan Hajiyev", role: "Business", photo: "/pitch/team/ayxan.jpg" },
+const SARKHAN: Member = {
+  name: "Sarkhan Babayev",
+  role: "Chief Technology Officer",
+  about: "Leads the technical side: architecture, development and the reliability of the platform.",
+  photo: "/pitch/team/serxan.jpg",
+};
+const BAHRUZ: Member = {
+  name: "Bahruz Sultanov",
+  role: "Chief Executive Officer",
+  about: "Leads the company: vision, strategy, partnerships and the overall direction of AzTrip.",
+  photo: "/pitch/team/behruz.jpg",
+};
+// Org chart: two leaders at the top, each with two people reporting to them.
+const TREE: { lead: Member; reports: Member[] }[] = [
+  {
+    lead: SARKHAN,
+    reports: [
+      {
+        name: "Ulkar Aliyeva",
+        role: "QA",
+        about: "Tests every release on web and mobile so requests, offers and documents work as promised.",
+        photo: "/pitch/team/ulker.jpg",
+      },
+      {
+        name: "Parvana Aliyeva",
+        role: "Design",
+        about: "Shapes the brand and the website and app screens, so planning a trip feels simple.",
+        photo: "/pitch/team/pervane.jpg",
+      },
+    ],
+  },
+  {
+    lead: BAHRUZ,
+    reports: [
+      {
+        name: "Zamiq Quliyev",
+        role: "Incoming and Outgoing Coordinator",
+        about: "Coordinates inbound travelers coming to Azerbaijan and outbound trips for local travelers.",
+        photo: "/pitch/team/zamiq.jpg",
+      },
+      {
+        name: "Aykhan Hajiyev",
+        role: "Business",
+        about: "Studies the market and customers, and shapes pricing, partnerships and the business model.",
+        photo: "/pitch/team/ayxan.jpg",
+      },
+    ],
+  },
 ];
-
-const ROLES = [
-  {
-    title: "Chief Technology Officer",
-    text: "Leads the technical side: architecture, development and the reliability of the platform.",
-  },
-  {
-    title: "QA",
-    text: "Tests every release on web and mobile so requests, offers and documents work as promised.",
-  },
-  {
-    title: "Design",
-    text: "Shapes the brand and the website and app screens, so planning a trip feels simple.",
-  },
-  {
-    title: "Chief Executive Officer",
-    text: "Leads the company: vision, strategy, partnerships and the overall direction of AzTrip.",
-  },
-  {
-    title: "Incoming and Outgoing Coordinator",
-    text: "Coordinates inbound travelers coming to Azerbaijan and outbound trips for local travelers.",
-  },
-  {
-    title: "Business",
-    text: "Studies the market and customers, and shapes pricing, partnerships and the business model.",
-  },
-];
-// Left edge of each column and top of each row of the role grid (stage px).
-const ROLE_LEFT = [94, 674, 1254];
-const ROLE_TOP = [78, 212];
+// Stage geometry of the org chart (px): group centres, leader card top/height, reports' card top.
+const TREE_CX = [502, 1417];
+const TREE_LEAD_TOP = 255;
+const TREE_LEAD_H = 220;
+const TREE_BAR_Y = 515;
+const TREE_KID_TOP = 555;
+const TREE_KID_W = 400;
+const TREE_KID_GAP = 25;
 
 const PROBLEMS = [
   {
@@ -487,6 +506,8 @@ function Avatar({ member }: { member: Member }) {
 }
 
 function Team() {
+  // x centre of the two report cards under each leader
+  const kidCx = (cx: number) => [cx - (TREE_KID_W + TREE_KID_GAP) / 2, cx + (TREE_KID_W + TREE_KID_GAP) / 2];
   return (
     <>
       <Top label="Team" edge={1826} />
@@ -496,28 +517,53 @@ function Team() {
       <Rise n={1} className="pd-market-sub">
         Six people building a digital travel experience for Azerbaijan.
       </Rise>
-      <div className="pd-team">
-        {TEAM.map((m, i) => (
-          <Rise n={2 + i} key={m.name} className="pd-member">
-            <Avatar member={m} />
-            <strong>
-              {m.name.split(" ")[0]}
-              <br />
-              {m.name.split(" ").slice(1).join(" ")}
-            </strong>
-            <span>{m.role}</span>
-          </Rise>
-        ))}
-      </div>
-      <div className="pd-roles">
-        <small>WHAT EACH ROLE DOES</small>
-        {ROLES.map((r, i) => (
-          <Rise n={8 + i} key={r.title} className="pd-role" style={{ left: ROLE_LEFT[i % 3], top: ROLE_TOP[Math.floor(i / 3)] }}>
-            <strong>{r.title}</strong>
-            <span>{r.text}</span>
-          </Rise>
-        ))}
-      </div>
+
+      <svg className="pd-tree-lines" viewBox="0 0 1920 1080" aria-hidden="true">
+        {TREE.map((_, g) => {
+          const cx = TREE_CX[g];
+          const [c1, c2] = kidCx(cx);
+          const y0 = TREE_LEAD_TOP + TREE_LEAD_H;
+          return (
+            <path
+              key={g}
+              d={`M${cx} ${y0}V${TREE_BAR_Y}M${c1} ${TREE_BAR_Y}H${c2}M${c1} ${TREE_BAR_Y}V${TREE_KID_TOP}M${c2} ${TREE_BAR_Y}V${TREE_KID_TOP}`}
+            />
+          );
+        })}
+      </svg>
+
+      {TREE.map(({ lead, reports }, g) => {
+        const cx = TREE_CX[g];
+        return (
+          <div key={lead.name}>
+            <Rise
+              n={2 + g}
+              className="pd-lead-card"
+              style={{ left: cx - 280, top: TREE_LEAD_TOP, height: TREE_LEAD_H }}
+            >
+              <Avatar member={lead} />
+              <div>
+                <strong>{lead.name}</strong>
+                <em>{lead.role}</em>
+                <span>{lead.about}</span>
+              </div>
+            </Rise>
+            {reports.map((m, i) => (
+              <Rise
+                n={4 + g * 2 + i}
+                key={m.name}
+                className="pd-kid"
+                style={{ left: kidCx(cx)[i] - TREE_KID_W / 2, top: TREE_KID_TOP, width: TREE_KID_W }}
+              >
+                <Avatar member={m} />
+                <strong>{m.name}</strong>
+                <em>{m.role}</em>
+                <span>{m.about}</span>
+              </Rise>
+            ))}
+          </div>
+        );
+      })}
     </>
   );
 }
