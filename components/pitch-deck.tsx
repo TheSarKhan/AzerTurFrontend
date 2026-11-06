@@ -32,17 +32,17 @@ type Member = { name: string; role: string; photo: string };
 // Drop a square photo (about 600×600) at each `photo` path below, e.g.
 // public/pitch/team/serxan.jpg. Until the file exists, the initial is shown.
 const TEAM: Member[] = [
-  { name: "Sarkhan Babayev", role: "CTO", photo: "/pitch/team/serxan.jpg" },
+  { name: "Sarkhan Babayev", role: "Chief Technology Officer", photo: "/pitch/team/serxan.jpg" },
   { name: "Ulkar Aliyeva", role: "QA", photo: "/pitch/team/ulker.jpg" },
   { name: "Parvana Aliyeva", role: "Design", photo: "/pitch/team/pervane.jpg" },
-  { name: "Bahruz Sultanov", role: "Chief Tourism Officer", photo: "/pitch/team/behruz.jpg" },
+  { name: "Bahruz Sultanov", role: "Chief Executive Officer", photo: "/pitch/team/behruz.jpg" },
   { name: "Zamiq Quliyev", role: "Incoming and Outgoing Coordinator", photo: "/pitch/team/zamiq.jpg" },
   { name: "Aykhan Hajiyev", role: "Business", photo: "/pitch/team/ayxan.jpg" },
 ];
 
 const ROLES = [
   {
-    title: "CTO: Chief Technology Officer",
+    title: "Chief Technology Officer",
     text: "Leads the technical side: architecture, development and the reliability of the platform.",
   },
   {
@@ -54,8 +54,8 @@ const ROLES = [
     text: "Shapes the brand and the website and app screens, so planning a trip feels simple.",
   },
   {
-    title: "Chief Tourism Officer",
-    text: "Leads the tourism side: tour design, local partners and the quality of the experience.",
+    title: "Chief Executive Officer",
+    text: "Leads the company: vision, strategy, partnerships and the overall direction of AzTrip.",
   },
   {
     title: "Incoming and Outgoing Coordinator",
