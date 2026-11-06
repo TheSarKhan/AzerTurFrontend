@@ -115,7 +115,7 @@ function TravelImage({
   return (
     <Image
       className={className}
-      src={"/images/homepage-v3/" + name + ".png"}
+      src={"/images/homepage-v3/" + name + ".webp"}
       width={1600}
       height={1000}
       alt={homeText(mediaAlt[name] || mediaAlt.khinalug, locale)}

@@ -17,7 +17,7 @@ Existing Baku, Sheki and Khinalug credits remain on the website's Credits page a
 
 ## Imagery correction v3
 
-At Sarkhan's request, homepage photography now follows the approved generated concept. Eight built-in GPT Images assets are in `public/images/homepage-v3/`; prompts are archived in `approved/homepage/v2/photo-prompts-v3.json`. They are rendered with responsive Next.js Image optimization. A localized on-page note identifies generated illustrative imagery. Original documentary assets/credits are retained for other pages. The central design archive preserves all eight generated originals under `design/approved/homepage/v2/imagery-v3/`.
+At Sarkhan's request, homepage photography now follows the approved generated concept. Eight built-in GPT Images assets are in `public/images/homepage-v3/`; prompts are archived in `approved/homepage/v2/photo-prompts-v3.json`. They are rendered with responsive Next.js Image optimization. A localized on-page note identifies generated illustrative imagery. Original documentary assets/credits are retained for other pages. The central design archive preserves all eight generated originals under `design/approved/homepage/v2/imagery-v3/`. The files in `public/` are WebP conversions (quality 86, same dimensions; about 3.4 MB instead of 25 MB) to keep the Docker image and deploys small; the original PNGs were also copied to the workspace's `design/photography-originals/homepage-v3-png/`. Old `.png` URLs are rewritten to `.webp` in `next.config.ts`.
 
 ## Approved tour pages v1
 

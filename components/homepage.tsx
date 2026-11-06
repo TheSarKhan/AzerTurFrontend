@@ -81,7 +81,7 @@ export default function Homepage({ locale, go }: Props) {
     <div className="home-v2">
       <section className="hv-hero">
         {picture(
-          "homepage-v3/hero.png",
+          "homepage-v3/hero.webp",
           t([
             "Illustrative Caucasus mountain village",
             "Иллюстрация горной деревни Кавказа",
@@ -257,7 +257,7 @@ export default function Homepage({ locale, go }: Props) {
                         "sheki-gabala": "sheki",
                         "quba-khinalug": "khinalug",
                       }[tour.slug] +
-                      ".png",
+                      ".webp",
                     tour.region,
                   )}
                   <div className="hv-tour-copy">
@@ -307,7 +307,7 @@ export default function Homepage({ locale, go }: Props) {
         </div>
         <div className="hv-builder-images">
           {picture(
-            "homepage-v3/guesthouse.png",
+            "homepage-v3/guesthouse.webp",
             t([
               "Illustrative mountain guesthouse terrace",
               "Иллюстрация террасы горного гостевого дома",
@@ -315,7 +315,7 @@ export default function Homepage({ locale, go }: Props) {
             ]),
           )}
           {picture(
-            "homepage-v3/hiking.png",
+            "homepage-v3/hiking.webp",
             t([
               "Hikers on a mountain trail",
               "Поход по горной тропе",
@@ -346,7 +346,7 @@ export default function Homepage({ locale, go }: Props) {
       <section className="hv-hospitality hv-section">
         <div className="hv-hospitality-photo">
           {picture(
-            "homepage-v3/tea.png",
+            "homepage-v3/tea.webp",
             t([
               "Tea in an Azerbaijani armudu glass",
               "Чай в азербайджанском стакане армуду",

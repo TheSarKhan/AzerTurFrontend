@@ -958,7 +958,7 @@ export default function TripPlanner({
                       src={
                         "/images/homepage-v3/" +
                         photo(templates[tour.slug].at(-1)!) +
-                        ".png"
+                        ".webp"
                       }
                       alt=""
                       width={150}

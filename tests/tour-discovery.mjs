@@ -115,7 +115,7 @@ for (const tour of tours) {
   media.itinerary.forEach(translated);
   assert.equal(new Set(media.gallery).size, media.gallery.length);
   for (const name of media.gallery)
-    assert.ok(fs.existsSync("public/images/homepage-v3/" + name + ".png"));
+    assert.ok(fs.existsSync("public/images/homepage-v3/" + name + ".webp"));
 }
 for (const q of beforeQuestions) {
   translated(q.question);

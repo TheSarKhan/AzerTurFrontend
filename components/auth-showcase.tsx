@@ -3,10 +3,10 @@ import Image from "next/image";
 import type { Locale } from "@/lib/travel";
 
 const slides = [
-  { src: "/images/homepage-v3/khinalug.png", place: ["Khinalug", "Хыналуг", "Xınalıq"] },
-  { src: "/images/homepage-v3/baku.png", place: ["Baku", "Баку", "Bakı"] },
-  { src: "/images/homepage-v3/sheki.png", place: ["Sheki", "Шеки", "Şəki"] },
-  { src: "/images/homepage-v3/hiking.png", place: ["Caucasus trails", "Тропы Кавказа", "Qafqaz cığırları"] },
+  { src: "/images/homepage-v3/khinalug.webp", place: ["Khinalug", "Хыналуг", "Xınalıq"] },
+  { src: "/images/homepage-v3/baku.webp", place: ["Baku", "Баку", "Bakı"] },
+  { src: "/images/homepage-v3/sheki.webp", place: ["Sheki", "Шеки", "Şəki"] },
+  { src: "/images/homepage-v3/hiking.webp", place: ["Caucasus trails", "Тропы Кавказа", "Qafqaz cığırları"] },
 ] as const;
 const pick = (l: Locale, v: readonly [string, string, string]) =>
   l === "az" ? v[2] : l === "ru" ? v[1] : v[0];

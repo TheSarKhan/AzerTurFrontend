@@ -168,7 +168,7 @@ export const homeDestinations: {
 }[] = [
   {
     name: ["Baku", "Баку", "Bakı"],
-    image: "homepage-v3/baku.png",
+    image: "homepage-v3/baku.webp",
     alt: [
       "Illustrative Baku skyline",
       "Иллюстрация панорамы Баку",
@@ -183,7 +183,7 @@ export const homeDestinations: {
   },
   {
     name: ["Sheki", "Шеки", "Şəki"],
-    image: "homepage-v3/sheki.png",
+    image: "homepage-v3/sheki.webp",
     alt: ["Sheki Khan Palace", "Дворец шекинских ханов", "Şəki Xan sarayı"],
     description: [
       "Palaces, crafts and a proud history.",
@@ -194,7 +194,7 @@ export const homeDestinations: {
   },
   {
     name: ["Gabala", "Габала", "Qəbələ"],
-    image: "homepage-v3/gabala.png",
+    image: "homepage-v3/gabala.webp",
     alt: [
       "Illustrative lake and mountains",
       "Иллюстрация озера и гор",
@@ -209,7 +209,7 @@ export const homeDestinations: {
   },
   {
     name: ["Khinalug", "Хыналыг", "Xınalıq"],
-    image: "homepage-v3/khinalug.png",
+    image: "homepage-v3/khinalug.webp",
     alt: [
       "Stone houses in Khinalug",
       "Каменные дома Хыналыга",

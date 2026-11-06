@@ -457,7 +457,7 @@ export default function CustomerCabinet({
                       <article className="cc-trip" key={item.id}>
                         <Image
                           src={
-                            "/images/homepage-v3/" + cabinetPhoto(item) + ".png"
+                            "/images/homepage-v3/" + cabinetPhoto(item) + ".webp"
                           }
                           alt={cabinetRoute(item).map(cityName).join(" · ")}
                           width={600}
@@ -645,7 +645,7 @@ export default function CustomerCabinet({
             </header>
             <Image
               className="cc-hero"
-              src={"/images/homepage-v3/" + cabinetPhoto(b) + ".png"}
+              src={"/images/homepage-v3/" + cabinetPhoto(b) + ".webp"}
               alt={route.map(cityName).join(" · ")}
               width={1400}
               height={380}
