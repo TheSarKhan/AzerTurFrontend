@@ -32,44 +32,43 @@ type Member = { name: string; role: string; photo: string };
 // Drop a square photo (about 600×600) at each `photo` path below, e.g.
 // public/pitch/team/serxan.jpg. Until the file exists, the initial is shown.
 const TEAM: Member[] = [
-  { name: "Sarkhan Babayev", role: "Product Owner", photo: "/pitch/team/serxan.jpg" },
+  { name: "Sarkhan Babayev", role: "CTO", photo: "/pitch/team/serxan.jpg" },
   { name: "Ulkar Aliyeva", role: "QA", photo: "/pitch/team/ulker.jpg" },
   { name: "Parvana Aliyeva", role: "Design", photo: "/pitch/team/pervane.jpg" },
-  { name: "Bahruz Sultanov", role: "Tourism", photo: "/pitch/team/behruz.jpg" },
-  { name: "Zamiq Quliyev", role: "Tourism", photo: "/pitch/team/zamiq.jpg" },
+  { name: "Bahruz Sultanov", role: "Chief Tourism Officer", photo: "/pitch/team/behruz.jpg" },
+  { name: "Zamiq Quliyev", role: "Incoming and Outgoing Coordinator", photo: "/pitch/team/zamiq.jpg" },
   { name: "Aykhan Hajiyev", role: "Business", photo: "/pitch/team/ayxan.jpg" },
 ];
 
 const ROLES = [
   {
-    title: "Product Owner",
-    text: "Sets the product vision and priorities, and decides what the team builds next.",
+    title: "CTO: Chief Technology Officer",
+    text: "Leads the technical side: architecture, development and the reliability of the platform.",
   },
   {
     title: "QA",
-    text: "Tests each release on web and mobile, so requests, offers and documents work as promised.",
+    text: "Tests every release on web and mobile so requests, offers and documents work as promised.",
   },
   {
     title: "Design",
     text: "Shapes the brand and the website and app screens, so planning a trip feels simple.",
   },
   {
-    title: "Tourism",
-    text: "Designs tours and itineraries, and works with local hotels, guides and drivers to confirm availability.",
+    title: "Chief Tourism Officer",
+    text: "Leads the tourism side: tour design, local partners and the quality of the experience.",
+  },
+  {
+    title: "Incoming and Outgoing Coordinator",
+    text: "Coordinates inbound travelers coming to Azerbaijan and outbound trips for local travelers.",
   },
   {
     title: "Business",
     text: "Studies the market and customers, and shapes pricing, partnerships and the business model.",
   },
 ];
-// Left edge and width of each role column on the team slide (stage px).
-const ROLE_COLS = [
-  [94, 440],
-  [574, 283],
-  [897, 283],
-  [1220, 283],
-  [1543, 283],
-];
+// Left edge of each column and top of each row of the role grid (stage px).
+const ROLE_LEFT = [94, 674, 1254];
+const ROLE_TOP = [78, 212];
 
 const PROBLEMS = [
   {
@@ -513,7 +512,7 @@ function Team() {
       <div className="pd-roles">
         <small>WHAT EACH ROLE DOES</small>
         {ROLES.map((r, i) => (
-          <Rise n={8 + i} key={r.title} className="pd-role" style={{ left: ROLE_COLS[i][0], width: ROLE_COLS[i][1] }}>
+          <Rise n={8 + i} key={r.title} className="pd-role" style={{ left: ROLE_LEFT[i % 3], top: ROLE_TOP[Math.floor(i / 3)] }}>
             <strong>{r.title}</strong>
             <span>{r.text}</span>
           </Rise>

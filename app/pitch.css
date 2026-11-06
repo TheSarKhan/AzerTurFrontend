@@ -652,8 +652,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  height: 392px;
-  padding: 34px 16px 0;
+  height: 400px;
+  padding: 30px 12px 0;
   border: 2px solid #dce3d9;
   border-radius: 26px;
   background: #fff;
@@ -662,9 +662,9 @@
 .pd-avatar {
   display: grid;
   place-items: center;
-  width: 184px;
-  height: 184px;
-  margin-bottom: 26px;
+  width: 172px;
+  height: 172px;
+  margin-bottom: 22px;
   border-radius: 50%;
   overflow: hidden;
   background: var(--mist);
@@ -689,11 +689,12 @@
   color: var(--ink);
 }
 .pd-member span {
-  margin-top: 12px;
-  font-size: 23px;
+  margin-top: 10px;
+  font-size: 21px;
   line-height: 1.25;
   font-weight: 700;
   color: var(--rust);
+  text-wrap: balance;
 }
 .pd-roles {
   position: absolute;
@@ -707,7 +708,7 @@
 .pd-roles > small {
   position: absolute;
   left: 94px;
-  top: 44px;
+  top: 26px;
   font-size: 23px;
   line-height: 1;
   font-weight: 700;
@@ -715,19 +716,19 @@
 }
 .pd-role {
   position: absolute;
-  top: 100px;
+  width: 540px;
 }
 .pd-role strong {
   display: block;
   white-space: nowrap;
-  font-size: 29px;
+  font-size: 27px;
   line-height: 1.1;
 }
 .pd-role span {
   display: block;
-  margin-top: 16px;
-  font-size: 22px;
-  line-height: 1.36;
+  margin-top: 10px;
+  font-size: 21px;
+  line-height: 1.3;
   color: var(--mist);
 }
 
