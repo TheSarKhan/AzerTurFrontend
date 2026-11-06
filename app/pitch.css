@@ -703,6 +703,7 @@
   line-height: 1.2;
   font-weight: 700;
   color: var(--peach);
+  text-wrap: balance;
 }
 .pd-lead-card span {
   display: block;

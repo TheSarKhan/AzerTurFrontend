@@ -39,8 +39,8 @@ const SARKHAN: Member = {
 };
 const BAHRUZ: Member = {
   name: "Bahruz Sultanov",
-  role: "Chief Executive Officer",
-  about: "Leads the company: vision, strategy, partnerships and the overall direction of AzTrip.",
+  role: "Chief Executive Officer & Idea Owner",
+  about: "Owns the original idea and leads the company: vision, strategy, partnerships and direction.",
   photo: "/pitch/team/behruz.jpg",
 };
 // Org chart: two leaders at the top, each with two people reporting to them.
