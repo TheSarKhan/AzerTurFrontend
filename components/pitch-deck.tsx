@@ -15,7 +15,6 @@ import {
   Minimize,
   Printer,
   Route,
-  Send,
   Tickets,
 } from "lucide-react";
 
@@ -73,8 +72,8 @@ const TREE: { lead: Member; reports: Member[] }[] = [
       },
       {
         name: "Aykhan Hajiyev",
-        role: "Business",
-        about: "Studies the market and customers, and shapes pricing, partnerships and the business model.",
+        role: "Communication Coordinator",
+        about: "Keeps communication with customers and partners clear, timely and consistent.",
         photo: "/pitch/team/ayxan.jpg",
       },
     ],
@@ -148,11 +147,15 @@ const STEPS = [
     icon: MapPinned,
     title: "Discover hidden Azerbaijan",
     text: ["Lesser-known sights, local flavors and events,", "near you or in any other city."],
-    top: 350,
+    top: 360,
   },
-  { icon: Route, title: "Choose a route", text: ["Pick a tour or build your own trip."], top: 496 },
-  { icon: Send, title: "Send a request", text: ["Add your dates and the services you need."], top: 608 },
-  { icon: FolderOpen, title: "Find your travel documents", text: ["Open them in the app when they are ready."], top: 720 },
+  {
+    icon: Route,
+    title: "Shape your tour, your way",
+    text: ["Create your request as you like: pick a route,", "add your dates and the services you need."],
+    top: 528,
+  },
+  { icon: FolderOpen, title: "Find your travel documents", text: ["Open them in the app when they are ready."], top: 696 },
 ];
 
 const MARKET = [
