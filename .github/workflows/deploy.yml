@@ -64,11 +64,18 @@ jobs:
           ssh -i ~/.ssh/deploy_key "$SSH_USER@$SSH_HOST" bash -s <<'REMOTE'
           set -euo pipefail
           cd /opt/aztrip
-          docker compose up -d --no-deps web
+          docker compose up -d --no-deps --force-recreate web
           for i in $(seq 1 36); do
             if curl -fsS -o /dev/null http://127.0.0.1:8102/; then echo "web is healthy"; break; fi
             if [ "$i" = 36 ]; then docker compose logs --tail 60 web; exit 1; fi
             sleep 5
           done
+          # Make sure the running container really uses the image we just shipped.
+          running=$(docker inspect --format '{{.Image}}' "$(docker compose ps -q web)")
+          shipped=$(docker image inspect --format '{{.Id}}' aztrip-web:latest)
+          echo "running image: $running"
+          echo "shipped image: $shipped"
+          docker compose ps web
+          if [ "$running" != "$shipped" ]; then echo "Running container is not using the shipped image"; exit 1; fi
           docker images aztrip-web --format '{{.Repository}}:{{.Tag}}' | grep -v ':latest$' | tail -n +4 | xargs -r docker rmi || true
           REMOTE
