@@ -7,7 +7,9 @@ ENV NEXT_OUTPUT=standalone
 RUN npm run build
 FROM node:22-alpine
 WORKDIR /app
+ARG GIT_SHA=unknown
 ENV NODE_ENV=production
+ENV GIT_SHA=$GIT_SHA
 COPY --from=build --chown=node:node /app/.next/standalone ./
 COPY --from=build --chown=node:node /app/.next/static ./.next/static
 COPY --from=build --chown=node:node /app/public ./public

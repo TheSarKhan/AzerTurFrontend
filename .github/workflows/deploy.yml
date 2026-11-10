@@ -28,7 +28,7 @@ jobs:
           ref: ${{ env.SHA }}
       - name: Build linux/amd64 image
         run: |
-          docker build --platform linux/amd64 \
+          docker build --platform linux/amd64 --build-arg GIT_SHA="$SHA" \
             -t "$IMAGE:$SHA" -t "$IMAGE:latest" .
       - name: Wait for CI
         if: github.event_name == 'push'
@@ -79,3 +79,12 @@ jobs:
           if [ "$running" != "$shipped" ]; then echo "Running container is not using the shipped image"; exit 1; fi
           docker images aztrip-web --format '{{.Repository}}:{{.Tag}}' | grep -v ':latest$' | tail -n +4 | xargs -r docker rmi || true
           REMOTE
+      - name: Verify the public site serves this commit
+        run: |
+          for i in $(seq 1 24); do
+            live=$(curl -fsS -m 10 "https://aztrip.online/api/version?cb=$i-$RANDOM" 2>/dev/null | sed -n 's/.*"sha":"\([^"]*\)".*/\1/p' || true)
+            if [ "$live" = "$SHA" ]; then echo "aztrip.online is serving $SHA"; exit 0; fi
+            echo "live version: ${live:-unreachable} (waiting for $SHA)"; sleep 5
+          done
+          echo "The public site is not serving $SHA. The deploy reached the server but traffic goes elsewhere."
+          exit 1
