@@ -32,7 +32,7 @@ export const placeAz: Record<string, { name: string; text: string }> = {
 export const faqAz: [string, string][] = [
   [
     "Rezervasiya necə edilir?",
-    "Qeydiyyatdan keçin, səfəri seçin və operator yoxlamasına göndərin. Təsdiqdən sonra demo depozit açılır. Real ödəniş edilmir.",
+    "Qeydiyyatdan keçin, səfəri seçin və sorğunuzu göndərin. Komandamız mövcudluğu yoxlayır, sizə təsdiq üçün təklif və müqavilə göndərir. Bundan sonra beh tələb edirik.",
   ],
   [
     "Hazır turu dəyişə bilərəm?",
@@ -40,11 +40,11 @@ export const faqAz: [string, string][] = [
   ],
   [
     "Qiymətə nə daxildir?",
-    "Qiymətdə seçdiyiniz hər xidmət, ümumi məbləğ, depozit və qalıq ayrıca göstərilir. Əlavə xidmətləri sorğu yaratmazdan əvvəl görəcəksiniz.",
+    "Qiymətdə seçdiyiniz hər xidmət və ümumi məbləğ göstərilir. Əlavə xidmətləri sorğu göndərməzdən əvvəl ayrıca görəcəksiniz.",
   ],
   [
-    "Qalıq məbləğ nə vaxt ödənilir?",
-    "Hazırkı demo qaydasında qalıq 70% səfərdən 7 gün əvvəl ödənilir. Yekun ödəniş qaydaları turizm komandası ilə təsdiqlənəcək.",
+    "Ödənişi nə vaxt edirəm?",
+    "Müqaviləni təsdiqlədikdən sonra komandamız beh tələb edir. Sonrakı ödənişlər hər xidmətin vaxtı çatdıqca tələb olunur. Hər ödəniş sorğusunun məbləği hesabınızda görünür və biz aldıqdan sonra ödənilmiş kimi qeyd olunur.",
   ],
   [
     "Viza lazımdır?",

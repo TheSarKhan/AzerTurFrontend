@@ -542,7 +542,7 @@ export function TourCatalog({ locale, currency, go }: Props) {
               </PageLink>
             </div>
           )}
-          <p className="tx-note">{t(copy.illustrative)}</p>
+          <p className="tx-note">{t(copy.pricesNote)}</p>
         </div>
       </section>
       <section className="tx-container tx-process">
@@ -1024,7 +1024,7 @@ export function TourDetail({
               <p>{t(q.answer)}</p>
             </details>
           ))}
-          <p className="tx-note">{t(copy.demo)}</p>
+          <p className="tx-note">{t(copy.paymentsNote)}</p>
         </section>
         <section className="tx-related">
           <h2>{t(copy.keepExploring)}</h2>

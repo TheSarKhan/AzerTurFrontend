@@ -66,15 +66,6 @@ export function filterTrips(
         : tripEnd(b) >= today && !["CANCELLED", "REJECTED"].includes(b.status)),
   );
 }
-export function paymentAvailable(booking: Booking, requests: BookingRequest[]) {
-  return (
-    !requests.some(
-      (r) => r.bookingId === booking.id && r.status === "PENDING",
-    ) &&
-    (booking.status === "AWAITING_PAYMENT" ||
-      (booking.status === "CONFIRMED" && booking.paid < booking.total))
-  );
-}
 export function cabinetDates(booking: Booking, locale: Locale) {
   const start = booking.departure.split("-").map(Number),
     end = tripEnd(booking).split("-").map(Number);

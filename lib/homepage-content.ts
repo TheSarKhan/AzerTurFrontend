@@ -63,9 +63,9 @@ export const homeCopy = {
   itinerary: ["View itinerary", "Посмотреть маршрут", "Marşruta bax"],
   days: ["days", "дн.", "gün"],
   examples: [
-    "Example itineraries — details to be confirmed.",
-    "Примерные маршруты — детали требуют подтверждения.",
-    "Nümunə marşrutlar — təfərrüatlar təsdiqlənməlidir.",
+    "Itineraries — final details are confirmed with your booking.",
+    "Маршруты — окончательные детали подтверждаются при бронировании.",
+    "Marşrutlar — yekun təfərrüatlar rezervasiya ilə dəqiqləşdirilir.",
   ],
   builderTitle: [
     "Your trip. Your choices.",
@@ -84,9 +84,9 @@ export const homeCopy = {
     "Başdan sona aydın plan.",
   ],
   processNote: [
-    "Current preview: operator review and demo payments. Contract approval and staged payments are being prepared.",
-    "Сейчас доступны проверка оператором и демо-платежи. Подтверждение договора и поэтапная оплата готовятся.",
-    "Hazırda operator yoxlaması və demo ödəniş işləyir. Müqavilə təsdiqi və mərhələli ödəniş hazırlanır.",
+    "Our team checks availability, you approve the offer and the contract, and payments are requested step by step.",
+    "Команда проверяет доступность, вы согласуете предложение и договор, а оплата запрашивается поэтапно.",
+    "Komandamız mövcudluğu yoxlayır, siz təklifi və müqaviləni təsdiqləyirsiniz, ödənişlər isə mərhələ-mərhələ tələb olunur.",
   ],
   local: [
     "Local knowledge. A journey that fits.",
@@ -253,9 +253,9 @@ export const homeSteps: { title: HomeText; description: HomeText }[] = [
   {
     title: ["Review, then pay", "Проверьте и оплатите", "Yoxla və ödə"],
     description: [
-      "Review the approved offer in your account. Payments in this preview are simulated.",
-      "Проверьте одобренное предложение в аккаунте. В демо оплата имитируется.",
-      "Təsdiqlənmiş təklifi hesabında yoxla. Bu versiyada ödəniş simulyasiya olunur.",
+      "Review the approved offer in your account. Payments are requested by our team and shown in your account.",
+      "Проверьте одобренное предложение в аккаунте. Платежи запрашивает команда, они отображаются в аккаунте.",
+      "Təsdiqlənmiş təklifi hesabında yoxla. Ödənişləri komanda tələb edir və hesabında görünür.",
     ],
   },
 ];
@@ -321,9 +321,9 @@ export const homeFaq: { q: HomeText; a: HomeText }[] = [
       "Mərhələli ödəniş necə işləyəcək?",
     ],
     a: [
-      "The planned flow starts with a deposit, followed by payment requests when services become due. It is not live yet: this preview simulates a deposit and balance without charging money.",
-      "Планируется депозит и запросы на оплату по мере необходимости услуг. Сейчас доступны только демо-депозит и остаток без реальных списаний.",
-      "Planlaşdırılan axında əvvəl beh, sonra xidmətlərin vaxtı çatdıqca ödəniş sorğuları olacaq. Hələ aktiv deyil: bu versiyada beh və qalıq real pul tutulmadan yoxlanılır.",
+      "Payment starts with a deposit once you approve the contract, followed by payment requests when services become due. Each request appears in your account and is marked as paid once our team receives it.",
+      "Оплата начинается с депозита после согласования договора, затем запрашиваются платежи по мере наступления сроков услуг. Каждый запрос виден в аккаунте и помечается оплаченным после получения.",
+      "Ödəniş müqaviləni təsdiqlədikdən sonra behlə başlayır, sonra xidmətlərin vaxtı çatdıqca ödəniş sorğuları gəlir. Hər sorğu hesabında görünür və komanda aldıqdan sonra ödənilmiş kimi qeyd olunur.",
     ],
   },
   {

@@ -46,7 +46,6 @@ import {
   cabinetPhoto,
   tripEnd,
   filterTrips,
-  paymentAvailable,
 } from "@/lib/customer-cabinet";
 type Props = {
   locale: Locale;
@@ -80,11 +79,10 @@ export default function CustomerCabinet({
     [busy, setBusy] = useState(false),
     [notice, setNotice] = useState(""),
     [filter, setFilter] = useState("all");
-  const [dialog, setDialog] = useState<"request" | "payment" | null>(null),
+  const [dialog, setDialog] = useState<"request" | null>(null),
     [kind, setKind] = useState("CHANGE");
   const dialogRef = useRef<HTMLDialogElement>(null),
-    focusRef = useRef<HTMLElement | null>(null),
-    paymentKeys = useRef<Record<string, string>>({});
+    focusRef = useRef<HTMLElement | null>(null);
   const next = bookingId
     ? "/trips/" +
       bookingId +
@@ -110,17 +108,11 @@ export default function CustomerCabinet({
           "Заявка уже на рассмотрении. Обновите статус.",
           "Sorğu artıq yoxlamadadır. Statusu yeniləyin.",
         )
-      : code === "DEMO_PAYMENT_FAILED"
-        ? t(
-            "Demo payment failed. Nothing was charged.",
-            "Демо-платёж не прошёл. Списания нет.",
-            "Demo ödəniş alınmadı. Məbləğ tutulmayıb.",
-          )
-        : t(
-            "Could not load or complete this request. Please try again.",
-            "Не удалось загрузить или выполнить запрос. Повторите.",
-            "Sorğunu yükləmək və ya tamamlamaq olmadı. Yenidən yoxlayın.",
-          );
+      : t(
+          "Could not load or complete this request. Please try again.",
+          "Не удалось загрузить или выполнить запрос. Повторите.",
+          "Sorğunu yükləmək və ya tamamlamaq olmadı. Yenidən yoxlayın.",
+        );
   }
   async function load() {
     setRefreshing(true);
@@ -226,20 +218,19 @@ export default function CustomerCabinet({
     </a>
   );
   const planned = t(
-    "Contract approval is available when your team sends a document. Current payments are simulated.",
-    "Договор появится после отправки командой. Текущие платежи — демонстрационные.",
-    "Komanda göndərdikdə müqaviləyə baxıb təsdiqləyə bilərsiniz. Hazırkı ödənişlər demodur.",
+    "Contract approval is available when your team sends a document.",
+    "Договор появится после отправки командой.",
+    "Komanda göndərdikdə müqaviləyə baxıb təsdiqləyə bilərsiniz.",
   );
   const cancellation = t(
     "The team reviews every request. Terms and refunds depend on the service, provider and cancellation time.",
     "Команда рассмотрит запрос. Условия и возврат зависят от услуги, поставщика и времени отмены.",
     "Komanda hər sorğunu yoxlayır. Şərtlər və geri ödəniş xidmət, təchizatçı və ləğv vaxtından asılıdır.",
   );
-  function open(mode: "request" | "payment") {
+  function open(mode: "request") {
     focusRef.current = document.activeElement as HTMLElement;
     setKind("CHANGE");
     setError("");
-    paymentKeys.current = {};
     setDialog(mode);
   }
   function close() {
@@ -1139,19 +1130,6 @@ export default function CustomerCabinet({
                               )
                             : statuses[b.status]}
                     </p>
-                    {!currentOffer && paymentAvailable(b, requests) && (
-                      <button
-                        className="cc-primary"
-                        onClick={() => open("payment")}
-                      >
-                        {t(
-                          "Try demo payment",
-                          "Проверить демо-оплату",
-                          "Demo ödənişi yoxla",
-                        )}
-                        <ArrowRight size={17} />
-                      </button>
-                    )}
                     {b.status === "CANCELLED" && b.paid > 0 && (
                       <p>
                         {t(
@@ -1189,15 +1167,11 @@ export default function CustomerCabinet({
         <dialog
           ref={dialogRef}
           className="cc-dialog"
-          aria-label={
-            dialog === "request"
-              ? t(
-                  "Change or cancellation request",
-                  "Изменение или отмена",
-                  "Dəyişiklik və ya ləğv sorğusu",
-                )
-              : t("Demo payment", "Демо-оплата", "Demo ödəniş")
-          }
+          aria-label={t(
+            "Change or cancellation request",
+            "Изменение или отмена",
+            "Dəyişiklik və ya ləğv sorğusu",
+          )}
           onCancel={(e) => {
             e.preventDefault();
             close();
@@ -1211,7 +1185,6 @@ export default function CustomerCabinet({
           >
             <X />
           </button>
-          {dialog === "request" ? (
             <form
               onSubmit={async (e) => {
                 e.preventDefault();
@@ -1310,88 +1283,6 @@ export default function CustomerCabinet({
                 </button>
               </div>
             </form>
-          ) : (
-            <>
-              <h2>{t("Demo payment", "Демо-оплата", "Demo ödəniş")}</h2>
-              <p>
-                {t(
-                  "No real money is charged. Test either outcome.",
-                  "Реальные деньги не списываются. Проверьте любой результат.",
-                  "Real pul tutulmur. Hər iki nəticəni yoxlaya bilərsən.",
-                )}
-              </p>
-              <strong className="cc-price">
-                {money(
-                  b.status === "AWAITING_PAYMENT"
-                    ? b.deposit
-                    : Math.max(0, b.total - b.paid),
-                  b.currency,
-                  l,
-                )}
-              </strong>
-              {error && (
-                <p role="alert" className="cc-error">
-                  {error}
-                </p>
-              )}
-              <div className="cc-payment-actions">
-                {[true, false].map((success) => (
-                  <button
-                    key={String(success)}
-                    className={success ? "cc-primary" : "cc-outline"}
-                    disabled={busy}
-                    onClick={async () => {
-                      if (busy || !paymentAvailable(b, requests)) return;
-                      setBusy(true);
-                      setError("");
-                      const key = String(success);
-                      paymentKeys.current[key] ||= crypto.randomUUID();
-                      try {
-                        await customerApi(
-                          "bookings/" + b.id + "/demo-payment",
-                          {
-                            kind:
-                              b.status === "AWAITING_PAYMENT"
-                                ? "DEPOSIT"
-                                : "BALANCE",
-                            success,
-                          },
-                          { "Idempotency-Key": paymentKeys.current[key] },
-                        );
-                        dialogRef.current?.close();
-                        setDialog(null);
-                        focusRef.current?.focus();
-                        setNotice(
-                          t(
-                            "Demo payment recorded. No real money was charged.",
-                            "Демо-оплата сохранена. Реального списания не было.",
-                            "Demo ödəniş qeydə alındı. Real pul tutulmayıb.",
-                          ),
-                        );
-                        await load();
-                      } catch (e) {
-                        setError(problem(e));
-                      } finally {
-                        setBusy(false);
-                      }
-                    }}
-                  >
-                    {success
-                      ? t(
-                          "Simulate success",
-                          "Успешная оплата",
-                          "Uğurlu ödənişi yoxla",
-                        )
-                      : t(
-                          "Simulate failure",
-                          "Ошибка оплаты",
-                          "Uğursuz ödənişi yoxla",
-                        )}
-                  </button>
-                ))}
-              </div>
-            </>
-          )}
         </dialog>
       )}
     </section>

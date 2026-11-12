@@ -27,7 +27,6 @@ const {
   tripEnd,
   cabinetDates,
   filterTrips,
-  paymentAvailable,
   cabinetTitle,
   cabinetRoute,
   bookingQuote,
@@ -62,24 +61,8 @@ assert.equal(filterTrips([trip, cancelled], "past", "2027-05-01").length, 1);
 assert.equal(cabinetTitle(trip, "az"), "Fərdi səfəriniz");
 assert.equal(cabinetRoute(trip).join(","), "Quba,Khinalug");
 assert.equal(bookingQuote(make({ quotePayload: "broken" })), null);
-assert.equal(paymentAvailable(trip, []), false);
-const approved = make({ status: "AWAITING_PAYMENT" });
-assert.equal(paymentAvailable(approved, []), true);
-assert.equal(
-  paymentAvailable(approved, [{ bookingId: trip.id, status: "PENDING" }]),
-  false,
-);
-assert.equal(
-  paymentAvailable(approved, [{ bookingId: "other", status: "PENDING" }]),
-  true,
-);
-assert.equal(
-  paymentAvailable(make({ status: "CONFIRMED", paid: 495 }), []),
-  false,
-);
-assert.equal(paymentAvailable(cancelled, []), false);
 console.log(
-  "Customer cabinet passed: trip end boundaries, cancelled filters, quote snapshots, custom titles and payment gates.",
+  "Customer cabinet passed: trip end boundaries, cancelled filters, quote snapshots, and custom titles.",
 );
 
 assert.equal(cabinetDates(trip, "az"), "15–16 may 2027");

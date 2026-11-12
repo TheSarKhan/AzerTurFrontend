@@ -492,7 +492,7 @@ function Builder({
     <div className="builder">
       <div className="builder-heading">
         <h3>{tr("Make it your trip.", "Сделайте поездку своей.")}</h3>
-        <span>{tr("Demo quote", "Демо-расчёт")}</span>
+        <span>{tr("Your quote", "Ваш расчёт")}</span>
       </div>
       <div className="builder-fields">
         <label htmlFor={id + "date"}>{tr("Start date", "Дата начала")}</label>
@@ -647,21 +647,8 @@ function Builder({
                 </div>
               ))}
             </details>
-            <div className="deposit-lines">
-              <div>
-                <span>30% {tr("deposit today", "депозит сегодня")}</span>
-                <strong>{fmt(quote.deposit)}</strong>
-              </div>
-              <div>
-                <span>
-                  {tr("Balance by", "Остаток до")} {quote.due}
-                </span>
-                <strong>{fmt(quote.balance)}</strong>
-              </div>
-            </div>
             <Btn disabled={busy} onClick={() => book(quote)}>
-              {tr("Request review · deposit", "На проверку · депозит")}{" "}
-              {fmt(quote.deposit)}
+              {tr("Send request for review", "Отправить на проверку")}
               <ArrowUpRight />
             </Btn>
             <p className="price-note">
@@ -691,8 +678,8 @@ function Builder({
         ) : null}
         <p className="demo-label">
           {tr(
-            "Sample prices · operator review required · demo payments only.",
-            "Примерные цены · проверка оператором · только демо-оплата.",
+            "Estimated price · confirmed by our team after an availability check.",
+            "Ориентировочная цена · подтверждается командой после проверки наличия.",
           )}
         </p>
         {error && (
@@ -732,8 +719,10 @@ function Planner() {
 }
 
 function Contact({ request = false }: { request?: boolean }) {
-  const { tr } = useEnv();
+  const { l, tr } = useEnv();
   const [sent, setSent] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [problem, setProblem] = useState("");
   const [context, setContext] = useState("");
   useEffect(() => {
     if (request) {
@@ -776,14 +765,8 @@ function Contact({ request = false }: { request?: boolean }) {
           {context && <p className="request-context">{context}</p>}
           <p>
             {tr(
-              "Tell us what you have in mind. The contact details and live enquiry service will be connected before launch.",
-              "Расскажите, что вы задумали. Контакты и отправка запросов будут подключены перед запуском.",
-            )}
-          </p>
-          <p className="muted">
-            {tr(
-              "Preview mode: this form stays in your browser and sends no messages.",
-              "Демо-режим: форма остаётся в браузере и не отправляет сообщений.",
+              "Tell us what you have in mind. Our team will reply by email.",
+              "Расскажите, что вы задумали. Команда ответит вам по электронной почте.",
             )}
           </p>
           <Link to="/faq" className="text-link">
@@ -794,11 +777,11 @@ function Contact({ request = false }: { request?: boolean }) {
         {sent ? (
           <div className="contact-success">
             <Check size={40} />
-            <h3>{tr("That’s how it will feel.", "Вот как это будет.")}</h3>
+            <h3>{tr("Thank you.", "Спасибо.")}</h3>
             <p>
               {tr(
-                "Demo form complete. Nothing was sent. In the live version, the team will respond within 24 hours.",
-                "Демо-форма заполнена. Ничего не отправлено. После запуска команда ответит в течение 24 часов.",
+                "Your message was sent. Our team will reply by email.",
+                "Ваше сообщение отправлено. Команда ответит по электронной почте.",
               )}
             </p>
             <Btn secondary onClick={() => setSent(false)}>
@@ -807,23 +790,52 @@ function Contact({ request = false }: { request?: boolean }) {
           </div>
         ) : (
           <form
-            onSubmit={(e) => {
+            onSubmit={async (e) => {
               e.preventDefault();
-              setSent(true);
+              if (busy) return;
+              const f = new FormData(e.currentTarget);
+              setBusy(true);
+              setProblem("");
+              try {
+                const res = await fetch("/api/contact", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    name: String(f.get("name") || ""),
+                    email: String(f.get("email") || ""),
+                    topic: String(f.get("topic") || "general"),
+                    message:
+                      String(f.get("message") || "") +
+                      (context ? "\n\n" + context : ""),
+                    locale: l,
+                  }),
+                });
+                if (!res.ok) throw new Error(String(res.status));
+                setSent(true);
+              } catch {
+                setProblem(
+                  tr(
+                    "Your message could not be sent. Please try again in a moment.",
+                    "Не удалось отправить сообщение. Повторите попытку чуть позже.",
+                  ),
+                );
+              } finally {
+                setBusy(false);
+              }
             }}
           >
             <div className="form-grid">
               <label>
                 {tr("Your name", "Ваше имя")}
-                <input required minLength={2} maxLength={80} />
+                <input name="name" required minLength={2} maxLength={80} />
               </label>
               <label>
                 {tr("Email address", "Электронная почта")}
-                <input type="email" required />
+                <input name="email" type="email" required maxLength={254} />
               </label>
               <label className="full-width">
                 {tr("What’s on your mind?", "О чём хотите спросить?")}
-                <select defaultValue={request ? "custom" : "general"}>
+                <select name="topic" defaultValue={request ? "custom" : "general"}>
                   <option value="general">
                     {tr("A general question", "Общий вопрос")}
                   </option>
@@ -843,11 +855,16 @@ function Contact({ request = false }: { request?: boolean }) {
               </label>
               <label className="full-width">
                 {tr("Your message", "Ваше сообщение")}
-                <textarea rows={5} required maxLength={1000} />
+                <textarea name="message" rows={5} required minLength={5} maxLength={1000} />
               </label>
             </div>
-            <Btn type="submit">
-              {tr("Preview enquiry", "Проверить запрос")}
+            {problem && (
+              <p role="alert" className="error-message">
+                {problem}
+              </p>
+            )}
+            <Btn type="submit" disabled={busy}>
+              {busy ? tr("Sending…", "Отправка…") : tr("Send message", "Отправить")}
               <ArrowUpRight />
             </Btn>
           </form>
@@ -963,8 +980,8 @@ function Info({ type }: { type: string }) {
           </p>
           <p>
             {tr(
-              "Development release: customer accounts and reservation requests are stored in the backend and reviewed by the office team. Prices and payments are demonstrations. No card details or real money are collected.",
-              "Версия в разработке: аккаунты и запросы сохраняются на сервере и проверяются офисом. Цены и платежи демонстрационные. Карты и реальные деньги не принимаются.",
+              "Customer accounts and reservation requests are stored securely and reviewed by our office team. Payments are requested by our team and marked as paid once we receive them. This website does not collect card details.",
+              "Аккаунты и запросы бронирования хранятся на защищённом сервере и проверяются нашим офисом. Платежи запрашивает команда и отмечает как оплаченные после получения. Сайт не собирает данные карт.",
             )}
           </p>
           <h2>{tr("Before live bookings", "Перед запуском бронирований")}</h2>
@@ -974,11 +991,11 @@ function Info({ type }: { type: string }) {
               "Здесь будут опубликованы юридические данные оператора, правила отмены и возврата, контакты, условия оплаты и хранения данных. Неутверждённые условия не выдаются за окончательные.",
             )}
           </p>
-          <h2>{tr("Your demo data", "Ваши демо-данные")}</h2>
+          <h2>{tr("Your data", "Ваши данные")}</h2>
           <p>
             {tr(
-              "Account details, reservation notes and service choices are sent to the backend. Website sessions use an HttpOnly cookie; mobile sessions use secure device storage. Preferences stay locally. General contact forms are previews and do not send messages.",
-              "Данные аккаунта, пожелания и услуги отправляются на сервер. На сайте используется HttpOnly cookie, на мобильном устройстве — защищённое хранилище. Настройки сохраняются локально. Общая контактная форма не отправляет сообщения.",
+              "Account details, reservation notes and service choices are sent to the backend. Website sessions use an HttpOnly cookie; mobile sessions use secure device storage. Preferences stay locally. Messages sent through the contact form are delivered to our team by email.",
+              "Данные аккаунта, пожелания и услуги отправляются на сервер. На сайте используется HttpOnly cookie, на мобильном устройстве — защищённое хранилище. Настройки сохраняются локально. Сообщения из контактной формы доставляются нашей команде по электронной почте.",
             )}
           </p>
           <Link to="/contact" className="text-link">
@@ -1009,14 +1026,14 @@ function Info({ type }: { type: string }) {
                     "Azertur строится на простой идее: путешествие должно быть личным, а планирование — понятным. Маршруты, отели, водители, гиды и впечатления собраны в одном месте.",
                   )
                 : tr(
-                    "Start with one of our sample itineraries or build a route day by day. Choose a date, travellers, hotel category, guide and extras. The quote shows each service, the total, a 30% deposit and the remaining balance.",
-                    "Начните с готового маршрута или составьте программу по дням. Выберите дату, путешественников, отель, гида и дополнения. В расчёте видны услуги, общая сумма, депозит 30% и остаток.",
+                    "Start with one of our itineraries or build a route day by day. Choose a date, travellers, hotel category, guide and extras. The quote shows each service and the total.",
+                    "Начните с готового маршрута или составьте программу по дням. Выберите дату, путешественников, отель, гида и дополнения. В расчёте видны каждая услуга и общая сумма.",
                   )}
             </p>
             <p>
               {tr(
-                "Customer accounts and operator review are connected. Partner availability, final legal terms and live payments will be added before commercial launch.",
-                "Аккаунты и проверка оператором подключены. Доступность партнёров, утверждённые условия и реальные платежи будут добавлены перед запуском.",
+                "Our team checks partner availability before every offer, confirms the terms in a contract you approve, and requests payments only after that.",
+                "Наша команда проверяет доступность партнёров перед каждым предложением, фиксирует условия в договоре, который вы одобряете, и запрашивает оплату только после этого.",
               )}
             </p>
             <Link to="/tours" className="button">
@@ -1229,8 +1246,8 @@ export default function Site({ initialPath }: { initialPath: string }) {
         setModal(
           <p>
             {tr(
-              "Allow session storage to preview checkout.",
-              "Разрешите хранение данных сессии для проверки оформления.",
+              "Allow session storage to continue to checkout.",
+              "Разрешите хранение данных сессии, чтобы продолжить оформление.",
             )}
           </p>,
         );
@@ -1470,12 +1487,6 @@ export default function Site({ initialPath }: { initialPath: string }) {
             </div>
             <div className="footer-bottom">
               <span>© 2026 Azertur</span>
-              <span>
-                {tr(
-                  "Interactive preview · sample itineraries · no real payments",
-                  "Интерактивное демо · примерные маршруты · без реальных платежей",
-                )}
-              </span>
               <button
                 onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
               >
@@ -1534,8 +1545,8 @@ export default function Site({ initialPath }: { initialPath: string }) {
               {tr("A small note on cookies.", "Немного о cookies.")}
               <small>
                 {tr(
-                  "We remember your language and currency. No analytics are loaded in this preview.",
-                  "Мы запоминаем язык и валюту. В демо аналитика не загружается.",
+                  "We remember your language and currency. No analytics are loaded.",
+                  "Мы запоминаем язык и валюту. Аналитика не загружается.",
                 )}
               </small>
             </p>

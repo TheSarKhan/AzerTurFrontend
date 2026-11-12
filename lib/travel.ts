@@ -93,8 +93,8 @@ export const faqs = [
   [
     "How does booking work?",
     "Как забронировать?",
-    "Create an account, choose a trip and request operator review. After approval, a demo deposit is available. No real payment is taken.",
-    "Создайте аккаунт, выберите поездку и отправьте запрос оператору. После одобрения доступен демо-депозит. Реальных платежей нет.",
+    "Create an account, choose a trip and send your request. Our team checks availability and sends an offer and a contract for you to approve. After that, we request a deposit.",
+    "Создайте аккаунт, выберите поездку и отправьте запрос. Команда проверит доступность и пришлёт предложение и договор для согласования. После этого мы запросим депозит.",
   ],
   [
     "Can I customise a ready-made trip?",
@@ -105,19 +105,19 @@ export const faqs = [
   [
     "What is included in the price?",
     "Что включено в стоимость?",
-    "Your quote lists each selected service, the total, the deposit and the remaining balance. Optional extras are shown separately before checkout.",
-    "В расчёте указаны все выбранные услуги, общая сумма, депозит и остаток. Дополнительные услуги показываются до оплаты.",
+    "Your quote lists each selected service and the total. Optional extras are shown separately before you send your request.",
+    "В расчёте указаны все выбранные услуги и общая сумма. Дополнительные услуги показываются до отправки запроса.",
   ],
   [
-    "When is the balance due?",
-    "Когда оплатить остаток?",
-    "The remaining 70% is due 7 days before departure. Both the amount and the exact due date appear in your quote and trip summary.",
-    "Остаток 70% оплачивается за 7 дней до поездки. Сумма и точная дата указаны в расчёте и информации о поездке.",
+    "When do I pay?",
+    "Когда нужно платить?",
+    "After you approve the contract, our team requests a deposit. Later payments are requested as each service becomes due. Every payment request shows its amount in your account and is marked as paid once we receive it.",
+    "После согласования договора команда запрашивает депозит. Следующие платежи запрашиваются по мере наступления сроков услуг. Каждый запрос с суммой виден в аккаунте и помечается оплаченным после получения.",
   ],
   [
     "Do I need a visa?",
     "Нужна ли виза?",
-    "Visa requirements depend on your nationality. Check the official Azerbaijan e-visa portal before booking; this preview does not determine visa eligibility.",
+    "Visa requirements depend on your nationality. Check the official Azerbaijan e-visa portal before booking; this website does not determine visa eligibility.",
     "Визовые требования зависят от гражданства. Перед бронированием проверьте официальный портал электронной визы Азербайджана.",
   ],
   [
@@ -159,8 +159,8 @@ export const faqs = [
   [
     "Can I cancel or change my trip?",
     "Можно отменить или изменить поездку?",
-    "Contact the team to request changes or cancellation. Final cancellation terms must be approved before this demo can accept real bookings.",
-    "Для изменения или отмены обратитесь в команду. Окончательные условия отмены должны быть утверждены до запуска реальных бронирований.",
+    "Send a change or cancellation request from your trip. Our team reviews it; terms and refunds depend on the service, the provider and the time of cancellation.",
+    "Отправьте запрос на изменение или отмену из раздела поездки. Команда рассмотрит его; условия и возврат зависят от услуги, поставщика и времени отмены.",
   ],
 ];
 export interface QuoteInput {
@@ -190,7 +190,6 @@ export interface Quote {
   expires: string;
   lines: { label: string; amount: number }[];
   input: QuoteInput;
-  demo: true;
 }
 export function money(n: number, c: Currency, l: Locale = "en") {
   if (!Number.isFinite(n)) return "—";

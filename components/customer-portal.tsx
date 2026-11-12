@@ -73,11 +73,6 @@ function errorMessage(error: unknown, l: Locale) {
       "Офис проверяет изменение или отмену. Оплата откроется после ответа.",
       "Ofis dəyişiklik və ya ləğv sorğusunu yoxlayır. Ödəniş cavabdan sonra yenidən açılacaq.",
     ],
-    DEMO_PAYMENT_FAILED: [
-      "Demo payment failed. Nothing was charged.",
-      "Демо-платёж не прошёл. Списания не было.",
-      "Demo ödəniş alınmadı. Məbləğ tutulmadı.",
-    ],
     CONFLICT: [
       "A request already exists. Refresh your trips.",
       "Запрос уже существует. Обновите поездки.",

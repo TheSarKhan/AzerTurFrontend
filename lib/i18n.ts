@@ -73,8 +73,8 @@ export const az: Record<string, string> = {
     "Hazır turdan başlayın və ya günbəgün marşrut yaradın. Tarixi, səyahətçiləri və xidmətləri seçin.",
   "Know your price. Make it yours.":
     "Qiyməti bilin. Səfəri özünüzə uyğunlaşdırın.",
-  "Review each service and request operator approval. A demo deposit becomes available after the availability check.":
-    "Hər xidməti nəzərdən keçirib operator təsdiqinə göndərin. Mövcudluq yoxlanıldıqdan sonra demo depozit açılır.",
+  "Review each service and send your request for review. Our team checks availability and sends you an offer.":
+    "Hər xidməti nəzərdən keçirib sorğunu yoxlamaya göndərin. Komandamız mövcudluğu yoxlayır və sizə təklif göndərir.",
   "Arrive. We’ll take it from here.": "Gəlin. Qalanını biz həll edək.",
   "Your trip summary brings your itinerary and booking status together, so the next step is always clear.":
     "Səfər xülasəsi marşrut və rezervasiya statusunu bir yerdə göstərir. Növbəti addım həmişə aydındır.",
@@ -121,7 +121,8 @@ export const az: Record<string, string> = {
     "Bu gündən 3–365 gün sonrakı tarixi seçin.",
   "Could not load a price. Try again.": "Qiymət yüklənmədi. Yenidən yoxlayın.",
   "Make it your trip.": "Səfəri özünüzə uyğunlaşdırın.",
-  "Demo quote": "Demo qiymət",
+  "Your quote": "Qiymətiniz",
+  "Send request for review": "Yoxlama üçün sorğu göndər",
   "1–12 people · all ages": "1–12 nəfər · bütün yaşlar",
   "Remove traveller": "Səyahətçini azalt",
   "Add traveller": "Səyahətçi əlavə et",
@@ -140,16 +141,13 @@ export const az: Record<string, string> = {
   "Total for": "Ümumi qiymət:",
   travellers: "nəfər",
   "Price breakdown": "Qiymətin tərkibi",
-  "deposit today": "bu gün depozit",
-  "Balance by": "Qalıq üçün son tarix",
-  "Request review · deposit": "Operatora sorğu · depozit",
   "Fixed for 72 hours. No hidden fees.":
     "72 saat qüvvədədir. Gizli ödəniş yoxdur.",
   "Your adventure starts with a date.": "Macəranız tarix seçimindən başlayır.",
   "Choose when you’d like to go to see an itemised price.":
     "Xidmətlər üzrə qiyməti görmək üçün səfər tarixini seçin.",
-  "Sample prices · operator review required · demo payments only.":
-    "Nümunə qiymətlər · operator yoxlaması · yalnız demo ödənişlər.",
+  "Estimated price · confirmed by our team after an availability check.":
+    "Təxmini qiymət · mövcudluq yoxlanıldıqdan sonra komanda təsdiqləyir.",
   "Try again": "Yenidən cəhd et",
   "Request an offer": "Fərdi təklif istə",
   Journeys: "Turlar",
@@ -164,8 +162,8 @@ export const az: Record<string, string> = {
     "Yerli məkanda nahar və ətrafı kəşf etmək üçün vaxt.",
   "A scenic walk, then settle into the evening.":
     "Mənzərəli gəzinti və sakit axşam.",
-  "Illustrative itinerary. Final timing is confirmed with your booking.":
-    "Nümunə proqramdır. Yekun vaxtlar operator təsdiqində dəqiqləşdirilir.",
+  "Itinerary. Final timing is confirmed with your booking.":
+    "Proqram. Yekun vaxtlar rezervasiya ilə dəqiqləşdirilir.",
   "The essentials": "Əsas məlumatlar",
   "Private driver for the route": "Marşrut üzrə şəxsi sürücü",
   "Flexible service choices": "Çevik xidmət seçimi",
@@ -208,8 +206,8 @@ export const az: Record<string, string> = {
   "City / overnight stop": "Şəhər / gecələmə yeri",
   "Only connected cities can follow one another. Changing a stop also keeps later days connected.":
     "Yalnız əlaqəli şəhərlər ardıcıl seçilir. Bir dayanacağı dəyişəndə sonrakı günlərin əlaqəsi də qorunur.",
-  "The office team checks your route and availability before payment. Changes and cancellations are handled by an employee. Demo payments become available only after approval.":
-    "Ofis komandası ödənişdən əvvəl marşrutu və mövcudluğu yoxlayır. Dəyişiklik və ləğvi əməkdaş idarə edir. Demo ödəniş yalnız təsdiqdən sonra açılır.",
+  "The office team checks your route and availability before payment. Changes and cancellations are handled by an employee. Payments are requested only after your offer and contract are approved.":
+    "Ofis komandası ödənişdən əvvəl marşrutu və mövcudluğu yoxlayır. Dəyişiklik və ləğvi əməkdaş idarə edir. Ödəniş yalnız təklif və müqavilə təsdiqləndikdən sonra tələb olunur.",
   "A question, a group trip or a route you can’t stop thinking about?":
     "Sualınız, qrup səfəriniz və ya ağlınızdan çıxmayan bir marşrut var?",
   "Let’s find": "Gəlin tapaq",
@@ -217,14 +215,15 @@ export const az: Record<string, string> = {
   "your way.": "sizə uyğun yolu.",
   "A good beginning.": "Yaxşı başlanğıc.",
   "Ask a local.": "Yerli komandadan soruşun.",
-  "Tell us what you have in mind. The contact details and live enquiry service will be connected before launch.":
-    "Nə düşündüyünüzü bizə deyin. Canlı əlaqə və sorğu xidməti işə salınmazdan əvvəl qoşulacaq.",
-  "Preview mode: this form stays in your browser and sends no messages.":
-    "Önbaxış rejimi: bu forma brauzerdə qalır və mesaj göndərmir.",
+  "Tell us what you have in mind. Our team will reply by email.":
+    "Nə düşündüyünüzü bizə deyin. Komandamız email ilə cavab verəcək.",
   "You might find the answer here": "Cavabınızı burada tapa bilərsiniz",
-  "That’s how it will feel.": "Bu hissəni belə görəcəksiniz.",
-  "Demo form complete. Nothing was sent. In the live version, the team will respond within 24 hours.":
-    "Demo forma tamamlandı. Heç nə göndərilmədi. Canlı versiyada komanda 24 saat ərzində cavab verəcək.",
+  "Thank you.": "Təşəkkür edirik.",
+  "Your message was sent. Our team will reply by email.":
+    "Mesajınız göndərildi. Komandamız email ilə cavab verəcək.",
+  "Sending…": "Göndərilir…",
+  "Your message could not be sent. Please try again in a moment.":
+    "Mesajınız göndərilmədi. Bir az sonra yenidən cəhd edin.",
   "Back to form": "Formaya qayıt",
   "Your name": "Adınız",
   "Email address": "Email ünvanı",
@@ -234,7 +233,7 @@ export const az: Record<string, string> = {
   "Group or corporate trip": "Qrup və ya korporativ səfər",
   Partnership: "Əməkdaşlıq",
   "Your message": "Mesajınız",
-  "Preview enquiry": "Sorğunu önizlə",
+  "Send message": "Mesaj göndər",
   "per trip": "səfər üçün",
   "per day": "gün üçün",
   "per room / night": "otaq / gecə üçün",
@@ -250,23 +249,23 @@ export const az: Record<string, string> = {
   "Terms of use": "İstifadə şərtləri",
   "Draft for design review · updated 25 October 2026":
     "Baxış üçün qaralama · yenilənmə: 25 oktyabr 2026",
-  "Development release: customer accounts and reservation requests are stored in the backend and reviewed by the office team. Prices and payments are demonstrations. No card details or real money are collected.":
-    "İnkişaf versiyası: müştəri hesabları və rezervasiya sorğuları backend-də saxlanılır və ofis komandası tərəfindən yoxlanılır. Qiymətlər və ödənişlər nümunədir. Kart məlumatları və real pul qəbul edilmir.",
+  "Customer accounts and reservation requests are stored securely and reviewed by our office team. Payments are requested by our team and marked as paid once we receive them. This website does not collect card details.":
+    "Müştəri hesabları və rezervasiya sorğuları təhlükəsiz saxlanılır və ofis komandamız tərəfindən yoxlanılır. Ödənişləri komanda tələb edir və aldıqdan sonra ödənilmiş kimi qeyd edir. Bu sayt kart məlumatlarını toplamır.",
   "Before live bookings": "Canlı rezervasiyalardan əvvəl",
   "The operator’s legal identity, cancellation and refund schedule, contact details, payment terms and data retention policy must be finalised and displayed here. No unapproved refund percentages or business details are presented as final.":
     "Operatorun hüquqi məlumatları, ləğv və geri ödəniş qaydaları, əlaqə, ödəniş və məlumatların saxlanma şərtləri təsdiqlənib burada göstərilməlidir. Təsdiqlənməmiş şərtlər yekun kimi təqdim olunmur.",
-  "Your demo data": "Demo məlumatlarınız",
-  "Account details, reservation notes and service choices are sent to the backend. Website sessions use an HttpOnly cookie; mobile sessions use secure device storage. Preferences stay locally. General contact forms are previews and do not send messages.":
-    "Hesab məlumatları, rezervasiya qeydləri və xidmət seçimləri backend-ə göndərilir. Veb sessiya HttpOnly cookie, mobil sessiya isə cihazın qorunan yaddaşı ilə saxlanılır. Seçimlər lokal qalır. Ümumi əlaqə forması hələ mesaj göndərmir.",
+  "Your data": "Məlumatlarınız",
+  "Account details, reservation notes and service choices are sent to the backend. Website sessions use an HttpOnly cookie; mobile sessions use secure device storage. Preferences stay locally. Messages sent through the contact form are delivered to our team by email.":
+    "Hesab məlumatları, rezervasiya qeydləri və xidmət seçimləri backend-ə göndərilir. Veb sessiya HttpOnly cookie, mobil sessiya isə cihazın qorunan yaddaşı ilə saxlanılır. Seçimlər lokal qalır. Əlaqə formasından göndərilən mesajlar komandamıza email ilə çatdırılır.",
   Contact: "Əlaqə",
   "Azerbaijan, at your own pace.": "Azərbaycan, sizin ritminizlə.",
   "Choose. Shape. Go.": "Seçin. Uyğunlaşdırın. Yola çıxın.",
   "Azertur is built around a simple idea: a journey should feel personal, and planning it should feel clear. We connect routes, stays, drivers, guides and experiences in one place, so you can decide what your Azerbaijan looks like.":
     "Azertur sadə bir fikrə əsaslanır: səfər şəxsi, planlama isə aydın olmalıdır. Marşrutu, oteli, sürücünü, gidi və təcrübələri bir yerdə toplayırıq ki, öz Azərbaycan səyahətinizi seçə biləsiniz.",
-  "Start with one of our sample itineraries or build a route day by day. Choose a date, travellers, hotel category, guide and extras. The quote shows each service, the total, a 30% deposit and the remaining balance.":
-    "Hazır turdan başlayın və ya günbəgün marşrut yaradın. Tarixi, səyahətçiləri, oteli, gidi və əlavə xidmətləri seçin. Qiymətdə xidmətlər, ümumi məbləğ, nümunə 30% depozit və qalıq görünür.",
-  "Customer accounts and operator review are connected. Partner availability, final legal terms and live payments will be added before commercial launch.":
-    "Müştəri hesabları və operator yoxlaması qoşulub. Partnyor mövcudluğu, yekun hüquqi şərtlər və real ödənişlər kommersiya istifadəsindən əvvəl əlavə olunacaq.",
+  "Start with one of our itineraries or build a route day by day. Choose a date, travellers, hotel category, guide and extras. The quote shows each service and the total.":
+    "Hazır turdan başlayın və ya günbəgün marşrut yaradın. Tarixi, səyahətçiləri, oteli, gidi və əlavə xidmətləri seçin. Qiymətdə hər xidmət və ümumi məbləğ görünür.",
+  "Our team checks partner availability before every offer, confirms the terms in a contract you approve, and requests payments only after that.":
+    "Komandamız hər təklifdən əvvəl partnyor mövcudluğunu yoxlayır, şərtləri sizin təsdiqlədiyiniz müqavilədə qeyd edir və ödənişi yalnız bundan sonra tələb edir.",
   "Find your journey": "Səfərini tap",
   "A little off the map.": "Xəritədən bir az kənarda.",
   "We couldn’t find that page. Let’s find your next journey instead.":
@@ -277,7 +276,7 @@ export const az: Record<string, string> = {
   Services: "Xidmətlər",
   "Our story": "Haqqımızda",
   "Take the scenic route": "Öz marşrutunu seç",
-  "Allow session storage to preview checkout.":
+  "Allow session storage to continue to checkout.":
     "Rezervasiyanı davam etdirmək üçün sessiya yaddaşına icazə verin.",
   "Skip to content": "Məzmuna keç",
   "Main navigation": "Əsas menyu",
@@ -293,15 +292,13 @@ export const az: Record<string, string> = {
   Terms: "Şərtlər",
   Cancellation: "Ləğv",
   Privacy: "Məxfilik",
-  "Interactive preview · sample itineraries · no real payments":
-    "İnkişaf versiyası · nümunə marşrutlar · real ödəniş yoxdur",
   "Back to top": "Yuxarı qayıt",
   "Photography credits": "Foto müəllifləri",
   "Ask a local — contact Azertur": "Yerli komandadan soruş — Azertur ilə əlaqə",
   "Ask a local": "Yerli komandadan soruş",
   "A small note on cookies.": "Cookie haqqında kiçik qeyd.",
-  "We remember your language and currency. No analytics are loaded in this preview.":
-    "Dil və valyuta seçiminizi yadda saxlayırıq. Bu versiyada analitika yüklənmir.",
+  "We remember your language and currency. No analytics are loaded.":
+    "Dil və valyuta seçiminizi yadda saxlayırıq. Analitika yüklənmir.",
   "Essential only": "Yalnız vacib olanlar",
   "Got it": "Aydındır",
   "Close dialog": "Pəncərəni bağla",

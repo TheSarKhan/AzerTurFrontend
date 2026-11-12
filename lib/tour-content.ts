@@ -36,8 +36,8 @@ export const tourCopy = {
     "Максимальная примерная цена",
     "Maksimum nümunə qiymət",
   ],
-  samplePrices: ["Sample prices", "Примерные цены", "Nümunə qiymətlər"],
-  samplePrice: ["Sample price", "Примерная цена", "Nümunə qiymət"],
+  samplePrices: ["Estimated prices", "Ориентировочные цены", "Təxmini qiymətlər"],
+  samplePrice: ["Estimated price", "Ориентировочная цена", "Təxmini qiymət"],
   sampleJourneys: ["sample journeys", "примерных маршрута", "nümunə tur"],
   sampleJourney: ["sample journey", "примерный маршрут", "nümunə tur"],
   noSampleJourneys: ["sample journeys", "примерных маршрутов", "nümunə tur"],
@@ -77,10 +77,10 @@ export const tourCopy = {
     "Turları, qalacağın yeri, transferləri və təcrübələri seç.",
   ],
   customAction: ["Create your trip", "Создать поездку", "Öz səfərini yarat"],
-  illustrative: [
-    "Prices are illustrative. Services and final quote are confirmed before payment.",
-    "Цены примерные. Услуги и окончательная стоимость согласуются до оплаты.",
-    "Qiymətlər nümunədir. Xidmətlər və yekun təklif ödənişdən əvvəl təsdiqlənir.",
+  pricesNote: [
+    "Prices are estimates. Services and the final quote are confirmed by our team before payment.",
+    "Цены ориентировочные. Услуги и окончательная стоимость подтверждаются командой до оплаты.",
+    "Qiymətlər təxminidir. Xidmətlər və yekun təklif ödənişdən əvvəl komandamız tərəfindən təsdiqlənir.",
   ],
   noMatches: [
     "No trips match these filters.",
@@ -120,9 +120,9 @@ export const tourCopy = {
   contact: ["Get in touch", "Связаться", "Əlaqə saxla"],
   back: ["Back to tours", "Назад к турам", "Turlara qayıt"],
   sampleItinerary: [
-    "Sample itinerary — details to be confirmed.",
-    "Примерная программа — детали будут согласованы.",
-    "Nümunə proqram — detallar dəqiqləşdiriləcək.",
+    "Itinerary — final details are confirmed with your booking.",
+    "Программа — окончательные детали подтверждаются при бронировании.",
+    "Proqram — yekun təfərrüatlar rezervasiya ilə dəqiqləşdirilir.",
   ],
   starts: ["Starts in Baku", "Начало в Баку", "Başlanğıc: Bakı"],
   night: ["night", "ночь", "gecə"],
@@ -219,10 +219,10 @@ export const tourCopy = {
   request: ["Request", "Запрос", "Sorğu"],
   review: ["Team review", "Проверка", "Yoxlama"],
   offer: ["Offer", "Предложение", "Təklif"],
-  demo: [
-    "Current preview: operator review and demo payments. Contract approval and staged payments are being prepared.",
-    "Сейчас доступны проверка оператором и демо-оплата. Согласование договора и поэтапная оплата готовятся.",
-    "Hazırkı önizləmə: operator yoxlaması və demo ödənişlər. Müqavilə təsdiqi və mərhələli ödənişlər hazırlanır.",
+  paymentsNote: [
+    "Our team checks availability, you approve the offer and the contract, and payments are requested step by step.",
+    "Команда проверяет доступность, вы согласуете предложение и договор, а оплата запрашивается поэтапно.",
+    "Komandamız mövcudluğu yoxlayır, siz təklifi və müqaviləni təsdiqləyirsiniz, ödənişlər isə mərhələ-mərhələ tələb olunur.",
   ],
   imagery: [
     "Images are AI-generated for illustration.",
@@ -368,9 +368,9 @@ export const beforeQuestions: { question: Text; answer: Text }[] = [
       "Müqavilə və ödənişlər necə olacaq?",
     ],
     answer: [
-      "Planned flow: preview the PDF contract and approve the confirmed offer before paying a deposit. Later payments are requested as services become due. This preview currently uses demo payments.",
-      "Планируемый процесс: просмотр PDF-договора и согласование предложения до депозита. Последующие платежи запрашиваются по мере необходимости услуг. Сейчас оплата демонстрационная.",
-      "Planlaşdırılan axın: beh ödəməzdən əvvəl PDF müqaviləni nəzərdən keçirib təsdiqlənmiş təklifi qəbul et. Sonrakı ödənişlər xidmətlərin vaxtı çatdıqca tələb ediləcək. Hazırkı önizləmədə ödənişlər demodur.",
+      "Review the PDF contract and approve the confirmed offer before paying a deposit. Later payments are requested as services become due and marked as paid once our team receives them.",
+      "Просмотрите PDF-договор и согласуйте подтверждённое предложение до депозита. Последующие платежи запрашиваются по мере наступления сроков услуг и помечаются оплаченными после получения.",
+      "Beh ödəməzdən əvvəl PDF müqaviləni nəzərdən keçirib təsdiqlənmiş təklifi qəbul et. Sonrakı ödənişlər xidmətlərin vaxtı çatdıqca tələb olunur və komanda aldıqdan sonra ödənilmiş kimi qeyd olunur.",
     ],
   },
   {
