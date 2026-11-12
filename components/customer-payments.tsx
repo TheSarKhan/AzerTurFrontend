@@ -253,18 +253,11 @@ export default function CustomerPayments({
                   </div>
                   {deposit.status !== "PAID" && (
                     <div>
-                      <button disabled>
-                        {t(
-                          "Continue to payment",
-                          "Перейти к оплате",
-                          "Ödənişə keç",
-                        )}
-                      </button>
                       <p>
                         {t(
-                          "Online payment is not available yet.",
-                          "Онлайн-оплата пока недоступна.",
-                          "Onlayn ödəniş hələ aktiv deyil.",
+                          "Our team provides the payment details. Once we receive your payment, this request is marked as paid here.",
+                          "Реквизиты для оплаты предоставляет наша команда. Как только мы получим платёж, запрос будет отмечен здесь как оплаченный.",
+                          "Ödəniş rekvizitlərini komandamız təqdim edir. Ödənişi aldıqdan sonra bu sorğu burada ödənilmiş kimi qeyd olunacaq.",
                         )}
                       </p>
                     </div>
