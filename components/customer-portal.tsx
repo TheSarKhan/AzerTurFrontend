@@ -194,22 +194,31 @@ export function CustomerAuth({
   go,
   next = "/trips",
 }: Props & { next?: string }) {
-  const [mode, setMode] = useState<"login" | "register">("login"),
+  const [mode, setMode] = useState<"login" | "register" | "forgot-password">(
+      "login",
+    ),
     [busy, setBusy] = useState(false),
-    [error, setError] = useState("");
+    [error, setError] = useState(""),
+    [sent, setSent] = useState(false);
   const t = (en: string, ru: string, az: string) => text(l, en, ru, az);
   const finish = (to: string) => window.location.assign("/" + l + to);
   return (
     <section className="auth-split">
       <div className="auth-panel customer-auth">
         <h1>
-          {mode === "login"
-            ? t("Welcome back.", "С возвращением.", "Xoş gəlmisiniz.")
-            : t(
-                "Your journey starts here.",
-                "Ваше путешествие начинается здесь.",
-                "Səyahətiniz buradan başlayır.",
-              )}
+          {mode === "forgot-password"
+            ? t(
+                "Recover your account.",
+                "Восстановите аккаунт.",
+                "Hesabını bərpa et.",
+              )
+            : mode === "login"
+              ? t("Welcome back.", "С возвращением.", "Xoş gəlmisiniz.")
+              : t(
+                  "Your journey starts here.",
+                  "Ваше путешествие начинается здесь.",
+                  "Səyahətiniz buradan başlayır.",
+                )}
         </h1>
         <p>
           {t(
@@ -238,6 +247,7 @@ export function CustomerAuth({
             aria-pressed={mode === "login"}
             onClick={() => {
               setMode("login");
+              setSent(false);
               setError("");
             }}
           >
@@ -247,6 +257,7 @@ export function CustomerAuth({
             aria-pressed={mode === "register"}
             onClick={() => {
               setMode("register");
+              setSent(false);
               setError("");
             }}
           >
@@ -269,7 +280,13 @@ export function CustomerAuth({
                   ? { name: String(f.get("name")), locale: l }
                   : {}),
               });
-              window.location.assign("/" + l + next);
+              if (mode === "forgot-password") {
+                setSent(true);
+                return;
+              }
+              window.location.assign(
+                "/" + l + (mode === "register" ? "/trips/account" : next),
+              );
             } catch (e) {
               setError(errorMessage(e, l));
             } finally {
@@ -299,19 +316,21 @@ export function CustomerAuth({
               autoComplete="email"
             />
           </label>
-          <label>
-            {t("Password", "Пароль", "Şifrə")}
-            <input
-              name="password"
-              type="password"
-              required
-              minLength={mode === "register" ? 12 : 1}
-              maxLength={72}
-              autoComplete={
-                mode === "register" ? "new-password" : "current-password"
-              }
-            />
-          </label>
+          {mode !== "forgot-password" && (
+            <label>
+              {t("Password", "Пароль", "Şifrə")}
+              <input
+                name="password"
+                type="password"
+                required
+                minLength={mode === "register" ? 12 : 1}
+                maxLength={72}
+                autoComplete={
+                  mode === "register" ? "new-password" : "current-password"
+                }
+              />
+            </label>
+          )}
           {mode === "register" && (
             <p className="field-help">
               {t(
@@ -321,20 +340,48 @@ export function CustomerAuth({
               )}
             </p>
           )}
+          {sent && (
+            <p role="status">
+              {t(
+                "If an account exists, a recovery link will be emailed. Check your inbox and spam folder.",
+                "Если аккаунт существует, ссылка будет отправлена на почту. Проверьте спам.",
+                "Hesab mövcuddursa, bərpa linki email ünvanına göndəriləcək. Spam qovluğunu da yoxlayın.",
+              )}
+            </p>
+          )}
           {error && (
             <p role="alert" className="error-message">
               {error}
             </p>
           )}
-          <button className="button" disabled={busy}>
+          <button
+            className="button"
+            disabled={busy || (mode === "forgot-password" && sent)}
+          >
             {busy
               ? t("Please wait…", "Подождите…", "Gözləyin…")
-              : mode === "login"
-                ? t("Sign in", "Войти", "Daxil ol")
-                : t("Create account", "Создать аккаунт", "Qeydiyyatdan keç")}
+              : mode === "forgot-password"
+                ? t(
+                    "Send recovery link",
+                    "Отправить ссылку",
+                    "Bərpa linki göndər",
+                  )
+                : mode === "login"
+                  ? t("Sign in", "Войти", "Daxil ol")
+                  : t("Create account", "Создать аккаунт", "Qeydiyyatdan keç")}
             <ArrowUpRight size={18} />
           </button>
         </form>
+        <button
+          className="cc-text"
+          onClick={() => {
+            setMode("forgot-password");
+            setError("");
+            setSent(false);
+          }}
+        >
+          {t("Forgot password?", "Забыли пароль?", "Şifrəni unutmusan?")}
+        </button>
       </div>
       <AuthShowcase locale={l} />
     </section>
@@ -438,6 +485,18 @@ export function BookingCheckout({
         >
           <h3>{customer.name}</h3>
           <p>{customer.email}</p>
+          {!customer.emailVerified && (
+            <p role="status">
+              {t(
+                "Verify your email before sending a booking request.",
+                "Подтвердите email перед запросом бронирования.",
+                "Sifariş sorğusu göndərməzdən əvvəl emailini təsdiqlə.",
+              )}{" "}
+              <a href={"/" + l + "/trips/account"}>
+                {t("Open account", "Открыть аккаунт", "Hesabı aç")}
+              </a>
+            </p>
+          )}
           <label>
             {t(
               "Travel notes and special requests",
@@ -515,12 +574,23 @@ export function CustomerTrips({
   locale,
   go,
   bookingId,
-}: Props & { bookingId?: string }) {
+  cancellationView,
+  paymentView,
+  amendmentView,
+}: Props & {
+  bookingId?: string;
+  cancellationView?: boolean;
+  paymentView?: boolean;
+  amendmentView?: boolean;
+}) {
   return (
     <CustomerCabinet
       locale={locale}
       go={go}
       bookingId={bookingId}
+      cancellationView={cancellationView}
+      paymentView={paymentView}
+      amendmentView={amendmentView}
       renderAuth={(next) => (
         <CustomerAuth locale={locale} go={go} next={next} />
       )}

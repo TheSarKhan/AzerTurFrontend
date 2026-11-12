@@ -26,3 +26,11 @@ See [architecture and repository links](docs/ARCHITECTURE.md).
 ## Customer review workflow update
 
 The customer registration, durable reservation request, office approval and demo-payment flows are now implemented. See [the current architecture, API and remaining production work](docs/ARCHITECTURE.md); that document supersedes the initial foundation-only notes above. No cloud deployment or live payment/provider connection is included.
+
+## Customer office-workflow updates
+
+`/[locale]/trips/notifications` shows owned in-app updates and read state. The payment page includes exact-version acceptance of a reviewed remaining-service plan after partial cancellation. Cancellation results show separate manual refund tracking and the office's customer-facing explanation. The original deposit history is kept distinct from funds allocated to active services. EN/RU/AZ are supported. See [workflow and setup details](docs/OFFICE_WORKFLOWS.md) and `docs/design/implemented/office-workflows/v1/` for browser verification screenshots.
+
+## Account security and paid changes
+
+Email verification, password recovery and session revocation now protect customer writes. Paid changes use a separately reviewed proposal and exact PDF acceptance before the effective booking changes. See [setup, workflow and verification](docs/ACCOUNT_SECURITY_AMENDMENTS.md). This work is stacked on `feature/complete-office-workflows`; live delivery still needs the configured server SMTP environment.

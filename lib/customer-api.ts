@@ -1,5 +1,6 @@
 export type Customer = {
   id: string;
+  emailVerified: boolean;
   email: string;
   name: string;
   locale: "en" | "ru" | "az";
@@ -64,3 +65,28 @@ export async function customerApi<T>(
   if (response.status === 204) return undefined as T;
   return response.json();
 }
+export type CustomerOffer = {
+  id: string;
+  bookingId: string;
+  revision: number;
+  draftVersion: number;
+  title: string;
+  currency: "EUR" | "USD" | "AZN";
+  date: string;
+  travelers: number;
+  itinerary: { city: string; description: string }[];
+  returnRoute: string;
+  services: {
+    key: string;
+    name: string;
+    quantity: number;
+    nights: number;
+    unitPrice: number;
+    unit: string;
+    total: number;
+    policy: string;
+  }[];
+  total: number;
+  message: string;
+  sentAt: string;
+};

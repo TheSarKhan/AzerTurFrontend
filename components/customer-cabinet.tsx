@@ -1,6 +1,16 @@
 "use client";
+import CustomerAmendments from "./customer-amendments";
+import AccountSecurity from "./account-security";
+import CustomerNotifications from "./customer-notifications";
+import CustomerPayments from "./customer-payments";
+import CustomerCancellation from "./customer-cancellation";
+import CustomerContract from "@/components/customer-contract";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import Image from "next/image";
+import CustomerOfferView, {
+  offerStatus,
+  originalEstimate,
+} from "./customer-offer";
 import {
   ArrowLeft,
   ArrowRight,
@@ -24,6 +34,7 @@ import {
   type Customer,
   type Booking,
   type BookingRequest,
+  type CustomerOffer,
 } from "@/lib/customer-api";
 import { money, dateLimit, type Locale } from "@/lib/travel";
 import {
@@ -41,16 +52,24 @@ type Props = {
   locale: Locale;
   go: (path: string) => void;
   bookingId?: string;
+  cancellationView?: boolean;
+  paymentView?: boolean;
+  amendmentView?: boolean;
   renderAuth: (next: string) => ReactNode;
 };
 export default function CustomerCabinet({
   locale: l,
   go,
   bookingId,
+  cancellationView,
+  paymentView,
+  amendmentView,
   renderAuth,
 }: Props) {
   const t = (en: string, ru: string, az: string) =>
     l === "az" ? az : l === "ru" ? ru : en;
+  const [unread, setUnread] = useState(0);
+  const [offers, setOffers] = useState<CustomerOffer[]>([]);
   const [customer, setCustomer] = useState<Customer | null>(null),
     [bookings, setBookings] = useState<Booking[]>([]),
     [requests, setRequests] = useState<BookingRequest[]>([]),
@@ -66,9 +85,25 @@ export default function CustomerCabinet({
   const dialogRef = useRef<HTMLDialogElement>(null),
     focusRef = useRef<HTMLElement | null>(null),
     paymentKeys = useRef<Record<string, string>>({});
-  const next = bookingId ? "/trips/" + bookingId : "/trips";
+  const next = bookingId
+    ? "/trips/" +
+      bookingId +
+      (amendmentView
+        ? "/changes"
+        : cancellationView
+          ? "/cancellation"
+          : paymentView
+            ? "/payments"
+            : "")
+    : "/trips";
   function problem(e: unknown) {
     const code = e instanceof ApiError ? e.code : "";
+    if (code === "EMAIL_VERIFICATION_REQUIRED")
+      return t(
+        "Verify your email in Account before continuing.",
+        "Подтвердите email в аккаунте.",
+        "Davam etmək üçün Hesab bölməsində emailini təsdiqlə.",
+      );
     return code === "REQUEST_PENDING" || code === "CONFLICT"
       ? t(
           "A request is already pending. Refresh to see its status.",
@@ -92,13 +127,17 @@ export default function CustomerCabinet({
     setError("");
     try {
       const c = await customerApi<Customer>("auth/me");
-      const [b, r] = await Promise.all([
+      const [b, r, o, n] = await Promise.all([
         customerApi<Booking[]>("bookings"),
         customerApi<BookingRequest[]>("bookings/requests"),
+        customerApi<CustomerOffer[]>("bookings/offers"),
+        customerApi<{ unread: number }>("bookings/notifications"),
       ]);
+      setUnread(n.unread);
       setCustomer(c);
       setBookings(b);
       setRequests(r);
+      setOffers(o);
       setUnauthorized(false);
     } catch (e) {
       if (e instanceof ApiError && e.status === 401) {
@@ -106,6 +145,7 @@ export default function CustomerCabinet({
         setCustomer(null);
         setBookings([]);
         setRequests([]);
+        setOffers([]);
       } else setError(problem(e));
     } finally {
       setReady(true);
@@ -122,6 +162,7 @@ export default function CustomerCabinet({
     setNotice("");
     setError("");
   }, [bookingId, l]);
+  const currentOffer = offers.find((o) => o.bookingId === bookingId);
   const b = bookings.find((item) => item.id === bookingId),
     q = b ? bookingQuote(b) : null,
     route = b ? cabinetRoute(b) : [],
@@ -185,9 +226,9 @@ export default function CustomerCabinet({
     </a>
   );
   const planned = t(
-    "Contract approval and staged payments are planned. Current payments are simulated.",
-    "Договор и поэтапная оплата запланированы. Текущие платежи — демонстрационные.",
-    "Müqavilə təsdiqi və mərhələli ödənişlər planlaşdırılır. Hazırkı ödənişlər demodur.",
+    "Contract approval is available when your team sends a document. Current payments are simulated.",
+    "Договор появится после отправки командой. Текущие платежи — демонстрационные.",
+    "Komanda göndərdikdə müqaviləyə baxıb təsdiqləyə bilərsiniz. Hazırkı ödənişlər demodur.",
   );
   const cancellation = t(
     "The team reviews every request. Terms and refunds depend on the service, provider and cancellation time.",
@@ -220,7 +261,10 @@ export default function CustomerCabinet({
   const status = (item: Booking) => (
     <span className="cc-status">
       {item.status === "CONFIRMED" ? <Check size={20} /> : <Clock size={20} />}{" "}
-      {statuses[item.status]}
+      {item.status === "PENDING_REVIEW" &&
+      offers.some((o) => o.bookingId === item.id)
+        ? offerStatus(l)
+        : statuses[item.status]}
     </span>
   );
   const nextSteps = (
@@ -292,6 +336,39 @@ export default function CustomerCabinet({
         {refresh}
       </section>
     );
+  const verificationPrompt = !customer.emailVerified && (
+    <div className="container verification-prompt" role="status">
+      {t(
+        "Verify your email before sending requests or accepting documents.",
+        "Подтвердите email перед отправкой запросов и принятием документов.",
+        "Sorğu göndərmək və sənədləri təsdiqləmək üçün emailini təsdiqlə.",
+      )}{" "}
+      <a href={"/" + l + "/trips/account"}>
+        {t("Open account", "Открыть аккаунт", "Hesabı aç")}
+      </a>
+    </div>
+  );
+  if (amendmentView && b)
+    return (
+      <>
+        {verificationPrompt}
+        <CustomerAmendments key={b.id} booking={b} locale={l} go={go} />
+      </>
+    );
+  if (cancellationView && b)
+    return (
+      <>
+        {verificationPrompt}
+        <CustomerCancellation key={b.id} booking={b} locale={l} go={go} />
+      </>
+    );
+  if (paymentView && b)
+    return (
+      <>
+        {verificationPrompt}
+        <CustomerPayments key={b.id} booking={b} locale={l} go={go} />
+      </>
+    );
   const account = (
     <div className="cc-account">
       <UserRound size={28} />
@@ -325,12 +402,17 @@ export default function CustomerCabinet({
     <section
       className={
         "cabinet " +
-        (bookingId && bookingId !== "account" ? "cc-detail" : "cc-overview")
+        (bookingId && bookingId !== "account" && bookingId !== "notifications"
+          ? "cc-detail"
+          : "cc-overview")
       }
     >
       <div className="cc-container">
+        {bookingId !== "account" && verificationPrompt}
         {alerts}
-        {!bookingId || bookingId === "account" ? (
+        {!bookingId ||
+        bookingId === "account" ||
+        bookingId === "notifications" ? (
           <div className="cc-account-grid">
             <aside className="cc-sidebar">
               <nav
@@ -360,6 +442,18 @@ export default function CustomerCabinet({
                   </>,
                   bookingId === "account" ? "active" : "",
                 )}
+                {link(
+                  "/trips/notifications",
+                  t(
+                    "Notifications",
+                    "\u0423\u0432\u0435\u0434\u043e\u043c\u043b\u0435\u043d\u0438\u044f",
+                    "Bildiri\u015fl\u0259r",
+                  ) +
+                    " (" +
+                    unread +
+                    ")",
+                  bookingId === "notifications" ? "active" : "",
+                )}
               </nav>
               <button
                 className="cc-text"
@@ -372,6 +466,7 @@ export default function CustomerCabinet({
                     setCustomer(null);
                     setBookings([]);
                     setRequests([]);
+                    setOffers([]);
                   } catch (e) {
                     setError(problem(e));
                   } finally {
@@ -384,10 +479,19 @@ export default function CustomerCabinet({
               </button>
             </aside>
             <div className="cc-content">
-              {bookingId === "account" ? (
+              {bookingId === "notifications" ? (
+                <CustomerNotifications
+                  locale={l}
+                  go={go}
+                  onUnreadChange={setUnread}
+                />
+              ) : bookingId === "account" ? (
                 <>
                   <h1>{t("Your account", "Ваш аккаунт", "Hesabın")}</h1>
                   {account}
+                  {customer && (
+                    <AccountSecurity customer={customer} locale={l} />
+                  )}
                   {link(
                     "/trips",
                     t(
@@ -453,6 +557,7 @@ export default function CustomerCabinet({
                   </div>
                   {filterTrips(bookings, filter, dateLimit(0)).map((item) => {
                     const quote = bookingQuote(item);
+                    const latest = offers.find((o) => o.bookingId === item.id);
                     return (
                       <article className="cc-trip" key={item.id}>
                         <Image
@@ -479,7 +584,7 @@ export default function CustomerCabinet({
                             {dates(item)} · {quote?.input.pax || "—"}{" "}
                             {t("travelers", "чел.", "nəfər")}
                           </p>
-                          {item.status === "PENDING_REVIEW" && (
+                          {item.status === "PENDING_REVIEW" && !latest && (
                             <div className="cc-sage">
                               <Users size={26} />
                               <div>
@@ -500,17 +605,26 @@ export default function CustomerCabinet({
                               </div>
                             </div>
                           )}
+                          {latest && (
+                            <CustomerOfferView
+                              offer={latest}
+                              locale={l}
+                              compact
+                            />
+                          )}
                           {item.operatorNote && (
                             <p className="cc-operator">{item.operatorNote}</p>
                           )}
                           <div className="cc-trip-bottom">
                             <div>
                               <strong>
-                                {t(
-                                  "Estimated group total",
-                                  "Примерная сумма для группы",
-                                  "Qrup üçün təxmini cəm",
-                                )}
+                                {latest
+                                  ? originalEstimate(l)
+                                  : t(
+                                      "Estimated group total",
+                                      "Примерная сумма для группы",
+                                      "Qrup üçün təxmini cəm",
+                                    )}
                               </strong>
                               <small>
                                 {t("Paid", "Оплачено", "Ödənilib")}{" "}
@@ -654,7 +768,11 @@ export default function CustomerCabinet({
             <div className="cc-state-banner">
               <Clock size={25} />
               <div>
-                <strong>{statuses[b.status]}</strong>
+                <strong>
+                  {currentOffer && b.status === "PENDING_REVIEW"
+                    ? offerStatus(l)
+                    : statuses[b.status]}
+                </strong>
                 <p>
                   {pending
                     ? t(
@@ -662,18 +780,20 @@ export default function CustomerCabinet({
                         "Изменение или отмена на проверке. Оплата приостановлена.",
                         "Dəyişiklik və ya ləğv sorğusu yoxlanılır. Ödəniş dayandırılıb.",
                       )
-                    : b.status === "PENDING_REVIEW"
-                      ? t(
-                          "We’re checking your route and availability. No payment is due.",
-                          "Проверяем маршрут и доступность. Сейчас оплаты нет.",
-                          "Marşrutu və mövcudluğu yoxlayırıq. Hazırda ödəniş tələb olunmur.",
-                        )
-                      : b.operatorNote ||
-                        t(
-                          "See your request details and next step below.",
-                          "Детали заявки и следующий шаг ниже.",
-                          "Sorğu detalları və növbəti addım aşağıdadır.",
-                        )}
+                    : currentOffer
+                      ? offerStatus(l)
+                      : b.status === "PENDING_REVIEW"
+                        ? t(
+                            "We’re checking your route and availability. No payment is due.",
+                            "Проверяем маршрут и доступность. Сейчас оплаты нет.",
+                            "Marşrutu və mövcudluğu yoxlayırıq. Hazırda ödəniş tələb olunmur.",
+                          )
+                        : b.operatorNote ||
+                          t(
+                            "See your request details and next step below.",
+                            "Детали заявки и следующий шаг ниже.",
+                            "Sorğu detalları və növbəti addım aşağıdadır.",
+                          )}
                 </p>
               </div>
               {refresh}
@@ -699,6 +819,9 @@ export default function CustomerCabinet({
                     </a>
                   ))}
                 </nav>
+                {currentOffer && (
+                  <CustomerOfferView offer={currentOffer} locale={l} />
+                )}
                 <section id="cc-route">
                   <h2>
                     <span>01</span>
@@ -930,6 +1053,26 @@ export default function CustomerCabinet({
                         <ArrowRight size={17} />
                       </button>
                     )}
+                  <button
+                    className="cc-outline"
+                    onClick={() => go("/trips/" + b.id + "/cancellation")}
+                  >
+                    {t(
+                      "Cancellation & refund details",
+                      "Отмена и возврат",
+                      "Ləğv və geri ödəniş",
+                    )}
+                  </button>
+                  <button
+                    className="cc-text"
+                    onClick={() => go("/trips/" + b.id + "/changes")}
+                  >
+                    {t(
+                      "Review change proposals",
+                      "Предложения по изменению",
+                      "Dəyişiklik təkliflərinə bax",
+                    )}
+                  </button>
                   <p className="cc-caption">{cancellation}</p>
                 </section>
                 <section id="cc-documents">
@@ -937,25 +1080,13 @@ export default function CustomerCabinet({
                     <span>05</span>
                     {t("Documents", "Документы", "Sənədlər")}
                   </h2>
-                  <div className="cc-documents">
-                    <FileText size={28} />
-                    <div>
-                      <strong>
-                        {t(
-                          "No documents yet.",
-                          "Документов пока нет.",
-                          "Hələ sənəd yoxdur.",
-                        )}
-                      </strong>
-                      <p>
-                        {t(
-                          "Your confirmed offer and documents will appear here when available.",
-                          "Подтверждённое предложение и документы появятся здесь.",
-                          "Təsdiqlənmiş təklif və sənədlər hazır olduqda burada görünəcək.",
-                        )}
-                      </p>
-                    </div>
-                  </div>
+                  <CustomerContract key={b.id} bookingId={b.id} locale={l} />
+                  <button
+                    className="cc-outline"
+                    onClick={() => go("/trips/" + b.id + "/payments")}
+                  >
+                    {t("Payments", "Платежи", "Ödənişlər")}
+                  </button>
                 </section>
               </div>
               <aside className="cc-summary">
@@ -998,15 +1129,17 @@ export default function CustomerCabinet({
                             "Дождитесь ответа команды.",
                             "Komandanın sorğuya cavabını gözlə.",
                           )
-                        : b.status === "PENDING_REVIEW"
-                          ? t(
-                              "Wait for our team’s review.",
-                              "Дождитесь проверки команды.",
-                              "Komandamızın yoxlamasını gözlə.",
-                            )
-                          : statuses[b.status]}
+                        : currentOffer
+                          ? offerStatus(l)
+                          : b.status === "PENDING_REVIEW"
+                            ? t(
+                                "Wait for our team’s review.",
+                                "Дождитесь проверки команды.",
+                                "Komandamızın yoxlamasını gözlə.",
+                              )
+                            : statuses[b.status]}
                     </p>
-                    {paymentAvailable(b, requests) && (
+                    {!currentOffer && paymentAvailable(b, requests) && (
                       <button
                         className="cc-primary"
                         onClick={() => open("payment")}

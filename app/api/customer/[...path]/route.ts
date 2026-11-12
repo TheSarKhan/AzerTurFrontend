@@ -34,7 +34,7 @@ async function proxy(
       "auth/verify-email",
     ].includes(path);
   const token = request.cookies.get(cookie)?.value;
-  if (!isAuth && !token)
+  if (!isPublic && !token)
     return NextResponse.json({ error: "UNAUTHENTICATED" }, { status: 401 });
   let body: string | undefined;
   if (request.method === "POST") {
@@ -64,7 +64,10 @@ async function proxy(
         method: request.method,
         headers: {
           "Content-Type": "application/json",
-          ...(!isAuth && token ? { Authorization: "Bearer " + token } : {}),
+          "User-Agent": (
+            request.headers.get("user-agent") || "Other device"
+          ).slice(0, 512),
+          ...(!isPublic && token ? { Authorization: "Bearer " + token } : {}),
           ...(request.headers.has("idempotency-key")
             ? { "Idempotency-Key": request.headers.get("idempotency-key")! }
             : {}),
@@ -74,6 +77,19 @@ async function proxy(
         signal: AbortSignal.timeout(10000),
       },
     );
+    if ((path.endsWith("/pdf") || path.endsWith("/base-pdf")) && upstream.ok) {
+      return new NextResponse(await upstream.arrayBuffer(), {
+        status: upstream.status,
+        headers: {
+          "Content-Type": "application/pdf",
+          "Cache-Control": "no-store",
+          "X-Content-Type-Options": "nosniff",
+          "Content-Disposition": path.includes("cancellation-updates")
+            ? "attachment; filename=cancellation-summary.pdf"
+            : "inline; filename=contract.pdf",
+        },
+      });
+    }
     let data = upstream.status === 204 ? null : await upstream.json();
     const session = isAuth && upstream.ok ? data : null;
     if (session)
@@ -94,7 +110,13 @@ async function proxy(
         path: "/",
         expires: new Date(session.expires),
       });
-    if (path === "auth/logout" || (upstream.status === 401 && !isAuth))
+    if (
+      (["auth/logout", "auth/logout-all", "auth/reset-password"].includes(
+        path,
+      ) &&
+        upstream.ok) ||
+      (upstream.status === 401 && !isPublic)
+    )
       result.cookies.set(cookie, "", {
         httpOnly: true,
         sameSite: "lax",
