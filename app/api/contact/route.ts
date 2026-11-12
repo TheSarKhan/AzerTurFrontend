@@ -18,7 +18,9 @@ export async function POST(request: Request) {
         cache: "no-store",
       },
     );
-    return new Response(await response.text(), {
+    // 204 (stored) must not carry a body.
+    const body = response.status === 204 ? null : await response.text();
+    return new Response(body, {
       status: response.status,
       headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
     });
