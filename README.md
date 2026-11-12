@@ -19,13 +19,13 @@ npm start
 
 The Dockerfile produces a standalone Next.js Node server. Local `next start` uses the normal build; container builds set `NEXT_OUTPUT=standalone`.
 
-The approved design, EN/RU pages, planner, filters, gallery and sample checkout remain intact. Customer accounts, checkout, deposits and balances are still UI demos; real booking/payment APIs are not yet implemented. Itinerary copy and display-only from-prices are sample content. Photos and font attribution are included in the website.
+The approved design, EN/RU pages, planner, filters, gallery and sample checkout remain intact. Customer accounts, reservations and payment requests use the real backend; online card payment (Epoint) is not connected yet. Itinerary copy and display-only from-prices are sample content. Photos and font attribution are included in the website.
 
 See [architecture and repository links](docs/ARCHITECTURE.md).
 
 ## Customer review workflow update
 
-The customer registration, durable reservation request, office approval and demo-payment flows are now implemented. See [the current architecture, API and remaining production work](docs/ARCHITECTURE.md); that document supersedes the initial foundation-only notes above. No cloud deployment or live payment/provider connection is included.
+The customer registration, durable reservation request, offer and contract workflow and finance-recorded payments are now implemented. See [the current architecture, API and remaining production work](docs/ARCHITECTURE.md); that document supersedes the initial foundation-only notes above. No cloud deployment or live payment/provider connection is included.
 
 ## Customer office-workflow updates
 

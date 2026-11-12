@@ -8,4 +8,4 @@ Checks passed: backend Docker Maven build/tests; API smoke through Next.js quote
 
 Fixed two issues: preview currency totals now round each service before summing, matching Spring Boot (a one-day single-traveler Standard example in AZN previously displayed 393 versus the server’s 392); customer and office lists now identify customized trips as custom journeys instead of the base catalog tour title.
 
-Contract approval and per-service staged payments remain separate planned work. Existing demo-payment rules were exercised only by automated local tests. The current step verifies request intake, not production readiness or live payments.
+Contract approval and per-service staged payments remain separate planned work. The former demo-payment rules have been removed. The current step verifies request intake, not production readiness or live payments.
