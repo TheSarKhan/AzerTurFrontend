@@ -82,6 +82,11 @@ export default function CustomerNotifications({
       "Запрошена оплата",
       "Ödəniş tələbi göndərilib",
     ),
+    PAYMENT_RECEIVED: t(
+      "Your payment was received",
+      "Ваш платёж получен",
+      "Ödənişiniz qəbul edildi",
+    ),
     REVISED_PLAN_SENT: t(
       "Review your revised payment plan",
       "Проверьте обновлённый план оплаты",
