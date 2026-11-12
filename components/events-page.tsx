@@ -266,7 +266,7 @@ export function EventDetail({ locale: l, slug, go }: { locale: Locale; slug: str
       .catch(() => { if (!controller.signal.aborted) setState("error"); });
     return () => controller.abort();
   }, [slug]);
-  useEffect(() => { if (d) document.title = title(d.event) + " — Azertur"; }, [d, l]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (d) document.title = title(d.event) + " — AzTrip"; }, [d, l]); // eslint-disable-line react-hooks/exhaustive-deps
   const back = (
     <a className="ev-back" href={`/${l}/events`} onClick={(x) => { x.preventDefault(); go("/events"); }}>
       <ArrowLeft size={16} />{t("All events", "Все события", "Bütün tədbirlər")}

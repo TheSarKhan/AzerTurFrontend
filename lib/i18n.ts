@@ -31,7 +31,7 @@ export const az: Record<string, string> = {
     "Dağ kəndinin sakitliyi. Söhbətə çevrilən çay süfrəsi. Bir az da uzanmasını istədiyiniz yol.",
   "We bring the pieces together. You make the journey your own.":
     "Biz detalları birləşdiririk. Siz öz səyahətinizi yaradırsınız.",
-  "Meet Azertur": "Azertur ilə tanış ol",
+  "Meet AzTrip": "AzTrip ilə tanış ol",
   "Three ways to start. A thousand little discoveries along the way.":
     "Başlamaq üçün üç marşrut. Yolboyu saysız kiçik kəşflər.",
   "All journeys": "Bütün turlar",
@@ -260,8 +260,8 @@ export const az: Record<string, string> = {
   Contact: "Əlaqə",
   "Azerbaijan, at your own pace.": "Azərbaycan, sizin ritminizlə.",
   "Choose. Shape. Go.": "Seçin. Uyğunlaşdırın. Yola çıxın.",
-  "Azertur is built around a simple idea: a journey should feel personal, and planning it should feel clear. We connect routes, stays, drivers, guides and experiences in one place, so you can decide what your Azerbaijan looks like.":
-    "Azertur sadə bir fikrə əsaslanır: səfər şəxsi, planlama isə aydın olmalıdır. Marşrutu, oteli, sürücünü, gidi və təcrübələri bir yerdə toplayırıq ki, öz Azərbaycan səyahətinizi seçə biləsiniz.",
+  "AzTrip is built around a simple idea: a journey should feel personal, and planning it should feel clear. We connect routes, stays, drivers, guides and experiences in one place, so you can decide what your Azerbaijan looks like.":
+    "AzTrip sadə bir fikrə əsaslanır: səfər şəxsi, planlama isə aydın olmalıdır. Marşrutu, oteli, sürücünü, gidi və təcrübələri bir yerdə toplayırıq ki, öz Azərbaycan səyahətinizi seçə biləsiniz.",
   "Start with one of our itineraries or build a route day by day. Choose a date, travellers, hotel category, guide and extras. The quote shows each service and the total.":
     "Hazır turdan başlayın və ya günbəgün marşrut yaradın. Tarixi, səyahətçiləri, oteli, gidi və əlavə xidmətləri seçin. Qiymətdə hər xidmət və ümumi məbləğ görünür.",
   "Our team checks partner availability before every offer, confirms the terms in a contract you approve, and requests payments only after that.":
@@ -287,14 +287,14 @@ export const az: Record<string, string> = {
   Explore: "Kəşf et",
   "Services & prices": "Xidmətlər və qiymətlər",
   "A little more": "Bir az daha çox",
-  "About Azertur": "Azertur haqqında",
+  "About AzTrip": "AzTrip haqqında",
   "Get in touch": "Bizimlə əlaqə",
   Terms: "Şərtlər",
   Cancellation: "Ləğv",
   Privacy: "Məxfilik",
   "Back to top": "Yuxarı qayıt",
   "Photography credits": "Foto müəllifləri",
-  "Ask a local — contact Azertur": "Yerli komandadan soruş — Azertur ilə əlaqə",
+  "Ask a local — contact AzTrip": "Yerli komandadan soruş — AzTrip ilə əlaqə",
   "Ask a local": "Yerli komandadan soruş",
   "A small note on cookies.": "Cookie haqqında kiçik qeyd.",
   "We remember your language and currency. No analytics are loaded.":

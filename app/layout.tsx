@@ -6,7 +6,7 @@ import "./planner.css";
 import "./cabinet.css";
 import "./events.css";
 export const metadata: Metadata = {
-  title: "Azertur — Take the scenic route",
+  title: "AzTrip — Take the scenic route",
   description:
     "Explore Azerbaijan at your own pace. Private trips, local experiences and a transparent trip planner.",
   icons: { icon: "/favicon.svg" },

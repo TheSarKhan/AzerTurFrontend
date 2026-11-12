@@ -85,7 +85,7 @@ function Logo() {
   return (
     <span className="logo">
       <Mark />
-      <span>azərtur</span>
+      <span>AzTrip</span>
     </span>
   );
 }
@@ -1022,8 +1022,8 @@ function Info({ type }: { type: string }) {
             <p>
               {type === "about"
                 ? tr(
-                    "Azertur is built around a simple idea: a journey should feel personal, and planning it should feel clear. We connect routes, stays, drivers, guides and experiences in one place, so you can decide what your Azerbaijan looks like.",
-                    "Azertur строится на простой идее: путешествие должно быть личным, а планирование — понятным. Маршруты, отели, водители, гиды и впечатления собраны в одном месте.",
+                    "AzTrip is built around a simple idea: a journey should feel personal, and planning it should feel clear. We connect routes, stays, drivers, guides and experiences in one place, so you can decide what your Azerbaijan looks like.",
+                    "AzTrip строится на простой идее: путешествие должно быть личным, а планирование — понятным. Маршруты, отели, водители, гиды и впечатления собраны в одном месте.",
                   )
                 : tr(
                     "Start with one of our itineraries or build a route day by day. Choose a date, travellers, hotel category, guide and extras. The quote shows each service and the total.",
@@ -1229,7 +1229,7 @@ export default function Site({ initialPath }: { initialPath: string }) {
         (route === ""
           ? homeText(homeCopy.headline, l)
           : tr("Take the scenic route", "Выбирайте свой маршрут"))) +
-      " — Azertur";
+      " — AzTrip";
   }, [path, l]);
   const env: Env = {
     l,
@@ -1339,7 +1339,7 @@ export default function Site({ initialPath }: { initialPath: string }) {
         </a>
         <header className="header-wrap">
           <div className="header container">
-            <Link to="/" aria-label="Azertur home">
+            <Link to="/" aria-label="AzTrip home">
               <Logo />
             </Link>
             <nav aria-label={tr("Main navigation", "Главная навигация")}>
@@ -1470,7 +1470,7 @@ export default function Site({ initialPath }: { initialPath: string }) {
               </div>
               <div>
                 <h4>{tr("A little more", "Ещё немного")}</h4>
-                <Link to="/about">{tr("About Azertur", "Об Azertur")}</Link>
+                <Link to="/about">{tr("About AzTrip", "Об AzTrip")}</Link>
                 <Link to="/faq">FAQ</Link>
                 <Link to="/contact">{tr("Get in touch", "Связаться")}</Link>
               </div>
@@ -1486,7 +1486,7 @@ export default function Site({ initialPath }: { initialPath: string }) {
               </div>
             </div>
             <div className="footer-bottom">
-              <span>© 2026 Azertur</span>
+              <span>© 2026 AzTrip</span>
               <button
                 onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
               >
@@ -1532,8 +1532,8 @@ export default function Site({ initialPath }: { initialPath: string }) {
           className="contact-float"
           onClick={() => go("/contact")}
           aria-label={tr(
-            "Ask a local — contact Azertur",
-            "Связаться с Azertur",
+            "Ask a local — contact AzTrip",
+            "Связаться с AzTrip",
           )}
         >
           <MessageCircle size={22} />
