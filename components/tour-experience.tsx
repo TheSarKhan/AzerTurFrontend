@@ -581,7 +581,6 @@ export function TourCatalog({ locale, currency, go }: Props) {
           </PageLink>
         </div>
       </section>
-      <p className="tx-note tx-imagery">{t(copy.imagery)}</p>
       <dialog
         ref={filterDialog}
         className="tx-dialog tx-filter-dialog"
@@ -1084,7 +1083,6 @@ export function TourDetail({
           </div>
         </section>
       </div>
-      <p className="tx-note tx-imagery">{t(copy.imagery)}</p>
       <div className="tx-mobile-action">
         <div>
           <span>{t(copy.from)}</span>

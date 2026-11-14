@@ -233,11 +233,6 @@ export const tourCopy = {
     "Команда проверяет доступность, вы согласуете предложение и договор, а оплата запрашивается поэтапно.",
     "Komandamız mövcudluğu yoxlayır, siz təklifi və müqaviləni təsdiqləyirsiniz, ödənişlər isə mərhələ-mərhələ tələb olunur.",
   ],
-  imagery: [
-    "Images are AI-generated for illustration.",
-    "Изображения созданы ИИ для иллюстрации.",
-    "Görüntülər illüstrasiya üçün süni intellektlə yaradılıb.",
-  ],
 } satisfies Record<string, Text>;
 
 export const tourMedia: Record<

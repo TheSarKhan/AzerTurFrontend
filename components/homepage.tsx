@@ -384,13 +384,6 @@ export default function Homepage({ locale, go }: Props) {
           </details>
         ))}
       </section>
-      <p className="hv-imagery-note">
-        {t([
-          "Homepage imagery is AI-generated for illustration.",
-          "Изображения на главной созданы ИИ для иллюстрации.",
-          "Ana səhifədəki görüntülər illüstrasiya üçün süni intellektlə yaradılıb.",
-        ])}
-      </p>
     </div>
   );
 }
