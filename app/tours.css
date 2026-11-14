@@ -678,26 +678,6 @@ body:has(.tx-dialog[open]) {
 .tx-detail-grid > section h2 {
   margin-bottom: 23px;
 }
-.tx-anchor-nav {
-  grid-column: 1;
-  display: flex;
-  gap: 28px;
-  align-items: center;
-  border-bottom: 1px solid var(--tx-line);
-  margin-bottom: 30px;
-  flex-wrap: wrap;
-}
-.tx-anchor-nav a {
-  font-size: 13px;
-  min-height: 46px;
-  display: inline-flex;
-  align-items: center;
-  border-bottom: 2px solid transparent;
-}
-.tx-anchor-nav a[aria-current] {
-  border-color: #304b3d;
-  font-weight: 700;
-}
 .tx-options-aside {
   grid-column: 2;
   grid-row: 1/4;
@@ -1193,12 +1173,6 @@ body:has(.tx-dialog[open]) {
   .tx-options {
     padding: 22px 18px;
   }
-  .tx-anchor-nav {
-    gap: 20px;
-  }
-  .tx-anchor-nav a {
-    font-size: 12px;
-  }
   .tx-highlights {
     gap: 14px;
   }
@@ -1620,19 +1594,6 @@ body:has(.tx-dialog[open]) {
     margin-top: 17px;
     gap: 0;
   }
-  .tx-anchor-nav {
-    grid-column: 1;
-    grid-row: 1;
-    gap: 24px;
-    flex-wrap: nowrap;
-    overflow: auto;
-    margin-bottom: 20px;
-  }
-  .tx-anchor-nav a {
-    font-size: 13px;
-    white-space: nowrap;
-    min-height: 48px;
-  }
   .tx-options-aside {
     grid-column: 1;
     grid-row: 2;
@@ -1954,9 +1915,6 @@ body:has(.tx-dialog[open]) {
   .tx-facts li {
     font-size: 11px;
   }
-  .tx-anchor-nav {
-    gap: 20px;
-  }
 }
 @media (prefers-reduced-motion: reduce) {
   .tour-experience * {
@@ -1967,9 +1925,6 @@ body:has(.tx-dialog[open]) {
 @media print {
   .tx-mobile-action,
   .tx-options-aside,
-  .tx-anchor-nav {
-    display: none;
-  }
   .tx-detail-grid {
     display: block;
   }

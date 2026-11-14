@@ -119,11 +119,6 @@ export const tourCopy = {
   ],
   contact: ["Get in touch", "Связаться", "Əlaqə saxla"],
   back: ["Back to tours", "Назад к турам", "Turlara qayıt"],
-  sampleItinerary: [
-    "Itinerary — final details are confirmed with your booking.",
-    "Программа — окончательные детали подтверждаются при бронировании.",
-    "Proqram — yekun təfərrüatlar rezervasiya ilə dəqiqləşdirilir.",
-  ],
   starts: ["Starts in Baku", "Начало в Баку", "Başlanğıc: Bakı"],
   night: ["night", "ночь", "gecə"],
   nights: ["nights", "ночи", "gecə"],

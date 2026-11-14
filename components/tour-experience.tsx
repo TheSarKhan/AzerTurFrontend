@@ -628,7 +628,6 @@ export function TourDetail({
     [pax, setPax] = useState(0),
     [gallery, setGallery] = useState(false),
     [photo, setPhoto] = useState(0),
-    [active, setActive] = useState("overview"),
     [customer, setCustomer] = useState<Customer | null>(null);
   const dialog = useRef<HTMLDialogElement>(null),
     options = useRef<HTMLFormElement>(null),
@@ -809,7 +808,6 @@ export function TourDetail({
             {t(copy.starts)}
           </li>
         </ul>
-        <p className="tx-sample-label">{t(copy.sampleItinerary)}</p>
       </div>
       <div
         className={
@@ -835,23 +833,6 @@ export function TourDetail({
         ))}
       </div>
       <div className="tx-container tx-detail-grid">
-        <nav className="tx-anchor-nav" aria-label={t(copy.overview)}>
-          {[
-            ["overview", copy.overview],
-            ["itinerary", copy.itineraryTab],
-            ["services", copy.services],
-            ["before", copy.before],
-          ].map(([id, label]) => (
-            <a
-              key={id as string}
-              href={"#" + id}
-              aria-current={active === id ? "location" : undefined}
-              onClick={() => setActive(id as string)}
-            >
-              {t(label as HomeText)}
-            </a>
-          ))}
-        </nav>
         <aside className="tx-options-aside">
           <form
             id="trip-options"
