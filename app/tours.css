@@ -878,6 +878,14 @@ body:has(.tx-dialog[open]) {
   height: 0;
   border-left: 1px dashed #526d5c;
 }
+.tx-route li > small {
+  margin-left: auto;
+  padding-left: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #5d675f;
+  white-space: nowrap;
+}
 .tx-route li > span {
   flex: 0 0 24px;
   width: 24px;

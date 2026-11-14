@@ -764,6 +764,11 @@ export function TourDetail({
     ...tour.stops,
     ...(tour.stops[tour.stops.length - 1] === "Baku" ? [] : ["Baku"]),
   ];
+  // The route lists every stop, including the way back to Baku; tag each one with the day it falls on.
+  const dayOfStop = (n: number) =>
+    n >= stops.length - 1 || tour.days < 2
+      ? Math.max(0, tour.days - 1)
+      : Math.floor((n * (tour.days - 1)) / (stops.length - 1));
   return (
     <div className="tour-experience tx-detail">
       <div className="tx-container tx-detail-intro">
@@ -968,6 +973,9 @@ export function TourDetail({
                   <li key={stop + n}>
                     <span aria-hidden="true">{n + 1}</span>
                     {cityName(stop, locale)}
+                    <small>
+                      {t(copy.dayLabel)} {dayOfStop(n) + 1}
+                    </small>
                   </li>
                 ))}
               </ol>
