@@ -771,3 +771,25 @@
   color: #626a63;
   font-size: 14px;
 }
+
+.tpx-estimate {
+  display: grid;
+  gap: 4px;
+  margin: 16px 0 14px;
+  padding: 14px 0 0;
+  border-top: 1px solid #d8ddd4;
+}
+.tpx-estimate > span {
+  color: #626a63;
+  font-size: 13px;
+}
+.tpx-estimate > strong {
+  font-size: 26px;
+  line-height: 1.1;
+}
+.tpx-estimate small,
+.tpx-estimate em {
+  color: #626a63;
+  font-size: 13px;
+  font-style: normal;
+}

@@ -20,6 +20,7 @@ import {
   tours,
   transitions,
   dateLimit,
+  money,
   type Locale,
   type Currency,
   type Quote,
@@ -730,15 +731,52 @@ export default function TripPlanner({
                   </li>
                 )}
               </ul>
+              <div className="tpx-estimate" aria-live="polite">
+                <span>{t("Estimated total", "Ориентировочная сумма", "Təxmini məbləğ")}</span>
+                {quote && quote.status === "PRICED" ? (
+                  <>
+                    <strong>{money(quote.total, c, l)}</strong>
+                    <small>
+                      {money(quote.perPerson, c, l)} {t("per person", "на человека", "nəfər başına")}
+                    </small>
+                  </>
+                ) : busy ? (
+                  <em>{t("Calculating…", "Считаем…", "Hesablanır…")}</em>
+                ) : quote ? (
+                  <em>
+                    {t(
+                      "Our team will price this trip.",
+                      "Цену рассчитает наша команда.",
+                      "Bu səfərin qiymətini komandamız hesablayacaq.",
+                    )}
+                  </em>
+                ) : !selected.length ? (
+                  <em>
+                    {t(
+                      "Select at least one service.",
+                      "Выберите хотя бы одну услугу.",
+                      "Ən azı bir xidmət seç.",
+                    )}
+                  </em>
+                ) : (
+                  <em>
+                    {t(
+                      "Choose a start date and a stop to see it.",
+                      "Выберите дату и остановку, чтобы увидеть сумму.",
+                      "Görmək üçün tarix və dayanacaq seç.",
+                    )}
+                  </em>
+                )}
+              </div>
               <button className="tp-primary" type="submit" disabled={submitDisabled}>
                 {busy ? t("Preparing…", "Готовим…", "Hazırlanır…") : action}
                 <ArrowRight size={18} />
               </button>
               <small>
                 {t(
-                  "No payment now. Our team checks availability and replies with an offer. You sign in to send it.",
-                  "Оплата сейчас не нужна. Команда проверит доступность и пришлёт предложение. Для отправки нужен вход.",
-                  "İndi ödəniş yoxdur. Komandamız mövcudluğu yoxlayıb təklif göndərəcək. Göndərmək üçün daxil olursan.",
+                  "No payment now. The estimate is not final: our team checks availability and replies with an offer. You sign in to send it.",
+                  "Оплата сейчас не нужна. Сумма ориентировочная: команда проверит доступность и пришлёт предложение. Для отправки нужен вход.",
+                  "İndi ödəniş yoxdur. Məbləğ təxminidir: komandamız mövcudluğu yoxlayıb təklif göndərəcək. Göndərmək üçün daxil olursan.",
                 )}
               </small>
               {error && (
