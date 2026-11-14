@@ -98,7 +98,9 @@ export function bookingSearch(date: string, pax: number, template?: string) {
   const p = new URLSearchParams();
   if (template) p.set("template", template);
   if (validTravelDate(date)) p.set("date", date);
-  p.set("pax", String(Math.min(12, Math.max(1, Math.trunc(pax) || 2))));
+  // 0 means the visitor has not picked a travellers count yet, so none is added.
+  if (pax !== 0)
+    p.set("pax", String(Math.min(12, Math.max(1, Math.trunc(pax) || 2))));
   return "?" + p;
 }
 export function discoverTours(inventory: Tour[], f: Discovery) {

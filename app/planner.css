@@ -538,6 +538,7 @@
 }
 .tpx-service {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 10px;
   border: 1px solid #d8ddd4;
@@ -792,4 +793,24 @@
   color: #626a63;
   font-size: 13px;
   font-style: normal;
+}
+
+.tpx-detail {
+  flex: 1 0 100%;
+  margin: 2px 0 0;
+  padding: 8px 0 0 30px;
+  border-top: 1px solid #d8ddd4;
+  list-style: disc;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #4b554d;
+}
+.tpx-detail li + li {
+  margin-top: 2px;
+}
+.tpx-provider-note {
+  margin: 12px 0 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: #4b554d;
 }

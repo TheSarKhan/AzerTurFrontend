@@ -21,6 +21,9 @@
   width: 100%;
   margin-top: 10px;
 }
+.customer-auth form > .field-help {
+  margin: -12px 0 0;
+}
 .auth-tabs {
   display: flex;
   gap: 24px;

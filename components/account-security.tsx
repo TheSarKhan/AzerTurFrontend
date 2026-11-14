@@ -23,7 +23,8 @@ export default function AccountSecurity({
     [busy, setBusy] = useState(false),
     [notice, setNotice] = useState(""),
     [error, setError] = useState(""),
-    [cooldown, setCooldown] = useState(0);
+    [cooldown, setCooldown] = useState(0),
+    [confirmDelete, setConfirmDelete] = useState(false);
   useEffect(() => {
     if (cooldown <= 0) return;
     const timer = setTimeout(() => setCooldown((n) => n - 1), 1000);
@@ -48,7 +49,7 @@ export default function AccountSecurity({
       await customerApi(path, {});
       setNotice(message);
       if (path === "auth/email-verification/request") setCooldown(60);
-      if (path === "auth/logout-all")
+      if (path === "auth/logout-all" || path === "auth/account-deletion")
         window.location.assign("/" + l + "/trips");
       else await load();
     } catch (e) {
@@ -190,6 +191,53 @@ export default function AccountSecurity({
           {t("Sign out everywhere", "Выйти везде", "Bütün cihazlardan çıx")}
         </button>
       </div>
+      <h3>{t("Delete account", "Удалить аккаунт", "Hesabı sil")}</h3>
+      <p>
+        {t(
+          "You can ask us to delete your account. Our team processes the request. Bookings, contracts and payments may be kept where the law or an active trip requires it.",
+          "Вы можете запросить удаление аккаунта. Команда обработает запрос. Бронирования, договоры и платежи могут сохраняться, если этого требует закон или активная поездка.",
+          "Hesabının silinməsini tələb edə bilərsən. Sorğunu komandamız emal edir. Qanunun və ya aktiv səfərin tələb etdiyi hallarda rezervasiya, müqavilə və ödəniş məlumatları saxlanıla bilər.",
+        )}
+      </p>
+      {!confirmDelete ? (
+        <div className="security-actions">
+          <button
+            className="cc-text"
+            disabled={busy}
+            onClick={() => setConfirmDelete(true)}
+          >
+            {t("Delete account", "Удалить аккаунт", "Hesabı sil")}
+          </button>
+        </div>
+      ) : (
+        <div className="security-actions" role="group">
+          <p role="alert">
+            {t(
+              "Send the deletion request? You will be signed out on every device.",
+              "Отправить запрос на удаление? Вы выйдете на всех устройствах.",
+              "Silinmə sorğusu göndərilsin? Bütün cihazlardan çıxış edəcəksən.",
+            )}
+          </p>
+          <button
+            className="button"
+            disabled={busy}
+            onClick={() => act("auth/account-deletion", "")}
+          >
+            {t(
+              "Yes, request deletion",
+              "Да, запросить удаление",
+              "Bəli, silinməsini istəyirəm",
+            )}
+          </button>
+          <button
+            className="cc-text"
+            disabled={busy}
+            onClick={() => setConfirmDelete(false)}
+          >
+            {t("Cancel", "Отмена", "Ləğv et")}
+          </button>
+        </div>
+      )}
       {notice && <p role="status">{notice}</p>}
       {error && (
         <p role="alert" className="error-message">

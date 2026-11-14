@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 const cookie = "azertur_session";
 const paths = new RegExp(
-  String.raw`^(auth\/(register|login|google(\/config)?|logout|me|forgot-password|reset-password|verify-email|email-verification/request|logout-all|sessions(/(revoke-others|[0-9a-f-]{36}/revoke))?)|bookings(\/(requests|offers|notifications(\/(read-all|push-token|[0-9a-f-]{36}\/read))?)|\/[0-9a-f-]{36}\/(requests|amendments(/(accept|decline|[0-9a-f-]{36}/(pdf|base-pdf)))?|revised-plan|payment-context|cancellation|cancellation-updates(\/[0-9a-f-]{36}\/pdf)?|contract(\/[0-9a-f-]{36}\/(pdf|accept))?))?)$`,
+  String.raw`^(auth\/(register|login|google(\/config)?|logout|me|forgot-password|reset-password|verify-email|email-verification/request|account-deletion|logout-all|sessions(/(revoke-others|[0-9a-f-]{36}/revoke))?)|bookings(\/(requests|offers|notifications(\/(read-all|push-token|[0-9a-f-]{36}\/read))?)|\/[0-9a-f-]{36}\/(requests|amendments(/(accept|decline|[0-9a-f-]{36}/(pdf|base-pdf)))?|revised-plan|payment-context|cancellation|cancellation-updates(\/[0-9a-f-]{36}\/pdf)?|contract(\/[0-9a-f-]{36}\/(pdf|accept))?))?)$`,
 );
 async function proxy(
   request: NextRequest,

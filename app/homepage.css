@@ -1028,3 +1028,14 @@
     margin: -20px 18px 25px;
   }
 }
+
+/* Between phone and tablet widths the third footer column used to wrap under the second one. */
+@media (min-width: 521px) and (max-width: 700px) {
+  .homepage-shell .footer-top {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 30px 20px;
+  }
+  .homepage-shell .footer-top > div:first-child {
+    grid-column: 1/-1;
+  }
+}

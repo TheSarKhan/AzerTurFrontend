@@ -626,7 +626,7 @@ export function TourDetail({
     t = (v: HomeText) => homeText(v, locale),
     i = locale === "az" ? 2 : locale === "ru" ? 1 : 0;
   const [date, setDate] = useState(""),
-    [pax, setPax] = useState(2),
+    [pax, setPax] = useState(0),
     [gallery, setGallery] = useState(false),
     [photo, setPhoto] = useState(0),
     [active, setActive] = useState("overview"),
@@ -646,7 +646,8 @@ export function TourDetail({
   useEffect(() => {
     const f = readDiscovery(location.search);
     setDate(f.date);
-    setPax(f.pax);
+    // Travellers are never pre-selected; only a count already in the link is kept.
+    setPax(new URLSearchParams(location.search).has("pax") ? f.pax : 0);
   }, [slug]);
   useEffect(() => {
     if (gallery && !dialog.current?.open) dialog.current?.showModal();
@@ -887,10 +888,14 @@ export function TourDetail({
               <span>
                 <Users size={18} />
                 <select
-                  value={pax}
+                  value={pax || ""}
                   aria-label={t(copy.travelers)}
+                  required
                   onChange={(e) => setOptions(date, Number(e.target.value))}
                 >
+                  <option value="" disabled>
+                    {t(["Select number of travellers", "Выберите число участников", "İştirakçı sayını seçin"])}
+                  </option>
                   {Array.from({ length: 12 }, (_, n) => (
                     <option key={n} value={n + 1}>
                       {n + 1} · {t(copy.travelers)}
@@ -902,14 +907,21 @@ export function TourDetail({
             <div className="tx-estimate">
               <span>{t(copy.total)}</span>
               <output>
-                {priceRange(tour.base * pax * rates[currency], currency, locale)}
+                {pax
+                  ? priceRange(tour.base * pax * rates[currency], currency, locale)
+                  : "—"}
               </output>
             </div>
             <p className="tx-price-helper">{t(copy.finalQuote)}</p>
-            <button type="submit" className="tx-button">
+            <button type="submit" className="tx-button" disabled={!pax}>
               {t(copy.customizeTrip)}
               <ArrowRight size={18} />
             </button>
+            {!pax && (
+              <p className="tx-price-helper" role="status">
+                {t(["Choose how many travellers (1–12) to continue.", "Выберите число участников (1–12), чтобы продолжить.", "Davam etmək üçün iştirakçı sayını (1–12) seçin."])}
+              </p>
+            )}
             {!customer ? (
               <PageLink to="/login" {...navProps} className="tx-sign-in">
                 {t(copy.signIn)}

@@ -390,6 +390,76 @@ export default function TripPlanner({
   );
   const dayWord = (n: number) =>
     n === 1 ? t("day", "день", "gün") : t("days", "дн.", "gün");
+  const stayInfo = {
+    standard: t(
+      "Standard: simple, clean guesthouses and 3-star hotels",
+      "Стандарт: простые и чистые гостевые дома и отели 3*",
+      "Standart: sadə və təmiz qonaq evləri, 3 ulduzlu otellər",
+    ),
+    comfort: t(
+      "Comfort: 4-star hotels with a private room",
+      "Комфорт: отели 4* с отдельным номером",
+      "Komfort: ayrıca otaqlı 4 ulduzlu otellər",
+    ),
+    premium: t(
+      "Premium: 5-star and boutique hotels",
+      "Премиум: отели 5* и бутик-отели",
+      "Premium: 5 ulduzlu və butik otellər",
+    ),
+  };
+  const details: Record<(typeof keys)[number], string[]> = {
+    driver: [
+      t(
+        "Vehicle class (sedan, minivan or minibus) is chosen for your group size",
+        "Класс автомобиля (седан, минивэн или микроавтобус) подбирается под вашу группу",
+        "Avtomobilin sinfi (sedan, miniven və ya mikroavtobus) qrupunun sayına görə seçilir",
+      ),
+      t(
+        "The same driver stays with you each day of the trip",
+        "Водитель сопровождает вас каждый день поездки",
+        "Sürücü səfərin hər günü səninlə olur",
+      ),
+    ],
+    stay: [
+      stayInfo[input.hotel],
+      `${t("Nights", "Ночей", "Gecə")}: ${nights}`,
+      t(
+        "Room type is arranged for your group size",
+        "Тип номера подбирается под размер группы",
+        "Otaq növü qrupun sayına uyğun seçilir",
+      ),
+    ],
+    guide: [
+      `${t("Language", "Язык", "Dil")}: ${langNames[input.guideLanguage ?? l]}`,
+      ...(days > 0
+        ? [`${t("Duration", "Длительность", "Müddət")}: ${days} ${dayWord(days)}`]
+        : []),
+    ],
+    transfer: [
+      t(
+        "Pick-up at the airport on arrival",
+        "Встреча в аэропорту по прилёту",
+        "Gəlişdə hava limanında qarşılanma",
+      ),
+      t(
+        "Vehicle class matches your group size",
+        "Класс автомобиля подбирается под вашу группу",
+        "Avtomobilin sinfi qrupun sayına uyğun olur",
+      ),
+    ],
+    activity: [
+      t(
+        "A hands-on workshop with local makers",
+        "Практический мастер-класс у местных мастеров",
+        "Yerli ustalarla praktik təcrübə",
+      ),
+      t(
+        "The workshop and its length are set by our team for your dates",
+        "Мастерскую и её длительность команда подбирает под ваши даты",
+        "Emalatxananı və müddətini komandamız tarixlərinə uyğun təyin edir",
+      ),
+    ],
+  };
   const dayRange = (index: number) => {
     const from = stops.slice(0, index).reduce((n, s) => n + s.days, 0) + 1,
       to = from + stops[index].days - 1;
@@ -640,10 +710,24 @@ export default function TripPlanner({
                             ))}
                           </select>
                         )}
+                        {input[key] && !off && (
+                          <ul className="tpx-detail">
+                            {details[key].map((line) => (
+                              <li key={line}>{line}</li>
+                            ))}
+                          </ul>
+                        )}
                       </div>
                     );
                   })}
                 </div>
+                <p className="tpx-provider-note" role="note">
+                  {t(
+                    "Specific hotels, cars and guides are not chosen yet. Our team confirms them and the final price after you send the request.",
+                    "Конкретные отели, автомобили и гиды пока не выбраны. Команда подтвердит их и итоговую цену после отправки заявки.",
+                    "Konkret otel, avtomobil və gid hələ seçilməyib. Komandamız onları və yekun qiyməti sorğunu göndərdikdən sonra təsdiqləyir.",
+                  )}
+                </p>
               </section>
               <section className="tpx-notes">
                 <label>
