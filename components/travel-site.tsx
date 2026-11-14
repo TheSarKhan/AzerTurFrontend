@@ -257,11 +257,23 @@ function FinalCTA() {
     </section>
   );
 }
+/** Lower-cases and removes diacritics so "usaq" finds "uşaq" and "isleyir" finds "işləyir". */
+function foldText(value: string) {
+  return value
+    .replace(/İ/g, "i")
+    .replace(/ı/g, "i")
+    .replace(/ə|Ə/g, "e")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/\p{M}/gu, "")
+    .trim();
+}
 function FAQ({ compact = false }: { compact?: boolean }) {
   const { l, tr } = useEnv();
   const [query, setQuery] = useState("");
+  const needle = foldText(query);
   const list = (compact ? faqs.slice(0, 4) : faqs).filter((f) =>
-    f.join(" ").toLowerCase().includes(query.toLowerCase()),
+    foldText(f.join(" ")).includes(needle),
   );
   return (
     <section

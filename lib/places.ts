@@ -22,5 +22,12 @@ export const places: Record<string, { name: [string, string, string]; note: [str
   },
 };
 export type PlaceLocale = "en" | "ru" | "az";
+// Stops on a tour that are sights rather than map cities.
+const sights: Record<string, [string, string, string]> = {
+  "Old City": ["Old City", "Старый город", "İçərişəhər"],
+  "Caspian coast": ["Caspian coast", "Побережье Каспия", "Xəzər sahili"],
+};
 export const cityName = (city: string, locale: PlaceLocale) =>
-  places[city]?.name[locale === "az" ? 2 : locale === "ru" ? 1 : 0] ?? city;
+  (places[city]?.name ?? sights[city])?.[
+    locale === "az" ? 2 : locale === "ru" ? 1 : 0
+  ] ?? city;

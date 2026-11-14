@@ -79,9 +79,9 @@ export default function AccountLink({
             } catch {
               setError(
                 t(
-                  "This link may have expired or already been used. For passwords, also check both fields match and contain at least 12 characters (maximum 72 UTF-8 bytes). Request a new link if needed.",
-                  "Ссылка могла истечь или уже использована. Пароли должны совпадать: не менее 12 символов, максимум 72 байта UTF-8. Запросите новую ссылку.",
-                  "Linkin vaxtı bitmiş və ya istifadə edilmiş ola bilər. Şifrələr eyni, ən azı 12 simvol və maksimum 72 UTF-8 baytı olmalıdır. Lazım olsa yeni link istə.",
+                  "This link may have expired or already been used. For passwords, also check both fields match and be 12 to 72 characters long. Request a new link if needed.",
+                  "Ссылка могла истечь или уже использована. Пароли должны совпадать: длиной от 12 до 72 символов. Запросите новую ссылку.",
+                  "Linkin vaxtı bitmiş və ya istifadə edilmiş ola bilər. Şifrələr eyni, 12-72 simvol uzunluğunda olmalıdır. Lazım olsa yeni link istə.",
                 ),
               );
             } finally {

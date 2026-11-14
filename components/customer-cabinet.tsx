@@ -1029,41 +1029,43 @@ export default function CustomerCabinet({
                       )}
                     </p>
                   )}
-                  {!pending &&
-                    !["CANCELLED", "REJECTED"].includes(b.status) && (
-                      <button
-                        className="cc-outline"
-                        onClick={() => open("request")}
-                      >
-                        <FileText size={18} />
-                        {t(
-                          "Request a change or cancellation",
-                          "Запросить изменение или отмену",
-                          "Dəyişiklik və ya ləğv istə",
-                        )}
-                        <ArrowRight size={17} />
-                      </button>
-                    )}
-                  <button
-                    className="cc-outline"
-                    onClick={() => go("/trips/" + b.id + "/cancellation")}
-                  >
-                    {t(
-                      "Cancellation & refund details",
-                      "Отмена и возврат",
-                      "Ləğv və geri ödəniş",
-                    )}
-                  </button>
-                  <button
-                    className="cc-text"
-                    onClick={() => go("/trips/" + b.id + "/changes")}
-                  >
-                    {t(
-                      "Review change proposals",
-                      "Предложения по изменению",
-                      "Dəyişiklik təkliflərinə bax",
-                    )}
-                  </button>
+                  <div className="cc-request-actions">
+                    {!pending &&
+                      !["CANCELLED", "REJECTED"].includes(b.status) && (
+                        <button
+                          className="cc-outline"
+                          onClick={() => open("request")}
+                        >
+                          <FileText size={18} />
+                          {t(
+                            "Request a change or cancellation",
+                            "Запросить изменение или отмену",
+                            "Dəyişiklik və ya ləğv istə",
+                          )}
+                          <ArrowRight size={17} />
+                        </button>
+                      )}
+                    <button
+                      className="cc-outline"
+                      onClick={() => go("/trips/" + b.id + "/cancellation")}
+                    >
+                      {t(
+                        "Cancellation & refund details",
+                        "Отмена и возврат",
+                        "Ləğv və geri ödəniş",
+                      )}
+                    </button>
+                    <button
+                      className="cc-text"
+                      onClick={() => go("/trips/" + b.id + "/changes")}
+                    >
+                      {t(
+                        "Review change proposals",
+                        "Предложения по изменению",
+                        "Dəyişiklik təkliflərinə bax",
+                      )}
+                    </button>
+                  </div>
                   <p className="cc-caption">{cancellation}</p>
                 </section>
                 <section id="cc-documents">

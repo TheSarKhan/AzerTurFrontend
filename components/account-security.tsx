@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { customerApi, type Customer } from "@/lib/customer-api";
+import { ApiError, customerApi, type Customer } from "@/lib/customer-api";
 import type { Locale } from "@/lib/travel";
 type Session = {
   id: string;
@@ -22,7 +22,13 @@ export default function AccountSecurity({
   const [sessions, setSessions] = useState<Session[]>([]),
     [busy, setBusy] = useState(false),
     [notice, setNotice] = useState(""),
-    [error, setError] = useState("");
+    [error, setError] = useState(""),
+    [cooldown, setCooldown] = useState(0);
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const timer = setTimeout(() => setCooldown((n) => n - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [cooldown]);
   const load = () => customerApi<Session[]>("auth/sessions").then(setSessions);
   useEffect(() => {
     load().catch(() =>
@@ -41,10 +47,23 @@ export default function AccountSecurity({
     try {
       await customerApi(path, {});
       setNotice(message);
+      if (path === "auth/email-verification/request") setCooldown(60);
       if (path === "auth/logout-all")
         window.location.assign("/" + l + "/trips");
       else await load();
-    } catch {
+    } catch (e) {
+      if (e instanceof ApiError && e.status === 429) {
+        setCooldown(60);
+        setNotice("");
+        setError(
+          t(
+            "A verification email was just sent. You can request another in a minute.",
+            "Письмо только что отправлено. Новое можно запросить через минуту.",
+            "Təsdiq emaili indicə göndərilib. Yenisini bir dəqiqədən sonra istəyə bilərsən.",
+          ),
+        );
+        return;
+      }
       setError(
         t(
           "Could not complete this action. Please try again later.",
@@ -80,7 +99,7 @@ export default function AccountSecurity({
       {!customer.emailVerified && (
         <button
           className="button"
-          disabled={busy}
+          disabled={busy || cooldown > 0}
           onClick={() =>
             act(
               "auth/email-verification/request",
@@ -92,11 +111,17 @@ export default function AccountSecurity({
             )
           }
         >
-          {t(
-            "Send verification email",
-            "Отправить письмо",
-            "Təsdiq emaili göndər",
-          )}
+          {cooldown > 0
+            ? t(
+                `Send again in ${cooldown} s`,
+                `Повторно через ${cooldown} с`,
+                `${cooldown} san. sonra yenidən göndər`,
+              )
+            : t(
+                "Send verification email",
+                "Отправить письмо",
+                "Təsdiq emaili göndər",
+              )}
         </button>
       )}
       <h3>{t("Active sessions", "Активные сеансы", "Aktiv sessiyalar")}</h3>

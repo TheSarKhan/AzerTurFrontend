@@ -27,6 +27,8 @@ export function RouteMap({
   label: string;
 }) {
   const marker = useId().replace(/:/g, "");
+  // Tours may list places that are not map cities (for example "Old City"); only mapped cities are drawn.
+  stops = stops.filter((s) => cityPoints[s.city]);
   const order = new Map<string, number[]>();
   stops.forEach((s, i) =>
     order.set(s.city, [...(order.get(s.city) || []), i + 1]),

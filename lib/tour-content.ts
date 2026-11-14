@@ -216,6 +216,11 @@ export const tourCopy = {
     "Войдите, чтобы отправить запрос",
     "Sorğu göndərmək üçün daxil ol",
   ],
+  verifyEmail: [
+    "Verify your email to send your request",
+    "Подтвердите email, чтобы отправить запрос",
+    "Sorğu göndərmək üçün email ünvanını təsdiqlə",
+  ],
   request: ["Request", "Запрос", "Sorğu"],
   review: ["Team review", "Проверка", "Yoxlama"],
   offer: ["Offer", "Предложение", "Təklif"],

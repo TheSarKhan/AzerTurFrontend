@@ -2,6 +2,7 @@
 import Image from "next/image";
 import { RouteMap } from "./route-map";
 import { cityName } from "@/lib/places";
+import { customerApi, type Customer } from "@/lib/customer-api";
 import {
   useEffect,
   useId,
@@ -627,10 +628,20 @@ export function TourDetail({
     [pax, setPax] = useState(2),
     [gallery, setGallery] = useState(false),
     [photo, setPhoto] = useState(0),
-    [active, setActive] = useState("overview");
+    [active, setActive] = useState("overview"),
+    [customer, setCustomer] = useState<Customer | null>(null);
   const dialog = useRef<HTMLDialogElement>(null),
     options = useRef<HTMLFormElement>(null),
     galleryTitle = useId();
+  useEffect(() => {
+    let active = true;
+    customerApi<Customer>("auth/me")
+      .then((c) => active && setCustomer(c))
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
   useEffect(() => {
     const f = readDiscovery(location.search);
     setDate(f.date);
@@ -896,9 +907,21 @@ export function TourDetail({
               {t(copy.customizeTrip)}
               <ArrowRight size={18} />
             </button>
-            <PageLink to="/login" {...navProps} className="tx-sign-in">
-              {t(copy.signIn)}
-            </PageLink>
+            {!customer ? (
+              <PageLink to="/login" {...navProps} className="tx-sign-in">
+                {t(copy.signIn)}
+              </PageLink>
+            ) : (
+              !customer.emailVerified && (
+                <PageLink
+                  to="/trips/account"
+                  {...navProps}
+                  className="tx-sign-in"
+                >
+                  {t(copy.verifyEmail)}
+                </PageLink>
+              )
+            )}
             <ol className="tx-offer-steps">
               <li>
                 <ClipboardCheck size={18} />

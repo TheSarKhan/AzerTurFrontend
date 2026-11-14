@@ -75,7 +75,7 @@ export default function TripPlanner({
     l === "az" ? az : l === "ru" ? ru : en;
   const idx = l === "az" ? 2 : l === "ru" ? 1 : 0;
   const cityName = (city: string) => places[city]?.name[idx] ?? city;
-  const [route, setRoute] = useState(["Quba", "Khinalug"]),
+  const [route, setRoute] = useState<string[]>([]),
     [ready, setReady] = useState(false);
   const [input, setInput] = useState<QuoteInput>({
     slug: "quba-khinalug",
@@ -110,7 +110,10 @@ export default function TripPlanner({
     returnFocus = useRef<HTMLElement | null>(null);
   const stops = toStops(route),
     days = route.length,
-    nights = days - 1;
+    nights = Math.max(0, days - 1);
+  const dateProblem =
+    !!input.date &&
+    (input.date < dateLimit(3) || input.date > dateLimit(365));
   const labels = {
     driver: t(
       "Private car & driver",
@@ -230,7 +233,7 @@ export default function TripPlanner({
   useEffect(() => {
     setQuote(null);
     setError("");
-    if (!ready || !input.date || !selected.length) {
+    if (!ready || !input.date || dateProblem || !selected.length || !route.length) {
       setBusy(false);
       return;
     }
@@ -392,7 +395,12 @@ export default function TripPlanner({
     return from === to ? `${t("Day", "День", "Gün")} ${from}` : `${t("Days", "Дни", "Günlər")} ${from}–${to}`;
   };
   const choices = options(draft.index);
-  const submitDisabled = busy || !selected.length || (!quote && !!input.date);
+  const submitDisabled =
+    busy ||
+    !selected.length ||
+    !route.length ||
+    dateProblem ||
+    (!quote && !!input.date);
   return (
     <section className="trip-planner">
       <div className="tp-container">
@@ -438,7 +446,7 @@ export default function TripPlanner({
               type="button"
               onClick={() => {
                 setQuote(null);
-                setRoute(["Baku"]);
+                setRoute([]);
                 setNotice("");
               }}
             >
@@ -465,7 +473,18 @@ export default function TripPlanner({
                     max={dateLimit(365)}
                     value={input.date}
                     onChange={(e) => change("date", e.target.value)}
+                    aria-invalid={dateProblem}
+                    aria-describedby={dateProblem ? "date-problem" : undefined}
                   />
+                  {dateProblem && (
+                    <small id="date-problem" role="alert" className="tpx-field-error">
+                      {t(
+                        "The start date must be between 3 and 365 days from today.",
+                        "Дата начала должна быть от 3 до 365 дней от сегодняшнего дня.",
+                        "Səfər tarixi cari gündən ən azı 3 gün, ən çoxu 365 gün sonra olmalıdır.",
+                      )}
+                    </small>
+                  )}
                 </label>
                 <label>
                   {t("Travelers", "Путешественники", "Səyahətçilər")}
@@ -520,6 +539,15 @@ export default function TripPlanner({
                       </li>
                     ))}
                   </ol>
+                  {!stops.length && (
+                    <p className="tpx-empty">
+                      {t(
+                        "No stops yet. Add the places you want to visit.",
+                        "Остановок пока нет. Добавьте места, которые хотите посетить.",
+                        "Hələ dayanacaq yoxdur. Getmək istədiyin yerləri əlavə et.",
+                      )}
+                    </p>
+                  )}
                   <button
                     type="button"
                     className="tpx-add"
@@ -653,7 +681,11 @@ export default function TripPlanner({
             <aside className="tpx-aside">
               <h2>{t("Your request", "Ваша заявка", "Sənin sorğun")}</h2>
               <p className="tpx-route-line">
-                {stops.map((s) => cityName(s.city)).join(" → ")}
+                {stops.length ? (
+                  stops.map((s) => cityName(s.city)).join(" → ")
+                ) : (
+                  <em>{t("Add your first stop", "Добавьте первую остановку", "İlk dayanacağı əlavə et")}</em>
+                )}
               </p>
               <dl>
                 <div>

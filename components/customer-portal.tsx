@@ -329,9 +329,9 @@ export function CustomerAuth({
           {mode === "register" && (
             <p className="field-help">
               {t(
-                "At least 12 characters; maximum 72 UTF-8 bytes.",
-                "Не менее 12 символов; максимум 72 байта UTF-8.",
-                "Ən azı 12 simvol; maksimum 72 UTF-8 baytı.",
+                "Use 12 to 72 characters: letters, numbers or symbols.",
+                "От 12 до 72 символов: буквы, цифры или знаки.",
+                "Şifrə 12-72 simvol olmalıdır: hərf, rəqəm və ya işarə.",
               )}
             </p>
           )}
@@ -367,16 +367,29 @@ export function CustomerAuth({
             <ArrowUpRight size={18} />
           </button>
         </form>
-        <button
-          className="cc-text"
-          onClick={() => {
-            setMode("forgot-password");
-            setError("");
-            setSent(false);
-          }}
-        >
-          {t("Forgot password?", "Забыли пароль?", "Şifrəni unutmusan?")}
-        </button>
+        {mode === "forgot-password" ? (
+          <button
+            className="cc-text"
+            onClick={() => {
+              setMode("login");
+              setError("");
+              setSent(false);
+            }}
+          >
+            {t("Back to sign in", "Назад ко входу", "Daxil olmağa qayıt")}
+          </button>
+        ) : (
+          <button
+            className="cc-text"
+            onClick={() => {
+              setMode("forgot-password");
+              setError("");
+              setSent(false);
+            }}
+          >
+            {t("Forgot password?", "Забыли пароль?", "Şifrəni unutmusan?")}
+          </button>
+        )}
       </div>
       <AuthShowcase locale={l} />
     </section>

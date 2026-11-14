@@ -705,7 +705,9 @@ body:has(.tx-dialog[open]) {
 .tx-options-aside {
   grid-column: 2;
   grid-row: 1/4;
-  align-self: start;
+}
+/* Sticky inside the aside, whose area ends where the full-width sections begin. */
+.tx-options-aside > .tx-options {
   position: sticky;
   top: 22px;
 }
@@ -1642,8 +1644,10 @@ body:has(.tx-dialog[open]) {
   .tx-options-aside {
     grid-column: 1;
     grid-row: 2;
-    position: static;
     margin-bottom: 35px;
+  }
+  .tx-options-aside > .tx-options {
+    position: static;
   }
   .tx-options {
     padding: 23px 20px;

@@ -32,7 +32,7 @@ export const placeAz: Record<string, { name: string; text: string }> = {
 export const faqAz: [string, string][] = [
   [
     "Rezervasiya necə edilir?",
-    "Qeydiyyatdan keçin, səfəri seçin və sorğunuzu göndərin. Komandamız mövcudluğu yoxlayır, sizə təsdiq üçün təklif və müqavilə göndərir. Bundan sonra beh tələb edirik.",
+    "Qeydiyyatdan keçin, səfəri seçin və sorğunuzu göndərin. Komandamız mövcudluğu yoxlayır, sizə təsdiq üçün təklif və müqavilə göndərir. Bundan sonra beh (depozit) tələb edirik.",
   ],
   [
     "Hazır turu dəyişə bilərəm?",
@@ -44,7 +44,7 @@ export const faqAz: [string, string][] = [
   ],
   [
     "Ödənişi nə vaxt edirəm?",
-    "Müqaviləni təsdiqlədikdən sonra komandamız beh tələb edir. Sonrakı ödənişlər hər xidmətin vaxtı çatdıqca tələb olunur. Hər ödəniş sorğusunun məbləği hesabınızda görünür və biz aldıqdan sonra ödənilmiş kimi qeyd olunur.",
+    "Müqaviləni təsdiqlədikdən sonra komandamız beh (depozit) tələb edir. Sonrakı ödənişlər hər xidmətin vaxtı çatdıqca tələb olunur. Hər ödəniş sorğusunun məbləği hesabınızda görünür və biz aldıqdan sonra ödənilmiş kimi qeyd olunur.",
   ],
   [
     "Viza lazımdır?",
@@ -60,7 +60,7 @@ export const faqAz: [string, string][] = [
   ],
   [
     "Hansı dillər mövcuddur?",
-    "Sayt ingilis, rus və Azərbaycan dillərindədir. Gidin dilini marşrut qurucusunda ayrıca seçin.",
+    "Sayt ingilis, rus və Azərbaycan dillərində mövcuddur. Bələdçinin danışacağı dili isə səfər planlayıcısında ayrıca seçə bilərsiniz.",
   ],
   [
     "Nə qədər əvvəl rezervasiya etmək olar?",
@@ -68,7 +68,7 @@ export const faqAz: [string, string][] = [
   ],
   [
     "Qiymət görünmürsə nə edim?",
-    "Seçimlərinizlə fərdi təklif sorğusu göndərə bilərsiniz. Ümumi əlaqə forması hələ önbaxış rejimindədir və mesaj göndərmir.",
+    "Seçimlərinizlə fərdi təklif sorğusu göndərə bilərsiniz. Əlaqə formasından da bizə yaza bilərsiniz.",
   ],
   [
     "Özümlə nə götürüm?",
