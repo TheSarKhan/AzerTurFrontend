@@ -20,7 +20,7 @@ import {
   tours,
   transitions,
   dateLimit,
-  money,
+  priceRange,
   type Locale,
   type Currency,
   type Quote,
@@ -732,12 +732,16 @@ export default function TripPlanner({
                 )}
               </ul>
               <div className="tpx-estimate" aria-live="polite">
-                <span>{t("Estimated total", "Ориентировочная сумма", "Təxmini məbləğ")}</span>
+                <span>{t("Estimated price range", "Ориентировочный диапазон цен", "Təxmini qiymət aralığı")}</span>
                 {quote && quote.status === "PRICED" ? (
                   <>
-                    <strong>{money(quote.total, c, l)}</strong>
+                    <strong>{priceRange(quote.total, c, l)}</strong>
                     <small>
-                      {money(quote.perPerson, c, l)} {t("per person", "на человека", "nəfər başına")}
+                      {t(
+                        "Our operator reviews your request and sends the exact price in an offer.",
+                        "Оператор рассмотрит заявку и пришлёт точную цену в предложении.",
+                        "Operator müraciətinə baxıb dəqiq qiyməti təklifdə göndərəcək.",
+                      )}
                     </small>
                   </>
                 ) : busy ? (
@@ -774,9 +778,9 @@ export default function TripPlanner({
               </button>
               <small>
                 {t(
-                  "No payment now. The estimate is not final: our team checks availability and replies with an offer. You sign in to send it.",
-                  "Оплата сейчас не нужна. Сумма ориентировочная: команда проверит доступность и пришлёт предложение. Для отправки нужен вход.",
-                  "İndi ödəniş yoxdur. Məbləğ təxminidir: komandamız mövcudluğu yoxlayıb təklif göndərəcək. Göndərmək üçün daxil olursan.",
+                  "No payment now. Our team checks availability and replies with an offer. You sign in to send it.",
+                  "Оплата сейчас не нужна. Команда проверит доступность и пришлёт предложение. Для отправки нужен вход.",
+                  "İndi ödəniş yoxdur. Komandamız mövcudluğu yoxlayıb təklif göndərəcək. Göndərmək üçün daxil olursan.",
                 )}
               </small>
               {error && (

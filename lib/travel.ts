@@ -200,6 +200,17 @@ export function money(n: number, c: Currency, l: Locale = "en") {
   const symbol = { EUR: "€", USD: "$", AZN: "₼" }[c];
   return l === "en" ? symbol + amount : amount + "\u00a0" + symbol;
 }
+/**
+ * Prices are never promised before an operator reviews a request, so customers see a range:
+ * roughly 15% below to 15% above the calculated amount, rounded outward to a tidy step.
+ */
+export function priceRange(n: number, c: Currency, l: Locale = "en") {
+  if (!Number.isFinite(n) || n <= 0) return "—";
+  const step = n < 500 ? 10 : n < 2000 ? 50 : 100;
+  const low = Math.floor((n * 0.85) / step) * step,
+    high = Math.ceil((n * 1.15) / step) * step;
+  return money(low, c, l) + " – " + money(high, c, l);
+}
 export function dateLimit(offset: number) {
   const d = new Date(
     new Date().toLocaleString("en-US", { timeZone: "Asia/Baku" }),

@@ -43,6 +43,7 @@ import {
   tours,
   money,
   rates,
+  priceRange,
   dateLimit,
   type Tour,
   type Locale,
@@ -900,7 +901,9 @@ export function TourDetail({
             </label>
             <div className="tx-estimate">
               <span>{t(copy.total)}</span>
-              <output>{fmt(tour.base * pax)}</output>
+              <output>
+                {priceRange(tour.base * pax * rates[currency], currency, locale)}
+              </output>
             </div>
             <p className="tx-price-helper">{t(copy.finalQuote)}</p>
             <button type="submit" className="tx-button">

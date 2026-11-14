@@ -200,11 +200,15 @@ export const tourCopy = {
   ],
   travelDate: ["Travel date", "Дата поездки", "Səfər tarixi"],
   travelers: ["Travelers", "Путешественники", "Səyahətçilər"],
-  total: ["Estimated total", "Примерная сумма", "Təxmini məbləğ"],
+  total: [
+    "Estimated price range",
+    "Ориентировочный диапазон цен",
+    "Təxmini qiymət aralığı",
+  ],
   finalQuote: [
-    "Final quote confirmed by our team.",
-    "Окончательную цену подтвердит наша команда.",
-    "Yekun təklifi komandamız təsdiqləyir.",
+    "Our operator reviews your request and sends the exact price in an offer.",
+    "Оператор рассмотрит заявку и пришлёт точную цену в предложении.",
+    "Operator müraciətinə baxıb dəqiq qiyməti təklifdə göndərəcək.",
   ],
   customizeTrip: [
     "Customize this trip",
