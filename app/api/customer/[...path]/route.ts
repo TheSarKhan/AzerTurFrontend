@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 const cookie = "azertur_session";
 const paths = new RegExp(
-  String.raw`^(auth\/(register|login|google(\/config)?|logout|me|forgot-password|reset-password|verify-email|email-verification/request|account-deletion|logout-all|sessions(/(revoke-others|[0-9a-f-]{36}/revoke))?)|bookings(\/(requests|offers|notifications(\/(read-all|push-token|[0-9a-f-]{36}\/read))?)|\/[0-9a-f-]{36}\/(requests|amendments(/(accept|decline|[0-9a-f-]{36}/(pdf|base-pdf)))?|revised-plan|payment-context|cancellation|cancellation-updates(\/[0-9a-f-]{36}\/pdf)?|contract(\/[0-9a-f-]{36}\/(pdf|accept))?))?)$`,
+  String.raw`^(auth\/(register|login|google(\/config)?|logout|me|forgot-password|reset-password|verify-email|email-verification/request|account-deletion|phone|logout-all|sessions(/(revoke-others|[0-9a-f-]{36}/revoke))?)|bookings(\/(requests|offers|notifications(\/(read-all|push-token|[0-9a-f-]{36}\/read))?)|\/[0-9a-f-]{36}\/(requests|amendments(/(accept|decline|[0-9a-f-]{36}/(pdf|base-pdf)))?|revised-plan|payment-context|cancellation|cancellation-updates(\/[0-9a-f-]{36}\/pdf)?|contract(\/[0-9a-f-]{36}\/(pdf|accept))?))?)$`,
 );
 async function proxy(
   request: NextRequest,
@@ -68,6 +68,7 @@ async function proxy(
             request.headers.get("user-agent") || "Other device"
           ).slice(0, 512),
           ...(!isPublic && token ? { Authorization: "Bearer " + token } : {}),
+          "X-AzTrip-Client": "web",
           ...(request.headers.has("idempotency-key")
             ? { "Idempotency-Key": request.headers.get("idempotency-key")! }
             : {}),
@@ -90,7 +91,9 @@ async function proxy(
         },
       });
     }
-    let data = upstream.status === 204 ? null : await upstream.json();
+    // A "nothing here" answer can arrive as an empty 200 body, which is valid.
+    const raw = upstream.status === 204 ? "" : await upstream.text();
+    let data = raw ? JSON.parse(raw) : null;
     const session = isAuth && upstream.ok ? data : null;
     if (session)
       data = { customer: session.customer, expires: session.expires };

@@ -51,14 +51,14 @@ export const az: Record<string, string> = {
   "Your trip.": "Sizin səfəriniz.",
   "Your rules.": "Sizin seçiminiz.",
   "A hotel with character. Your own driver. A guide who knows the stories. Choose what matters to you, and see it all in one clear price.":
-    "Özünəməxsus otel. Şəxsi sürücü. Hekayələri bilən gid. Sizin üçün vacib olanları seçin və ümumi qiyməti görün.",
+    "Özünəməxsus otel. Şəxsi sürücü. Hekayələri bilən bələdçi. Sizin üçün vacib olanları seçin və ümumi qiyməti görün.",
   "Build my journey": "Səfərimi yarat",
   "A journey, made by you": "Sizin yaratdığınız səyahət",
   "Private driver": "Şəxsi sürücü",
   "The road, without the rush": "Tələsmədən keçən yol",
   "A place to stay": "Qalmaq üçün bir yer",
   "Standard, comfort or premium": "Standart, komfort və ya premium",
-  "A local guide": "Yerli gid",
+  "A local guide": "Yerli bələdçi",
   "English or Russian": "İngilis, rus və ya Azərbaycan dili",
   "A little extra adventure": "Bir az da macəra",
   "Experiences along the way": "Yolboyu yeni təcrübələr",
@@ -123,7 +123,7 @@ export const az: Record<string, string> = {
   "Make it your trip.": "Səfəri özünüzə uyğunlaşdırın.",
   "Your quote": "Qiymətiniz",
   "Send request for review": "Yoxlama üçün sorğu göndər",
-  "1–12 people · all ages": "1–12 nəfər · bütün yaşlar",
+  "1–12 people, all ages": "1–12 nəfər, bütün yaşlar",
   "Remove traveller": "Səyahətçini azalt",
   "Add traveller": "Səyahətçi əlavə et",
   "Include hotel stays": "Oteldə qalmağı əlavə et",
@@ -133,8 +133,8 @@ export const az: Record<string, string> = {
   Standard: "Standart",
   Comfort: "Komfort",
   Premium: "Premium",
-  "Local guide": "Yerli gid",
-  "Guide language": "Gidin dili",
+  "Local guide": "Yerli bələdçi",
+  "Guide language": "Bələdçinin dili",
   "Airport transfer": "Hava limanı transferi",
   "Local craft experience": "Yerli sənətkarlıq təcrübəsi",
   "Finding your price…": "Qiymət hesablanır…",
@@ -146,8 +146,8 @@ export const az: Record<string, string> = {
   "Your adventure starts with a date.": "Macəranız tarix seçimindən başlayır.",
   "Choose when you’d like to go to see an itemised price.":
     "Xidmətlər üzrə qiyməti görmək üçün səfər tarixini seçin.",
-  "Estimated price · confirmed by our team after an availability check.":
-    "Təxmini qiymət · mövcudluq yoxlanıldıqdan sonra komanda təsdiqləyir.",
+  "Estimated price, confirmed by our team after an availability check.":
+    "Təxmini qiymət, mövcudluq yoxlanıldıqdan sonra komanda təsdiqləyir.",
   "Try again": "Yenidən cəhd et",
   "Request an offer": "Fərdi təklif istə",
   Journeys: "Turlar",
@@ -247,8 +247,8 @@ export const az: Record<string, string> = {
   "Less friction. More journey.": "Daha rahat planlama. Daha çox səyahət.",
   "Privacy, plainly.": "Məxfilik, aydın şəkildə.",
   "Terms of use": "İstifadə şərtləri",
-  "Draft for design review · updated 25 October 2026":
-    "Baxış üçün qaralama · yenilənmə: 25 oktyabr 2026",
+  "Draft for design review, updated 25 October 2026":
+    "Baxış üçün qaralama, yenilənmə: 25 oktyabr 2026",
   "Customer accounts and reservation requests are stored securely and reviewed by our office team. Payments are requested by our team and marked as paid once we receive them. This website does not collect card details.":
     "Müştəri hesabları və rezervasiya sorğuları təhlükəsiz saxlanılır və ofis komandamız tərəfindən yoxlanılır. Ödənişləri komanda tələb edir və aldıqdan sonra ödənilmiş kimi qeyd edir. Bu sayt kart məlumatlarını toplamır.",
   "Before live bookings": "Canlı rezervasiyalardan əvvəl",
@@ -261,9 +261,9 @@ export const az: Record<string, string> = {
   "Azerbaijan, at your own pace.": "Azərbaycan, sizin ritminizlə.",
   "Choose. Shape. Go.": "Seçin. Uyğunlaşdırın. Yola çıxın.",
   "AzTrip is built around a simple idea: a journey should feel personal, and planning it should feel clear. We connect routes, stays, drivers, guides and experiences in one place, so you can decide what your Azerbaijan looks like.":
-    "AzTrip sadə bir fikrə əsaslanır: səfər şəxsi, planlama isə aydın olmalıdır. Marşrutu, oteli, sürücünü, gidi və təcrübələri bir yerdə toplayırıq ki, öz Azərbaycan səyahətinizi seçə biləsiniz.",
+    "AzTrip sadə bir fikrə əsaslanır: səfər şəxsi, planlama isə aydın olmalıdır. Marşrutu, oteli, sürücünü, bələdçini və təcrübələri bir yerdə toplayırıq ki, öz Azərbaycan səyahətinizi seçə biləsiniz.",
   "Start with one of our itineraries or build a route day by day. Choose a date, travellers, hotel category, guide and extras. The quote shows each service and the total.":
-    "Hazır turdan başlayın və ya günbəgün marşrut yaradın. Tarixi, səyahətçiləri, oteli, gidi və əlavə xidmətləri seçin. Qiymətdə hər xidmət və ümumi məbləğ görünür.",
+    "Hazır turdan başlayın və ya günbəgün marşrut yaradın. Tarixi, səyahətçiləri, oteli, bələdçini və əlavə xidmətləri seçin. Qiymətdə hər xidmət və ümumi məbləğ görünür.",
   "Our team checks partner availability before every offer, confirms the terms in a contract you approve, and requests payments only after that.":
     "Komandamız hər təklifdən əvvəl partnyor mövcudluğunu yoxlayır, şərtləri sizin təsdiqlədiyiniz müqavilədə qeyd edir və ödənişi yalnız bundan sonra tələb edir.",
   "Find your journey": "Səfərini tap",

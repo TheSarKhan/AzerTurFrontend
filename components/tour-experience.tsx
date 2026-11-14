@@ -38,6 +38,9 @@ import {
   Building2,
   Footprints,
   Handshake,
+  CarTaxiFront,
+  Utensils,
+  Camera,
 } from "lucide-react";
 import {
   tours,
@@ -62,6 +65,7 @@ import {
   mediaAlt,
   beforeQuestions,
 } from "@/lib/tour-content";
+import { PAX_OPTIONS, travellerCount } from "@/lib/pax";
 import {
   defaultDiscovery,
   readDiscovery,
@@ -166,7 +170,6 @@ function SampleCard({
         <p className="tx-card-facts">
           <Clock size={16} />
           {tour.days} {t(tour.days === 1 ? copy.oneDay : copy.days)}
-          <span aria-hidden="true">·</span>
           <Mountain size={16} />
           {tour.difficulty[i]}
         </p>
@@ -400,9 +403,9 @@ export function TourCatalog({ locale, currency, go }: Props) {
                 aria-label={t(copy.travelers)}
                 onChange={(e) => update({ pax: Number(e.target.value) })}
               >
-                {Array.from({ length: 12 }, (_, i) => (
-                  <option key={i} value={i + 1}>
-                    {i + 1} · {t(copy.travelers)}
+                {PAX_OPTIONS.map((n) => (
+                  <option key={n} value={n}>
+                    {travellerCount(n, locale)}
                   </option>
                 ))}
               </select>
@@ -764,11 +767,6 @@ export function TourDetail({
     ...tour.stops,
     ...(tour.stops[tour.stops.length - 1] === "Baku" ? [] : ["Baku"]),
   ];
-  // The route lists every stop, including the way back to Baku; tag each one with the day it falls on.
-  const dayOfStop = (n: number) =>
-    n >= stops.length - 1 || tour.days < 2
-      ? Math.max(0, tour.days - 1)
-      : Math.floor((n * (tour.days - 1)) / (stops.length - 1));
   return (
     <div className="tour-experience tx-detail">
       <div className="tx-container tx-detail-intro">
@@ -825,7 +823,7 @@ export function TourDetail({
             key={name}
             type="button"
             onClick={() => openPhoto(n)}
-            aria-label={t(copy.allPhotos) + " · " + (n + 1)}
+            aria-label={t(copy.allPhotos) + ", " + (n + 1)}
           >
             <TravelImage name={name} locale={locale} eager={n === 0} />
             {n === 0 && (
@@ -881,9 +879,9 @@ export function TourDetail({
                   <option value="" disabled>
                     {t(["Select number of travellers", "Выберите число участников", "İştirakçı sayını seçin"])}
                   </option>
-                  {Array.from({ length: 12 }, (_, n) => (
-                    <option key={n} value={n + 1}>
-                      {n + 1} · {t(copy.travelers)}
+                  {PAX_OPTIONS.map((n) => (
+                    <option key={n} value={n}>
+                      {travellerCount(n, locale)}
                     </option>
                   ))}
                 </select>
@@ -904,7 +902,7 @@ export function TourDetail({
             </button>
             {!pax && (
               <p className="tx-price-helper" role="status">
-                {t(["Choose how many travellers (1–12) to continue.", "Выберите число участников (1–12), чтобы продолжить.", "Davam etmək üçün iştirakçı sayını (1–12) seçin."])}
+                {t(["Choose how many travellers to continue.", "Выберите число участников, чтобы продолжить.", "Davam etmək üçün iştirakçı sayını seçin."])}
               </p>
             )}
             {!customer ? (
@@ -973,56 +971,34 @@ export function TourDetail({
                   <li key={stop + n}>
                     <span aria-hidden="true">{n + 1}</span>
                     {cityName(stop, locale)}
-                    <small>
-                      {t(copy.dayLabel)} {dayOfStop(n) + 1}
-                    </small>
                   </li>
                 ))}
               </ol>
             </div>
           </div>
-          {tour.plans.map((day, n) => (
-            <details key={n} open>
-              <summary>
-                <span className="tx-day-number">{n + 1}</span>
-                <h3>
-                  {t(copy.dayLabel)} {n + 1} — {day[i]}
-                </h3>
-                <Plus size={18} />
-              </summary>
-              <p>{t(media.itinerary[n])}</p>
-            </details>
-          ))}
           <p className="tx-sample-label">{t(copy.timing)}</p>
         </section>
         <section id="services" className="tx-services-section">
           <h2>{t(copy.chooseServices)}</h2>
           <div className="tx-services-grid">
-            <div>
-              {[
-                { Icon: Car, label: copy.transfers },
-                { Icon: Users, label: copy.guide },
-                { Icon: BedDouble, label: copy.stay },
-                { Icon: Compass, label: copy.experiences },
-              ].map(({ Icon, label }) => (
-                <PageLink
-                  key={label[0]}
-                  to={plan}
-                  {...navProps}
-                  className="tx-service"
-                >
-                  <Icon size={27} strokeWidth={1.4} />
+            {[
+              { Icon: Car, label: copy.transfers, info: copy.infoTransfers },
+              { Icon: CarTaxiFront, label: copy.driver, info: copy.infoDriver },
+              { Icon: Users, label: copy.guide, info: copy.infoGuide },
+              { Icon: BedDouble, label: copy.stay, info: copy.infoStay },
+              { Icon: Utensils, label: copy.meals, info: copy.infoMeals },
+              { Icon: Tickets, label: copy.tickets, info: copy.infoTickets },
+              { Icon: Camera, label: copy.photographer, info: copy.infoPhotographer },
+              { Icon: Compass, label: copy.experiences, info: copy.infoExperiences },
+            ].map(({ Icon, label, info }) => (
+              <div key={label[0]} className="tx-service">
+                <Icon size={27} strokeWidth={1.4} />
+                <div>
                   <strong>{t(label)}</strong>
-                  <span>{t(copy.separately)}</span>
-                  <ArrowRight size={16} />
-                </PageLink>
-              ))}
-            </div>
-            <div className="tx-exclusions">
-              <h3>{t(copy.notIncluded)}</h3>
-              <p>{t(copy.exclusions)}</p>
-              <p>{t(copy.priceNote)}</p>
-            </div>
+                  <p>{t(info)}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </section>
         <section className="tx-rhythm">
@@ -1126,7 +1102,7 @@ export function TourDetail({
             <ChevronLeft />
           </button>
           <p aria-live="polite">
-            {photo + 1} / {media.gallery.length} ·{" "}
+            {photo + 1} / {media.gallery.length},{" "}
             {t(mediaAlt[media.gallery[photo]])}
           </p>
           <button

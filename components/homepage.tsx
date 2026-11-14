@@ -34,6 +34,7 @@ import {
   type HomeText,
 } from "@/lib/homepage-content";
 import { tours, dateLimit, type Locale } from "@/lib/travel";
+import { PAX_OPTIONS, travellerCount } from "@/lib/pax";
 type Props = { locale: Locale; go: (path: string) => void };
 export default function Homepage({ locale, go }: Props) {
   const t = (text: HomeText) => homeText(text, locale);
@@ -161,9 +162,9 @@ export default function Homepage({ locale, go }: Props) {
                 onChange={(e) => setPax(e.target.value)}
                 aria-label={t(homeCopy.travelers)}
               >
-                {Array.from({ length: 12 }, (_, i) => (
-                  <option key={i} value={i + 1}>
-                    {i + 1} {t(i === 0 ? homeCopy.person : homeCopy.people)}
+                {PAX_OPTIONS.map((n) => (
+                  <option key={n} value={n}>
+                    {travellerCount(n, locale)}
                   </option>
                 ))}
               </select>

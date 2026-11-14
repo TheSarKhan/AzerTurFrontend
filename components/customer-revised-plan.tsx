@@ -64,7 +64,7 @@ export default function CustomerRevisedPlan({
           "Обновлённый план оплаты",
           "Yenilənmiş ödəniş planı",
         )}{" "}
-        · v{plan.version}
+       , v{plan.version}
       </h2>
       <p>
         {t(

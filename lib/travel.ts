@@ -6,7 +6,7 @@ export const tours = [
   {
     slug: "quba-khinalug",
     name: ["Into the highlands", "Навстречу горам"],
-    region: "Quba · Khinalug",
+    region: "Quba, Khinalug",
     days: 2,
     base: 240,
     image: "mountains",
@@ -27,7 +27,7 @@ export const tours = [
   {
     slug: "sheki-gabala",
     name: ["Along the Silk Road", "По Шёлковому пути"],
-    region: "Sheki · Gabala",
+    region: "Sheki, Gabala",
     days: 3,
     base: 410,
     image: "sheki",
@@ -46,7 +46,7 @@ export const tours = [
   {
     slug: "baku-discovery",
     name: ["A city of contrasts", "Город контрастов"],
-    region: "Baku · Old City",
+    region: "Baku, Old City",
     days: 1,
     base: 85,
     image: "baku",
@@ -64,7 +64,7 @@ export const places = [
   {
     id: "mountains",
     name: ["The highlands", "Горы"],
-    region: "Quba · Khinalug",
+    region: "Quba, Khinalug",
     image: "mountains",
     text: [
       "Take the road less hurried.",
@@ -75,7 +75,7 @@ export const places = [
   {
     id: "sheki",
     name: ["The Silk Road", "Шёлковый путь"],
-    region: "Sheki · Gabala",
+    region: "Sheki, Gabala",
     image: "sheki",
     text: ["Stories around every corner.", "Истории за каждым поворотом."],
     tour: "sheki-gabala",
@@ -83,7 +83,7 @@ export const places = [
   {
     id: "baku",
     name: ["The city & the sea", "Город и море"],
-    region: "Baku · Caspian coast",
+    region: "Baku, Caspian coast",
     image: "baku",
     text: ["Old soul. New perspectives.", "Старая душа. Новые перспективы."],
     tour: "baku-discovery",
@@ -177,6 +177,10 @@ export interface QuoteInput {
   currency: Currency;
   customDays?: number;
   cities?: string[];
+  extras?: string[];
+  startCity?: string;
+  endCity?: string;
+  plan?: { places: { city: string; services: string[] }[] }[];
 }
 export interface Quote {
   id: string;

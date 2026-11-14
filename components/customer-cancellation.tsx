@@ -111,7 +111,7 @@ export default function CustomerCancellation({
       "Şəxsi avtomobil və sürücü",
     ),
     hotel: t("Comfort stay", "Проживание", "Oteldə qalma"),
-    guide: t("Local guide", "Местный гид", "Yerli gid"),
+    guide: t("Local guide", "Местный гид", "Yerli bələdçi"),
     transfer: t("Airport transfer", "Трансфер", "Hava limanı transferi"),
     activity: t(
       "Local craft experience",
@@ -245,7 +245,7 @@ export default function CustomerCancellation({
                 )}
           </h1>
           <p>
-            #{booking.id.slice(0, 8)} · {cabinetDates(booking, l)} ·{" "}
+            #{booking.id.slice(0, 8)}, {cabinetDates(booking, l)},{" "}
             {context?.offer.travelers || ""} {t("travelers", "чел.", "nəfər")}
           </p>
         </div>
@@ -260,7 +260,7 @@ export default function CustomerCancellation({
       <div className="cancel-photo">
         <Image
           src={"/images/homepage-v3/" + cabinetPhoto(booking) + ".png"}
-          alt={cabinetRoute(booking).join(" · ")}
+          alt={cabinetRoute(booking).join(", ")}
           fill
           sizes="(max-width: 700px) 100vw, 1200px"
           priority
@@ -317,9 +317,9 @@ export default function CustomerCancellation({
             <div className="cancel-main">
               <h2>
                 {t(
-                  "01 · Cancellation details",
-                  "01 · Детали отмены",
-                  "01 · Ləğvin detalları",
+                  "01 Cancellation details",
+                  "01 Детали отмены",
+                  "01 Ləğvin detalları",
                 )}
               </h2>
               <p>
@@ -336,9 +336,9 @@ export default function CustomerCancellation({
                 <>
                   <h2>
                     {t(
-                      "02 · Service breakdown",
-                      "02 · По услугам",
-                      "02 · Xidmətlər üzrə hesablama",
+                      "02 Service breakdown",
+                      "02 По услугам",
+                      "02 Xidmətlər üzrə hesablama",
                     )}
                   </h2>
                   <div className="cancel-column-labels">
@@ -438,7 +438,7 @@ export default function CustomerCancellation({
                         className="cancel-secondary"
                         onClick={() => setActiveUpdate(u.id)}
                       >
-                        {date(u.created_at)} · {u.status}
+                        {date(u.created_at)}, {u.status}
                       </button>{" "}
                       {u.message}
                     </p>
@@ -601,9 +601,9 @@ export default function CustomerCancellation({
             <div className="cancel-main">
               <h2>
                 {t(
-                  "01 · What would you like to cancel?",
-                  "01 · Что отменить?",
-                  "01 · Nəyi ləğv etmək istəyirsiniz?",
+                  "01 What would you like to cancel?",
+                  "01 Что отменить?",
+                  "01 Nəyi ləğv etmək istəyirsiniz?",
                 )}
               </h2>
               <label
@@ -675,9 +675,9 @@ export default function CustomerCancellation({
               </label>
               <h2>
                 {t(
-                  "02 · Services included in your trip",
-                  "02 · Услуги поездки",
-                  "02 · Səfərdəki xidmətlər",
+                  "02 Services included in your trip",
+                  "02 Услуги поездки",
+                  "02 Səfərdəki xidmətlər",
                 )}
               </h2>
               {context.services.map((s) => {
@@ -727,9 +727,9 @@ export default function CustomerCancellation({
               })}
               <h2>
                 {t(
-                  "03 · Tell us why you're cancelling",
-                  "03 · Причина отмены",
-                  "03 · Ləğvin səbəbini bildirin",
+                  "03 Tell us why you're cancelling",
+                  "03 Причина отмены",
+                  "03 Ləğvin səbəbini bildirin",
                 )}
               </h2>
               <form
@@ -801,9 +801,9 @@ export default function CustomerCancellation({
                 </div>
                 <h2>
                   {t(
-                    "04 · Review and submit",
-                    "04 · Проверить и отправить",
-                    "04 · Yoxla və göndər",
+                    "04 Review and submit",
+                    "04 Проверить и отправить",
+                    "04 Yoxla və göndər",
                   )}
                 </h2>
                 <p>

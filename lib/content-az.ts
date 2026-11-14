@@ -19,7 +19,7 @@ export const tourAz: Record<
   "baku-discovery": {
     name: "Təzadlar şəhəri",
     description:
-      "Köhnə daş küçələr və gələcəyə baxan şəhər. Yerli gidin hekayələri ilə Bakını yenidən kəşf edin.",
+      "Köhnə daş küçələr və gələcəyə baxan şəhər. Yerli bələdçinin hekayələri ilə Bakını yenidən kəşf edin.",
     difficulty: "Asan",
     plans: ["Keçmişlə gələcək arasında"],
   },
@@ -36,7 +36,7 @@ export const faqAz: [string, string][] = [
   ],
   [
     "Hazır turu dəyişə bilərəm?",
-    "Bəli. Tur səhifəsində “Bu turu özünə uyğunlaşdır” seçimi ilə marşrutu açın. Oteli, gidi, fəaliyyəti və transferi dəyişə bilərsiniz.",
+    "Bəli. Tur səhifəsində “Bu turu özünə uyğunlaşdır” seçimi ilə marşrutu açın. Oteli, bələdçini, fəaliyyəti və transferi dəyişə bilərsiniz.",
   ],
   [
     "Qiymətə nə daxildir?",

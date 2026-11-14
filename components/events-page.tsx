@@ -92,7 +92,7 @@ function when(e: Pick<EventView, "startsAt" | "endsAt" | "timeKnown">, l: Locale
   const s = parts(e.startsAt), f = parts(e.endsAt);
   const same = s.y === f.y && s.m === f.m && s.d === f.d;
   if (!e.timeKnown) return same ? day(s) : `${day(s)} – ${day(f)}`;
-  return same ? `${day(s)} · ${s.hm}–${f.hm}` : `${day(s)} ${s.hm} – ${day(f)} ${f.hm}`;
+  return same ? `${day(s)}, ${s.hm}–${f.hm}` : `${day(s)} ${s.hm} – ${day(f)} ${f.hm}`;
 }
 function price(e: EventView, l: Locale, t: ReturnType<typeof useText>["t"]) {
   if (e.free) return t("Free", "Бесплатно", "Pulsuz");
@@ -232,7 +232,7 @@ export function EventsPage({ locale: l, go }: { locale: Locale; go: (p: string) 
               <a href={`/${l}/events/${e.slug}`} onClick={(x) => { x.preventDefault(); open(e.slug); }}>
                 {e.image ? <img src={e.image} alt="" loading="lazy" referrerPolicy="no-referrer" /> : <Banner category={e.category} />}
                 <div className="ev-body">
-                  <p className="ev-meta">{categories[e.category]} · {cityOf(e)}</p>
+                  <p className="ev-meta">{categories[e.category]}, {cityOf(e)}</p>
                   <h2>{title(e)}</h2>
                   <p className="ev-when">{when(e, l)}</p>
                   <p className="ev-venue"><MapPin size={14} />{e.venueName}</p>
@@ -287,7 +287,7 @@ export function EventDetail({ locale: l, slug, go }: { locale: Locale; slug: str
     <section className="events-page container page-content ev-detail">
       {back}
       {e.image ? <img className="ev-hero" src={e.image} alt="" referrerPolicy="no-referrer" /> : <Banner category={e.category} />}
-      <p className="ev-meta">{categories[e.category]} · {cityOf(e)}</p>
+      <p className="ev-meta">{categories[e.category]}, {cityOf(e)}</p>
       <h1>{title(e)}</h1>
       <dl className="ev-facts">
         <div><dt>{t("When", "Когда", "Nə vaxt")}</dt><dd>{when(e, l)}{!e.timeKnown && <small>{t("Start time: check the organiser’s page.", "Время начала: см. страницу организатора.", "Başlama saatı: təşkilatçının səhifəsinə baxın.")}</small>}</dd></div>

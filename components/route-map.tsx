@@ -97,7 +97,7 @@ export function RouteMap({
       })}
       {[...order.entries()].map(([city, n]) => {
         const p = cityPoints[city];
-        const text = n.join("·");
+        const text = n.join(",");
         return (
           <g key={city}>
             <circle

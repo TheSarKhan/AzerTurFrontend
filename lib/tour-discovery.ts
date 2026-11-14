@@ -1,3 +1,4 @@
+import { snapPax } from "./pax";
 import type { Tour } from "./travel";
 
 export const regions = ["baku", "sheki", "gabala", "mountains"] as const;
@@ -76,10 +77,7 @@ export function readDiscovery(search: string): Discovery {
       ? p.get("sort")!
       : "recommended",
     date: validTravelDate(p.get("date") || "") ? p.get("date")! : "",
-    pax:
-      Number.isFinite(pax) && pax > 0
-        ? Math.min(12, Math.max(1, Math.trunc(pax)))
-        : 2,
+    pax: Number.isFinite(pax) && pax > 0 ? snapPax(pax) : 2,
   };
 }
 export function discoverySearch(f: Discovery) {
@@ -100,7 +98,7 @@ export function bookingSearch(date: string, pax: number, template?: string) {
   if (validTravelDate(date)) p.set("date", date);
   // 0 means the visitor has not picked a travellers count yet, so none is added.
   if (pax !== 0)
-    p.set("pax", String(Math.min(12, Math.max(1, Math.trunc(pax) || 2))));
+    p.set("pax", String(snapPax(pax || 2)));
   return "?" + p;
 }
 export function discoverTours(inventory: Tour[], f: Discovery) {

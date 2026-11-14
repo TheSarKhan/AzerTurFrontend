@@ -139,7 +139,7 @@ export default function AccountSecurity({
             <strong>
               {s.device}{" "}
               {s.current &&
-                t("· This device", "· Это устройство", "· Bu cihaz")}
+                t("(This device)", "(Это устройство)", "(Bu cihaz)")}
             </strong>
             <p>
               {t("Last active", "Последняя активность", "Son aktivlik")}:{" "}

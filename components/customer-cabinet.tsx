@@ -1,4 +1,5 @@
 "use client";
+import { travellerCount } from "@/lib/pax";
 import CustomerAmendments from "./customer-amendments";
 import AccountSecurity from "./account-security";
 import CustomerNotifications from "./customer-notifications";
@@ -9,7 +10,6 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import Image from "next/image";
 import CustomerOfferView, {
   offerStatus,
-  originalEstimate,
 } from "./customer-offer";
 import {
   ArrowLeft,
@@ -27,6 +27,8 @@ import {
   Flower2,
   X,
   Check,
+  CreditCard,
+  Wallet,
 } from "lucide-react";
 import {
   customerApi,
@@ -83,6 +85,44 @@ export default function CustomerCabinet({
     [kind, setKind] = useState("CHANGE");
   const dialogRef = useRef<HTMLDialogElement>(null),
     focusRef = useRef<HTMLElement | null>(null);
+  type TripContract = { state: string; accepted_at: string | null } | null;
+  type TripPayments = {
+    contract: { id: string } | null;
+    requests: {
+      id: string;
+      contract_id: string;
+      kind: string;
+      amount_minor: number;
+      status: string;
+    }[];
+    paidMinor: number;
+    paymentBlocked: boolean;
+  } | null;
+  const [tripContract, setTripContract] = useState<TripContract>(null),
+    [tripPayments, setTripPayments] = useState<TripPayments>(null);
+  const [listExtras, setListExtras] = useState<
+    Record<string, { contract: TripContract; payments: TripPayments }>
+  >({});
+  async function loadListExtras(ids: string[]) {
+    const rows = await Promise.all(
+      ids.map(async (id) => {
+        const [contract, payments] = await Promise.all([
+          customerApi<TripContract>("bookings/" + id + "/contract").catch(() => null),
+          customerApi<TripPayments>("bookings/" + id + "/payment-context").catch(() => null),
+        ]);
+        return [id, { contract: contract ?? null, payments: payments ?? null }] as const;
+      }),
+    );
+    setListExtras(Object.fromEntries(rows));
+  }
+  async function loadTripExtras(id: string) {
+    const [c, p] = await Promise.all([
+      customerApi<TripContract>("bookings/" + id + "/contract").catch(() => null),
+      customerApi<TripPayments>("bookings/" + id + "/payment-context").catch(() => null),
+    ]);
+    setTripContract(c ?? null);
+    setTripPayments(p ?? null);
+  }
   const next = bookingId
     ? "/trips/" +
       bookingId +
@@ -154,6 +194,28 @@ export default function CustomerCabinet({
     setNotice("");
     setError("");
   }, [bookingId, l]);
+  useEffect(() => {
+    setTripContract(null);
+    setTripPayments(null);
+    if (
+      bookingId &&
+      bookingId !== "account" &&
+      bookingId !== "notifications" &&
+      !paymentView &&
+      !cancellationView &&
+      !amendmentView
+    )
+      void loadTripExtras(bookingId);
+  }, [bookingId, paymentView, cancellationView, amendmentView]);
+  useEffect(() => {
+    if (!bookingId && bookings.length)
+      void loadListExtras(
+        bookings
+          .filter((x) => !["CANCELLED", "REJECTED"].includes(x.status))
+          .slice(0, 20)
+          .map((x) => x.id),
+      );
+  }, [bookingId, bookings]);
   const currentOffer = offers.find((o) => o.bookingId === bookingId);
   const b = bookings.find((item) => item.id === bookingId),
     q = b ? bookingQuote(b) : null,
@@ -167,9 +229,9 @@ export default function CustomerCabinet({
       "Operator yoxlamasını gözləyir",
     ),
     AWAITING_PAYMENT: t(
-      "Approved · deposit required",
-      "Одобрено · ожидает депозита",
-      "Təsdiqlənib · beh gözlənilir",
+      "Approved, deposit required",
+      "Одобрено, ожидает депозита",
+      "Təsdiqlənib, beh gözlənilir",
     ),
     CONFIRMED: t("Confirmed", "Подтверждено", "Təsdiqlənib"),
     REJECTED: t("Not approved", "Не одобрено", "Təsdiqlənməyib"),
@@ -182,7 +244,7 @@ export default function CustomerCabinet({
       "Şəxsi avtomobil və sürücü",
     ),
     hotel: t("Your stay", "Проживание", "Qalma yeri"),
-    guide: t("Local guide", "Местный гид", "Yerli gid"),
+    guide: t("Local guide", "Местный гид", "Yerli bələdçi"),
     transfer: t(
       "Airport transfer",
       "Трансфер из аэропорта",
@@ -193,6 +255,18 @@ export default function CustomerCabinet({
       "Местный мастер-класс",
       "Yerli sənətkarlıq təcrübəsi",
     ),
+  };
+  const planLabels: Record<string, string> = {
+    transport: t("Private car & driver", "Автомобиль с водителем", "Şəxsi avtomobil və sürücü"),
+    hotel: t("Accommodation", "Проживание", "Qalma yeri"),
+    guide: t("Local guide", "Местный гид", "Yerli bələdçi"),
+    transfer: t("Airport transfer", "Трансфер из аэропорта", "Hava limanı transferi"),
+    intercity: t("Transfer to the next region", "Трансфер в следующий регион", "Növbəti rayona transfer"),
+    activity: t("Local craft experience", "Местный мастер-класс", "Yerli sənətkarlıq təcrübəsi"),
+    event: t("Event", "Мероприятие", "Tədbir"),
+    meals: t("Local meals", "Местная кухня", "Yerli yeməklər"),
+    tickets: t("Entrance tickets", "Входные билеты", "Giriş biletləri"),
+    photographer: t("Photographer", "Фотограф", "Fotoqraf"),
   };
   const icons: Record<string, typeof Car> = {
     transport: Car,
@@ -360,6 +434,122 @@ export default function CustomerCabinet({
         <CustomerPayments key={b.id} booking={b} locale={l} go={go} />
       </>
     );
+  /** One trip in the list: what it is, how far it is, and the single next thing to do. */
+  function tripCard(item: Booking) {
+    const quote = bookingQuote(item);
+    const latest = offers.find((o) => o.bookingId === item.id);
+    const extra = listExtras[item.id];
+    const contractState = extra?.contract?.state;
+    const reqs = extra?.payments?.requests ?? [];
+    const openReq = reqs.find(
+      (r) => r.status === "OPEN" && r.contract_id === extra?.payments?.contract?.id,
+    );
+    const depositPaid = reqs.some((r) => r.kind === "DEPOSIT" && r.status === "PAID");
+    const closed = ["CANCELLED", "REJECTED"].includes(item.status);
+    const hasPending = requests.some((r) => r.bookingId === item.id && r.status === "PENDING");
+    const done = [true, !!latest, contractState === "ACCEPTED", depositPaid];
+    const current = closed ? -1 : done.findIndex((x) => !x);
+    const labels = [
+      t("Request", "Заявка", "Sorğu"),
+      t("Offer", "Предложение", "Təklif"),
+      t("Contract", "Договор", "Müqavilə"),
+      t("Payment", "Оплата", "Ödəniş"),
+    ];
+    const total = latest ? latest.total : item.total;
+    const paid = extra?.payments ? extra.payments.paidMinor / 100 : item.paid;
+    let tone = "info";
+    let badge = "";
+    let hint = "";
+    let cta = t("Open", "Открыть", "Aç");
+    if (closed) {
+      tone = "muted";
+      badge = statuses[item.status];
+      hint = item.operatorNote || "";
+    } else if (hasPending) {
+      tone = "wait";
+      badge = t("Request under review", "Запрос на рассмотрении", "Sorğu yoxlanılır");
+      hint = t("Payment is paused while the team reviews your request.", "Оплата приостановлена на время проверки.", "Komanda sorğunu yoxlayana qədər ödəniş dayandırılıb.");
+    } else if (openReq) {
+      tone = "action";
+      badge = t("Payment requested", "Запрошена оплата", "Ödəniş tələb olunur");
+      hint = t(
+        `Payment requested: ${money(openReq.amount_minor / 100, item.currency, l)}`,
+        `Запрошена оплата: ${money(openReq.amount_minor / 100, item.currency, l)}`,
+        `Ödəniş tələb olunur: ${money(openReq.amount_minor / 100, item.currency, l)}`,
+      );
+      cta = t("Go to payment", "К оплате", "Ödənişə keç");
+    } else if (contractState === "SENT") {
+      tone = "action";
+      badge = t("Your confirmation is needed", "Нужно ваше подтверждение", "Təsdiqiniz lazımdır");
+      hint = t("Read and confirm the contract.", "Прочитайте и подтвердите договор.", "Müqaviləni oxuyub təsdiqləyin.");
+      cta = t("Confirm the contract", "Подтвердить договор", "Müqaviləni təsdiqlə");
+    } else if (latest && contractState !== "ACCEPTED") {
+      tone = "action";
+      badge = offerStatus(l);
+      hint = t("Review the itinerary and prices.", "Изучите маршрут и цены.", "Marşrut və qiymətlərə baxın.");
+      cta = t("View the offer", "Открыть предложение", "Təklifə bax");
+    } else if (contractState === "ACCEPTED") {
+      tone = "ok";
+      badge = depositPaid
+        ? t("Booked and paid", "Забронировано и оплачено", "Rezerv və ödəniş qeyd olunub")
+        : t("Contract confirmed", "Договор подтверждён", "Müqavilə təsdiqlənib");
+      hint = depositPaid
+        ? t("New payment requests will appear here.", "Новые запросы оплаты появятся здесь.", "Yeni ödəniş tələbləri burada görünəcək.")
+        : t("Our team will request the deposit.", "Команда запросит депозит.", "Komanda behi tələb edəcək.");
+    } else {
+      tone = "info";
+      badge = t("Being prepared", "Готовится", "Hazırlanır");
+      hint = t("Our team is preparing your offer. No payment is due.", "Команда готовит предложение. Оплаты нет.", "Komanda təklifi hazırlayır. Ödəniş tələb olunmur.");
+    }
+    const route = cabinetRoute(item).map(cityName);
+    return (
+      <article className="cc-trip tp-card" key={item.id}>
+        <div className="tp-card-main">
+          <div className="tp-card-head">
+            <div>
+              <small>
+                {quote?.input.customDays ? t("Custom journey", "Индивидуальный маршрут", "Fərdi səfər") + ", " : ""}
+                #{item.id.slice(0, 8)}
+              </small>
+              <h2>{route.length ? route.join(" → ") : cabinetTitle(item, l)}</h2>
+              <p>
+                {dates(item)}, {quote?.input.pax ? travellerCount(quote.input.pax, l) : "—"}
+              </p>
+            </div>
+            <span className={"tp-badge " + tone}>{badge}</span>
+          </div>
+          <ol className="tp-mini" aria-label={t("Progress", "Ход", "Gedişat")}>
+            {labels.map((label, i) => (
+              <li key={label} className={(done[i] ? "done " : "") + (i === current ? "current" : "")}>
+                <b>{done[i] ? <Check size={12} /> : i + 1}</b>
+                {label}
+              </li>
+            ))}
+          </ol>
+          {hint && <p className="tp-hint">{hint}</p>}
+          <div className="tp-card-foot">
+            <div>
+              <small>{t("Total", "Итого", "Cəmi")}</small>
+              <strong>{money(total, item.currency, l)}</strong>
+              {paid > 0 && (
+                <small>
+                  {t("Paid", "Оплачено", "Ödənilib")} {money(paid, item.currency, l)}
+                </small>
+              )}
+            </div>
+            {link(
+              "/trips/" + item.id + (openReq ? "/payments" : ""),
+              <>
+                {cta}
+                <ArrowRight size={18} />
+              </>,
+              tone === "action" ? "cc-primary" : "cc-outline tp-open",
+            )}
+          </div>
+        </div>
+      </article>
+    );
+  }
   const account = (
     <div className="cc-account">
       <UserRound size={28} />
@@ -546,108 +736,9 @@ export default function CustomerCabinet({
                     ))}
                     {refresh}
                   </div>
-                  {filterTrips(bookings, filter, dateLimit(0)).map((item) => {
-                    const quote = bookingQuote(item);
-                    const latest = offers.find((o) => o.bookingId === item.id);
-                    return (
-                      <article className="cc-trip" key={item.id}>
-                        <Image
-                          src={
-                            "/images/homepage-v3/" + cabinetPhoto(item) + ".webp"
-                          }
-                          alt={cabinetRoute(item).map(cityName).join(" · ")}
-                          width={600}
-                          height={500}
-                        />
-                        <div className="cc-trip-body">
-                          <div className="cc-trip-top">
-                            <small>
-                              {t("Request", "Запрос", "Sorğu")} #
-                              {item.id.slice(0, 8)}
-                            </small>
-                            {status(item)}
-                          </div>
-                          <h2>{cabinetTitle(item, l)}</h2>
-                          <p className="cc-route-name">
-                            {cabinetRoute(item).map(cityName).join(" → ")}
-                          </p>
-                          <p>
-                            {dates(item)} · {quote?.input.pax || "—"}{" "}
-                            {t("travelers", "чел.", "nəfər")}
-                          </p>
-                          {item.status === "PENDING_REVIEW" && !latest && (
-                            <div className="cc-sage">
-                              <Users size={26} />
-                              <div>
-                                <strong>
-                                  {t(
-                                    "Your request is with our team.",
-                                    "Ваша заявка у нашей команды.",
-                                    "Sorğun komandamızdadır.",
-                                  )}
-                                </strong>
-                                <p>
-                                  {t(
-                                    "We’re checking the route and availability. No payment is due.",
-                                    "Проверяем маршрут и доступность. Сейчас оплаты нет.",
-                                    "Marşrutu və mövcudluğu yoxlayırıq. Hazırda ödəniş tələb olunmur.",
-                                  )}
-                                </p>
-                              </div>
-                            </div>
-                          )}
-                          {latest && (
-                            <CustomerOfferView
-                              offer={latest}
-                              locale={l}
-                              compact
-                            />
-                          )}
-                          {item.operatorNote && (
-                            <p className="cc-operator">{item.operatorNote}</p>
-                          )}
-                          <div className="cc-trip-bottom">
-                            <div>
-                              <strong>
-                                {latest
-                                  ? originalEstimate(l)
-                                  : t(
-                                      "Estimated group total",
-                                      "Примерная сумма для группы",
-                                      "Qrup üçün təxmini cəm",
-                                    )}
-                              </strong>
-                              <small>
-                                {t("Paid", "Оплачено", "Ödənilib")}{" "}
-                                {money(item.paid, item.currency, l)} ·{" "}
-                                {t("Remaining", "Остаток", "Qalıq")}{" "}
-                                {money(
-                                  Math.max(0, item.total - item.paid),
-                                  item.currency,
-                                  l,
-                                )}
-                              </small>
-                            </div>
-                            <strong className="cc-price">
-                              {money(item.total, item.currency, l)}
-                            </strong>
-                            {link(
-                              "/trips/" + item.id,
-                              <>
-                                {t(
-                                  "View request",
-                                  "Открыть запрос",
-                                  "Sorğuya bax",
-                                )}
-                                <ArrowRight size={18} />
-                              </>,
-                              "cc-primary",
-                            )}
-                          </div>
-                        </div>
-                      </article>
-                    );
-                  })}
+                  <div className="tp-list">
+                    {filterTrips(bookings, filter, dateLimit(0)).map((item) => tripCard(item))}
+                  </div>
                   {!filterTrips(bookings, filter, dateLimit(0)).length && (
                     <div className="cc-empty">
                       <Luggage size={32} />
@@ -675,29 +766,6 @@ export default function CustomerCabinet({
                       )}
                     </div>
                   )}
-                  <section className="cc-next-section">{nextSteps}</section>
-                  <div className="cc-help">
-                    <div>
-                      <FileText size={30} />
-                      <div>
-                        <h3>
-                          {t(
-                            "Need to update your plan?",
-                            "Хотите изменить план?",
-                            "Planı dəyişmək istəyirsən?",
-                          )}
-                        </h3>
-                        <p>
-                          {t(
-                            "Open your request to send a change or cancellation.",
-                            "Откройте заявку, чтобы запросить изменение или отмену.",
-                            "Dəyişiklik və ya ləğv istəmək üçün sorğunu aç.",
-                          )}
-                        </p>
-                      </div>
-                    </div>
-                    {account}
-                  </div>
                 </>
               )}
             </div>
@@ -741,88 +809,264 @@ export default function CustomerCabinet({
             <header className="cc-detail-heading">
               <h1>{cabinetTitle(b, l)}</h1>
               <p>
-                {dates(b)} · {q?.input.customDays || route.length || 1}{" "}
-                {t("days", "дн.", "gün")} ·{" "}
+                {dates(b)}, {q?.input.customDays || route.length || 1}{" "}
+                {t("days", "дн.", "gün")},{" "}
                 {Math.max(0, (q?.input.customDays || route.length || 1) - 1)}{" "}
-                {t("night(s)", "ноч.", "gecə")} · {q?.input.pax || "—"}{" "}
-                {t("travelers", "чел.", "nəfər")}
+                {t("night(s)", "ноч.", "gecə")},{" "}
+                {q?.input.pax ? travellerCount(q.input.pax, l) : "—"}
               </p>
             </header>
-            <Image
-              className="cc-hero"
-              src={"/images/homepage-v3/" + cabinetPhoto(b) + ".webp"}
-              alt={route.map(cityName).join(" · ")}
-              width={1400}
-              height={380}
-              priority
-            />
-            <div className="cc-state-banner">
-              <Clock size={25} />
-              <div>
-                <strong>
-                  {currentOffer && b.status === "PENDING_REVIEW"
-                    ? offerStatus(l)
-                    : statuses[b.status]}
-                </strong>
-                <p>
-                  {pending
-                    ? t(
-                        "Your change or cancellation request is being reviewed. Payment is paused.",
-                        "Изменение или отмена на проверке. Оплата приостановлена.",
-                        "Dəyişiklik və ya ləğv sorğusu yoxlanılır. Ödəniş dayandırılıb.",
-                      )
-                    : currentOffer
-                      ? offerStatus(l)
-                      : b.status === "PENDING_REVIEW"
-                        ? t(
-                            "We’re checking your route and availability. No payment is due.",
-                            "Проверяем маршрут и доступность. Сейчас оплаты нет.",
-                            "Marşrutu və mövcudluğu yoxlayırıq. Hazırda ödəniş tələb olunmur.",
-                          )
-                        : b.operatorNote ||
-                          t(
-                            "See your request details and next step below.",
-                            "Детали заявки и следующий шаг ниже.",
-                            "Sorğu detalları və növbəti addım aşağıdadır.",
-                          )}
-                </p>
-              </div>
-              {refresh}
-            </div>
+            {(() => {
+              const cancelled = ["CANCELLED", "REJECTED"].includes(b.status);
+              const contractAccepted = tripContract?.state === "ACCEPTED";
+              const contractSent = tripContract?.state === "SENT";
+              const depositPaid = !!tripPayments?.requests.some(
+                (r) => r.kind === "DEPOSIT" && r.status === "PAID",
+              );
+              const openRequest = tripPayments?.requests.find(
+                (r) =>
+                  r.status === "OPEN" &&
+                  r.contract_id === tripPayments.contract?.id,
+              );
+              const stages = [
+                { label: t("Request", "Заявка", "Sorğu"), done: true },
+                { label: t("Offer", "Предложение", "Təklif"), done: !!currentOffer },
+                { label: t("Contract", "Договор", "Müqavilə"), done: contractAccepted },
+                { label: t("Payment", "Оплата", "Ödəniş"), done: depositPaid },
+              ];
+              const current = cancelled ? -1 : stages.findIndex((x) => !x.done);
+              const amount = (minor: number) => money(minor / 100, b.currency, l);
+              const go2 = (id: string) =>
+                document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+              let icon = <Clock size={26} />;
+              let title = "";
+              let text = "";
+              let action: ReactNode = null;
+              if (cancelled) {
+                title = statuses[b.status];
+                text =
+                  b.operatorNote ||
+                  t("This request is closed.", "Этот запрос закрыт.", "Bu sorğu bağlanıb.");
+              } else if (pending) {
+                title = t("Your request is being reviewed", "Ваш запрос на рассмотрении", "Sorğunuz yoxlanılır");
+                text = t(
+                  "Your change or cancellation request is being reviewed. Payment is paused.",
+                  "Изменение или отмена на проверке. Оплата приостановлена.",
+                  "Dəyişiklik və ya ləğv sorğusu yoxlanılır. Ödəniş dayandırılıb.",
+                );
+              } else if (openRequest) {
+                icon = <Wallet size={26} />;
+                title = t(
+                  `Payment requested: ${amount(openRequest.amount_minor)}`,
+                  `Запрошена оплата: ${amount(openRequest.amount_minor)}`,
+                  `Ödəniş tələb olunur: ${amount(openRequest.amount_minor)}`,
+                );
+                text = t(
+                  "See what is requested and how our team will confirm your payment.",
+                  "Посмотрите, что запрошено и как команда подтвердит платёж.",
+                  "Nə tələb olunduğuna və komandanın ödənişi necə təsdiq edəcəyinə baxın.",
+                );
+                action = (
+                  <button className="tp-cta" onClick={() => go("/trips/" + b.id + "/payments")}>
+                    {t("Go to payments", "К оплате", "Ödənişlərə keç")}
+                    <ArrowRight size={18} />
+                  </button>
+                );
+              } else if (contractSent) {
+                icon = <FileText size={26} />;
+                title = t("Please confirm the contract", "Подтвердите договор", "Müqaviləni təsdiqləyin");
+                text = t(
+                  "Read the contract below and confirm it. No payment is taken at this step.",
+                  "Прочитайте договор ниже и подтвердите. На этом шаге оплата не берётся.",
+                  "Aşağıdakı müqaviləni oxuyun və təsdiqləyin. Bu addımda ödəniş tutulmur.",
+                );
+                action = (
+                  <button className="tp-cta" onClick={() => go2("cc-contract")}>
+                    {t("Open the contract", "Открыть договор", "Müqaviləyə keç")}
+                    <ArrowRight size={18} />
+                  </button>
+                );
+              } else if (currentOffer && !contractAccepted) {
+                icon = <FileText size={26} />;
+                title = offerStatus(l);
+                text = t(
+                  "Review the itinerary and prices below. The contract follows when our team sends it.",
+                  "Изучите маршрут и цены ниже. Договор придёт после отправки командой.",
+                  "Aşağıda marşrut və qiymətlərə baxın. Müqavilə komanda göndərəndə gələcək.",
+                );
+                action = (
+                  <button className="tp-cta" onClick={() => go2("cc-offer")}>
+                    {t("View the offer", "Открыть предложение", "Təklifə bax")}
+                    <ArrowRight size={18} />
+                  </button>
+                );
+              } else if (contractAccepted) {
+                icon = <Check size={26} />;
+                title = depositPaid
+                  ? t("Everything is in order", "Всё в порядке", "Hər şey qaydasındadır")
+                  : t("Contract confirmed", "Договор подтверждён", "Müqavilə təsdiqlənib");
+                text = depositPaid
+                  ? t(
+                      "Your payment is recorded. You will see new payment requests here and in your notifications.",
+                      "Платёж записан. Новые запросы оплаты появятся здесь и в уведомлениях.",
+                      "Ödənişiniz qeyd olunub. Yeni ödəniş tələbləri burada və bildirişlərdə görünəcək.",
+                    )
+                  : t(
+                      "Our team will request the deposit. You will see it here.",
+                      "Команда запросит депозит. Вы увидите его здесь.",
+                      "Komanda behi tələb edəcək. Burada görəcəksiniz.",
+                    );
+              } else {
+                title = t("We are preparing your offer", "Готовим ваше предложение", "Təklifinizi hazırlayırıq");
+                text = t(
+                  "We check your route and availability. No payment is due.",
+                  "Проверяем маршрут и доступность. Сейчас оплаты нет.",
+                  "Marşrutu və mövcudluğu yoxlayırıq. Hazırda ödəniş tələb olunmur.",
+                );
+              }
+              return (
+                <>
+                  <ol className="tp-stages" aria-label={t("Progress", "Ход", "Gedişat")}>
+                    {stages.map((st, i) => (
+                      <li key={st.label} className={(st.done ? "done " : "") + (i === current ? "current" : "")}>
+                        <b>{st.done ? <Check size={14} /> : i + 1}</b>
+                        {st.label}
+                      </li>
+                    ))}
+                  </ol>
+                  <div className="tp-next">
+                    <span className="tp-next-icon">{icon}</span>
+                    <div>
+                      <h2>{title}</h2>
+                      <p>{text}</p>
+                    </div>
+                    {action}
+                    <button
+                      className="tp-refresh"
+                      disabled={refreshing || busy}
+                      onClick={() => {
+                        void load();
+                        void loadTripExtras(b.id);
+                      }}
+                      aria-label={t("Refresh", "Обновить", "Yenilə")}
+                    >
+                      <RefreshCw size={16} />
+                    </button>
+                  </div>
+                </>
+              );
+            })()}
             <div className="cc-detail-grid">
               <div>
-                <nav
-                  className="cc-anchors"
-                  aria-label={t(
-                    "Request sections",
-                    "Разделы заявки",
-                    "Sorğu bölmələri",
-                  )}
-                >
-                  {[
-                    ["cc-route", t("Overview", "Обзор", "Ümumi baxış")],
-                    ["cc-services", t("Services", "Услуги", "Xidmətlər")],
-                    ["cc-requests", t("Requests", "Запросы", "Sorğular")],
-                    ["cc-documents", t("Documents", "Документы", "Sənədlər")],
-                  ].map(([id, name]) => (
-                    <a key={id} href={"#" + id}>
-                      {name}
-                    </a>
-                  ))}
-                </nav>
                 {currentOffer && (
-                  <CustomerOfferView offer={currentOffer} locale={l} />
+                  <>
+                    <CustomerOfferView offer={currentOffer} locale={l} />
+                    <section id="cc-contract" className="cc-contract-block">
+                      <h2>{t("Contract", "Договор", "Müqavilə")}</h2>
+                      <CustomerContract
+                        key={b.id}
+                        bookingId={b.id}
+                        locale={l}
+                        onChange={() => void loadTripExtras(b.id)}
+                      />
+                    </section>
+                  </>
                 )}
+                {(tripContract?.state === "ACCEPTED" || !!tripPayments?.requests.length) && (
+                <section id="cc-payments" className="tp-pay">
+                  <h2>{t("Payments", "Платежи", "Ödənişlər")}</h2>
+                  {(() => {
+                    const totalNow = currentOffer ? currentOffer.total : b.total;
+                    const paidNow = tripPayments ? tripPayments.paidMinor / 100 : b.paid;
+                    const openCount = tripPayments
+                      ? tripPayments.requests.filter(
+                          (r) => r.status === "OPEN" && r.contract_id === tripPayments.contract?.id,
+                        ).length
+                      : 0;
+                    return (
+                      <div className="tp-pay-card">
+                        <div>
+                          <small>{t("Paid", "Оплачено", "Ödənilib")}</small>
+                          <strong>{money(paidNow, b.currency, l)}</strong>
+                        </div>
+                        <div>
+                          <small>{t("Remaining", "Остаток", "Qalıq")}</small>
+                          <strong>{money(Math.max(0, totalNow - paidNow), b.currency, l)}</strong>
+                        </div>
+                        <div>
+                          <small>{t("Waiting for payment", "Ожидает оплаты", "Ödəniş gözləyən")}</small>
+                          <strong>{openCount}</strong>
+                        </div>
+                        <button className="cc-primary" onClick={() => go("/trips/" + b.id + "/payments")}>
+                          <CreditCard size={18} />
+                          {t("Open payments", "Открыть оплату", "Ödənişlərə bax")}
+                          <ArrowRight size={17} />
+                        </button>
+                      </div>
+                    );
+                  })()}
+                </section>
+                )}
+                {!currentOffer && Array.isArray(q?.input.plan) && q && (
+                  <section id="cc-route">
+                    <h2>{t("Your trip", "Ваша поездка", "Səfərin")}</h2>
+                    <div className="cc-plan">
+                      <div className="cc-plan-end">
+                        <strong>
+                          {t("Start", "Старт", "Başlanğıc")}, {cityName(q.input.startCity || "Baku")}
+                        </strong>
+                      </div>
+                      {q.input.plan.map((day, di) => (
+                        <div className="cc-plan-day" key={di}>
+                          <strong>
+                            {t("Day", "День", "Gün")} {di + 1}
+                          </strong>
+                          {day.places.map((place, pi) => (
+                            <div className="cc-plan-place" key={pi}>
+                              <b>{cityName(place.city)}</b>
+                              <ul>
+                                {place.services.length ? (
+                                  place.services.map((k) => (
+                                    <li key={k}>{planLabels[k] || k}</li>
+                                  ))
+                                ) : (
+                                  <li>{t("No services chosen", "Услуги не выбраны", "Xidmət seçilməyib")}</li>
+                                )}
+                              </ul>
+                            </div>
+                          ))}
+                        </div>
+                      ))}
+                      <div className="cc-plan-end">
+                        <strong>
+                          {t("Return", "Возвращение", "Qayıdış")}, {cityName(q.input.endCity || "Baku")}
+                        </strong>
+                      </div>
+                    </div>
+                    <div className="cc-service cc-service-total">
+                      <strong>{t("Estimated total", "Примерная сумма", "Təxmini cəm")}</strong>
+                      <strong>{money(b.total, b.currency, l)}</strong>
+                    </div>
+                    <p className="cc-caption">
+                      {t(
+                        "Our team prepares an offer with the final services and prices.",
+                        "Команда подготовит предложение с итоговыми услугами и ценами.",
+                        "Komandamız yekun xidmət və qiymətlərlə təklif hazırlayacaq.",
+                      )}
+                    </p>
+                  </section>
+                )}
+                {!currentOffer && !Array.isArray(q?.input.plan) && (
+                  <>
                 <section id="cc-route">
                   <h2>
-                    <span>01</span>
                     {t("Your route", "Ваш маршрут", "Marşrutun")}
                   </h2>
                   <div className="cc-day-list">
                     {route.map((city, i) => (
                       <details key={i} open={route.length <= 2}>
                         <summary>
-                          {t("Day", "День", "Gün")} {i + 1} · {cityName(city)}
+                          {t("Day", "День", "Gün")} {i + 1}, {cityName(city)}
                         </summary>
                         <p>
                           {t(
@@ -855,7 +1099,6 @@ export default function CustomerCabinet({
                 </section>
                 <section id="cc-services">
                   <h2>
-                    <span>02</span>
                     {t(
                       "Your selected services",
                       "Выбранные услуги",
@@ -954,9 +1197,10 @@ export default function CustomerCabinet({
                     <strong>{money(b.total, b.currency, l)}</strong>
                   </div>
                 </section>
+                  </>
+                )}
                 <section>
                   <h2>
-                    <span>03</span>
                     {t("Your notes", "Ваши пожелания", "Qeydlərin")}
                   </h2>
                   <p className="cc-notes">
@@ -982,7 +1226,6 @@ export default function CustomerCabinet({
                 </section>
                 <section id="cc-requests">
                   <h2>
-                    <span>04</span>
                     {t(
                       "Requests & updates",
                       "Запросы и обновления",
@@ -1003,7 +1246,7 @@ export default function CustomerCabinet({
                               "Запрос изменения",
                               "Dəyişiklik sorğusu",
                             )}{" "}
-                        ·{" "}
+                       ,{" "}
                         {r.status === "PENDING"
                           ? t(
                               "Waiting for a response",
@@ -1068,19 +1311,6 @@ export default function CustomerCabinet({
                   </div>
                   <p className="cc-caption">{cancellation}</p>
                 </section>
-                <section id="cc-documents">
-                  <h2>
-                    <span>05</span>
-                    {t("Documents", "Документы", "Sənədlər")}
-                  </h2>
-                  <CustomerContract key={b.id} bookingId={b.id} locale={l} />
-                  <button
-                    className="cc-outline"
-                    onClick={() => go("/trips/" + b.id + "/payments")}
-                  >
-                    {t("Payments", "Платежи", "Ödənişlər")}
-                  </button>
-                </section>
               </div>
               <aside className="cc-summary">
                 <div>
@@ -1092,73 +1322,39 @@ export default function CustomerCabinet({
                     </dt>
                     <dd>{dates(b)}</dd>
                     <dt>{t("Travelers", "Участники", "Səyahətçilər")}</dt>
-                    <dd>{q?.input.pax || "—"}</dd>
+                    <dd>{q?.input.pax ? travellerCount(q.input.pax, l) : "—"}</dd>
                   </dl>
                   <dl className="cc-money">
                     <dt>
-                      {t("Estimated total", "Примерная сумма", "Təxmini cəm")}
+                      {currentOffer
+                        ? t("Offer total", "Сумма предложения", "Təklifin cəmi")
+                        : t("Estimated total", "Примерная сумма", "Təxmini cəm")}
                     </dt>
-                    <dd>{money(b.total, b.currency, l)}</dd>
+                    <dd>{money(currentOffer ? currentOffer.total : b.total, b.currency, l)}</dd>
                     <dt>{t("Paid", "Оплачено", "Ödənilib")}</dt>
-                    <dd>{money(b.paid, b.currency, l)}</dd>
+                    <dd>{money(tripPayments ? tripPayments.paidMinor / 100 : b.paid, b.currency, l)}</dd>
                     <dt>{t("Remaining", "Остаток", "Qalıq")}</dt>
                     <dd>
-                      {money(Math.max(0, b.total - b.paid), b.currency, l)}
+                      {money(
+                        Math.max(
+                          0,
+                          (currentOffer ? currentOffer.total : b.total) -
+                            (tripPayments ? tripPayments.paidMinor / 100 : b.paid),
+                        ),
+                        b.currency,
+                        l,
+                      )}
                     </dd>
                   </dl>
-                  <p className="cc-caption">
-                    {t(
-                      "Final services and price confirmed by our team.",
-                      "Услуги и цену подтвердит команда.",
-                      "Yekun xidmət və qiyməti komandamız təsdiqləyir.",
-                    )}
-                  </p>
-                  <div className="cc-next-action">
-                    <h3>{t("Next step", "Следующий шаг", "Növbəti addım")}</h3>
-                    <p>
-                      {pending
-                        ? t(
-                            "Wait for the team’s response to your request.",
-                            "Дождитесь ответа команды.",
-                            "Komandanın sorğuya cavabını gözlə.",
-                          )
-                        : currentOffer
-                          ? offerStatus(l)
-                          : b.status === "PENDING_REVIEW"
-                            ? t(
-                                "Wait for our team’s review.",
-                                "Дождитесь проверки команды.",
-                                "Komandamızın yoxlamasını gözlə.",
-                              )
-                            : statuses[b.status]}
+                  {b.status === "CANCELLED" && b.paid > 0 && (
+                    <p className="cc-caption">
+                      {t(
+                        "Any refund is handled manually by the team.",
+                        "Возврат обрабатывает команда вручную.",
+                        "Geri ödənişi komanda manual idarə edir.",
+                      )}
                     </p>
-                    {b.status === "CANCELLED" && b.paid > 0 && (
-                      <p>
-                        {t(
-                          "Any refund is handled manually by the team.",
-                          "Возврат обрабатывает команда вручную.",
-                          "Geri ödənişi komanda manual idarə edir.",
-                        )}
-                      </p>
-                    )}
-                  </div>
-                </div>
-                <div>
-                  <h3>
-                    {t(
-                      "How payments will work",
-                      "Как проходит оплата",
-                      "Ödənişlər necə olacaq",
-                    )}
-                  </h3>
-                  <p>
-                    {t(
-                      "Review the confirmed offer and PDF contract before a deposit. Later payments follow confirmed service requests.",
-                      "Ознакомьтесь с предложением и PDF-договором до депозита. Далее оплата по запросам услуг.",
-                      "Behdən əvvəl təsdiqlənmiş təklif və PDF müqavilə ilə tanış ol. Sonrakı ödənişlər xidmətlər üzrə tələb olunur.",
-                    )}
-                  </p>
-                  <p className="cc-planned">{planned}</p>
+                  )}
                 </div>
               </aside>
             </div>

@@ -521,7 +521,7 @@ function Builder({
           <span>
             {tr("Travellers", "Путешественники")}
             <small>
-              {tr("1–12 people · all ages", "1–12 человек · любой возраст")}
+              {tr("1–12 people, all ages", "1–12 человек, любой возраст")}
             </small>
           </span>
           <div className="stepper">
@@ -690,8 +690,8 @@ function Builder({
         ) : null}
         <p className="demo-label">
           {tr(
-            "Estimated price · confirmed by our team after an availability check.",
-            "Ориентировочная цена · подтверждается командой после проверки наличия.",
+            "Estimated price, confirmed by our team after an availability check.",
+            "Ориентировочная цена, подтверждается командой после проверки наличия.",
           )}
         </p>
         {error && (
@@ -714,7 +714,7 @@ function lineLabel(key: string, l: Locale) {
   const labels: Record<string, string[]> = {
     transport: ["Private driver", "Личный водитель", "Şəxsi sürücü"],
     hotel: ["Hotel stay", "Проживание", "Oteldə qalma"],
-    guide: ["Local guide", "Местный гид", "Yerli gid"],
+    guide: ["Local guide", "Местный гид", "Yerli bələdçi"],
     transfer: ["Airport transfer", "Трансфер", "Transfer"],
     activity: ["Local experience", "Местный мастер-класс", "Yerli təcrübə"],
   };
@@ -746,7 +746,7 @@ function Contact({ request = false }: { request?: boolean }) {
           p.get("route"),
         ]
           .filter(Boolean)
-          .join(" · "),
+          .join(", "),
       );
     }
   }, [request]);
@@ -985,8 +985,8 @@ function Info({ type }: { type: string }) {
           <p>
             <strong>
               {tr(
-                "Draft for design review · updated 25 October 2026",
-                "Черновик для просмотра дизайна · обновлено 25 октября 2026",
+                "Draft for design review, updated 25 October 2026",
+                "Черновик для просмотра дизайна, обновлено 25 октября 2026",
               )}
             </strong>
           </p>
@@ -1110,7 +1110,7 @@ function Credits() {
             <a href={"https://creativecommons.org/licenses/" + license + "/"}>
               {label}
             </a>{" "}
-            · Resized, converted to WebP, and cropped for display.
+           , Resized, converted to WebP, and cropped for display.
           </p>
         ))}
       </div>
@@ -1520,7 +1520,7 @@ export default function Site({ initialPath }: { initialPath: string }) {
                 >
                   Matthew Hadley / Ximonic, Simo Räsänen
                 </a>{" "}
-                ·{" "}
+               ,{" "}
                 <a href="https://creativecommons.org/licenses/by/1.0/">
                   CC BY 1.0
                 </a>
@@ -1528,7 +1528,7 @@ export default function Site({ initialPath }: { initialPath: string }) {
                 <a href="https://commons.wikimedia.org/wiki/File:Az%C9%99rbaycan,_X%C4%B1nal%C4%B1q._Azerbaijan,_Khinalug.jpg">
                   Musa Abdulragimli
                 </a>{" "}
-                ·{" "}
+               ,{" "}
                 <a href="https://creativecommons.org/licenses/by-sa/4.0/">
                   CC BY-SA 4.0
                 </a>

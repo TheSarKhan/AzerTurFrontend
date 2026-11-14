@@ -147,7 +147,7 @@ export default function CustomerNotifications({
             </h3>
             <p>
               {new Date(n.created_at).toLocaleString(l)}
-              {n.booking_id ? " · #" + n.booking_id.slice(0, 8) : ""}
+              {n.booking_id ? ", #" + n.booking_id.slice(0, 8) : ""}
             </p>
           </div>
           <button

@@ -3,6 +3,7 @@ export type Customer = {
   emailVerified: boolean;
   email: string;
   name: string;
+  phone?: string | null;
   locale: "en" | "ru" | "az";
 };
 export type Booking = {
@@ -63,7 +64,8 @@ export async function customerApi<T>(
     throw new ApiError(response.status, data.error || "REQUEST_FAILED");
   }
   if (response.status === 204) return undefined as T;
-  return response.json();
+  const text = await response.text();
+  return (text ? JSON.parse(text) : undefined) as T;
 }
 export type CustomerOffer = {
   id: string;
@@ -74,7 +76,7 @@ export type CustomerOffer = {
   currency: "EUR" | "USD" | "AZN";
   date: string;
   travelers: number;
-  itinerary: { city: string; description: string }[];
+  itinerary: { city: string; description: string; day?: number | null }[];
   returnRoute: string;
   services: {
     key: string;
@@ -85,8 +87,11 @@ export type CustomerOffer = {
     unit: string;
     total: number;
     policy: string;
+    row?: number | null;
   }[];
   total: number;
   message: string;
   sentAt: string;
+  startCity?: string | null;
+  endCity?: string | null;
 };

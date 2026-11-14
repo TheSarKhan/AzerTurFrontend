@@ -1,4 +1,5 @@
 "use client";
+import { travellerCount } from "@/lib/pax";
 import { useEffect, useRef, useState } from "react";
 import CustomerCabinet from "./customer-cabinet";
 import { AuthShowcase } from "./auth-showcase";
@@ -16,7 +17,7 @@ const serviceName = (key: string, l: Locale) => {
   const names: Record<string, [string, string, string]> = {
     transport: ["Private driver", "Личный водитель", "Şəxsi sürücü"],
     hotel: ["Hotel stay", "Проживание", "Oteldə qalma"],
-    guide: ["Local guide", "Гид", "Gid"],
+    guide: ["Local guide", "Гид", "Bələdçi"],
     transfer: ["Airport transfer", "Трансфер", "Transfer"],
     activity: ["Local experience", "Впечатление", "Yerli təcrübə"],
   };
@@ -47,6 +48,11 @@ function errorMessage(error: unknown, l: Locale) {
       "Verify your email in Account before continuing.",
       "Подтвердите email в аккаунте.",
       "Davam etmək üçün Hesab bölməsində email ünvanını təsdiqlə.",
+    ],
+    INVALID_PHONE: [
+      "Enter a phone number with 7 to 15 digits, for example +994 50 123 45 67.",
+      "Введите номер телефона из 7-15 цифр, например +994 50 123 45 67.",
+      "Telefon nömrəsini 7-15 rəqəmlə yazın, məsələn +994 50 123 45 67.",
     ],
     INVALID_CREDENTIALS: [
       "Email or password is incorrect.",
@@ -272,7 +278,11 @@ export function CustomerAuth({
                 email: String(f.get("email")),
                 password: String(f.get("password")),
                 ...(mode === "register"
-                  ? { name: String(f.get("name")), locale: l }
+                  ? {
+                      name: String(f.get("name")),
+                      phone: String(f.get("phone")),
+                      locale: l,
+                    }
                   : {}),
               });
               if (mode === "forgot-password") {
@@ -311,6 +321,28 @@ export function CustomerAuth({
               autoComplete="email"
             />
           </label>
+          {mode === "register" && (
+            <label>
+              {t("Phone number", "Номер телефона", "Telefon nömrəsi")}
+              <input
+                name="phone"
+                required
+                type="tel"
+                inputMode="tel"
+                minLength={7}
+                maxLength={24}
+                autoComplete="tel"
+                placeholder="+994 50 123 45 67"
+              />
+              <small className="field-help">
+                {t(
+                  "Our team may call or message you about your trip.",
+                  "Команда может позвонить или написать вам по поводу поездки.",
+                  "Komandamız səfərinizlə bağlı sizə zəng edə və ya yaza bilər.",
+                )}
+              </small>
+            </label>
+          )}
           {mode !== "forgot-password" && (
             <label>
               {t("Password", "Пароль", "Şifrə")}
@@ -405,7 +437,9 @@ export function BookingCheckout({
     [plannerNote, setPlannerNote] = useState(""),
     [quote, setQuote] = useState<Quote | null>(null),
     [error, setError] = useState(""),
-    [busy, setBusy] = useState(false);
+    [busy, setBusy] = useState(false),
+    [auto, setAuto] = useState(false);
+  const sentOnce = useRef(false);
   const t = (en: string, ru: string, az: string) => text(l, en, ru, az);
   useEffect(() => {
     let active = true;
@@ -428,10 +462,32 @@ export function BookingCheckout({
       active = false;
     };
   }, [quoteId]);
-  if (!ready)
+  // Signed in and verified: the request goes out straight away, there is no page to fill in.
+  useEffect(() => {
+    if (
+      !ready ||
+      !customer?.emailVerified ||
+      !customer.phone ||
+      !quote ||
+      Date.parse(quote.expires) < Date.now() ||
+      sentOnce.current
+    )
+      return;
+    sentOnce.current = true;
+    setAuto(true);
+    customerApi<Booking>("bookings", { quoteId: quote.id, note: plannerNote })
+      .then(() => go("/trips"))
+      .catch((e) => {
+        setError(errorMessage(e, l));
+        setAuto(false);
+      });
+  }, [ready, customer, quote, plannerNote]); // eslint-disable-line react-hooks/exhaustive-deps
+  if (!ready || auto)
     return (
       <section className="container page-content" role="status">
-        {t("Loading…", "Загрузка…", "Yüklənir…")}
+        {auto
+          ? t("Sending your request…", "Отправляем заявку…", "Sorğun göndərilir…")
+          : t("Loading…", "Загрузка…", "Yüklənir…")}
       </section>
     );
   if (!customer)
@@ -479,6 +535,9 @@ export function BookingCheckout({
             setBusy(true);
             setError("");
             try {
+              // Older accounts have no number yet; the office needs one on every request.
+              if (!customer.phone)
+                await customerApi("auth/phone", { phone: String(f.get("phone")) });
               await customerApi<Booking>("bookings", {
                 quoteId: quote.id,
                 note: String(f.get("note")),
@@ -504,6 +563,28 @@ export function BookingCheckout({
                 {t("Open account", "Открыть аккаунт", "Hesabı aç")}
               </a>
             </p>
+          )}
+          {!customer.phone && (
+            <label>
+              {t("Phone number", "Номер телефона", "Telefon nömrəsi")}
+              <input
+                name="phone"
+                required
+                type="tel"
+                inputMode="tel"
+                minLength={7}
+                maxLength={24}
+                autoComplete="tel"
+                placeholder="+994 50 123 45 67"
+              />
+              <small className="field-help">
+                {t(
+                  "So our team can reach you about this request.",
+                  "Чтобы команда могла связаться с вами по этой заявке.",
+                  "Komandamızın bu sorğu ilə bağlı sizinlə əlaqə saxlaması üçün.",
+                )}
+              </small>
+            </label>
           )}
           <label>
             {t(
@@ -555,10 +636,17 @@ export function BookingCheckout({
                 ]}
           </h3>
           <p>
-            {quote.input.date} · {quote.input.pax}{" "}
-            {t("travellers", "чел.", "nəfər")}
+            {quote.input.date}, {travellerCount(quote.input.pax, l)}
           </p>
-          {quote.input.cities && <p>{quote.input.cities.join(" → ")}</p>}
+          {quote.input.cities && (
+            <p>
+              {[
+                quote.input.startCity ?? "Baku",
+                ...quote.input.cities.filter((c, i, all) => c !== all[i - 1]),
+                quote.input.endCity ?? "Baku",
+              ].join(" → ")}
+            </p>
+          )}
           <div className="summary-lines">
             {quote.lines.map((line) => (
               <div key={line.label}>

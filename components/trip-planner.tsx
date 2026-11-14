@@ -1,21 +1,24 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import Image from "next/image";
 import {
   ArrowRight,
   Plus,
-  Minus,
   X,
-  Pencil,
   Car,
   BedDouble,
   Users,
   Plane,
+  Bus,
   Flower2,
+  Utensils,
+  Tickets,
+  Camera,
+  CalendarDays,
   Link as LinkIcon,
 } from "lucide-react";
 import { RouteMap, type RouteStop } from "./route-map";
 import { places } from "@/lib/places";
+import { PAX_OPTIONS, snapPax, travellerCount } from "@/lib/pax";
 import {
   tours,
   transitions,
@@ -26,40 +29,87 @@ import {
   type Quote,
   type QuoteInput,
 } from "@/lib/travel";
+
+// The trip is built day by day: a day has one or more places, and every place has the services wanted there.
+type PlanPlace = { city: string; services: string[] };
+type PlanDay = { places: PlanPlace[] };
+const SERVICE_KEYS = [
+  "transport",
+  "hotel",
+  "guide",
+  "transfer",
+  "intercity",
+  "activity",
+  "event",
+  "meals",
+  "tickets",
+  "photographer",
+] as const;
+// The estimate is built from these; the others are added to the offer by the team.
+const MAIN_KEYS = ["transport", "hotel", "guide", "transfer", "intercity", "activity"];
+const MAX_DAYS = 14;
+const MAX_PLACES = 4;
+const icons = {
+  transport: Car,
+  hotel: BedDouble,
+  guide: Users,
+  transfer: Plane,
+  intercity: Bus,
+  activity: Flower2,
+  event: CalendarDays,
+  meals: Utensils,
+  tickets: Tickets,
+  photographer: Camera,
+};
 const templates: Record<string, string[]> = {
   "baku-discovery": ["Baku"],
   "quba-khinalug": ["Quba", "Khinalug"],
-  "sheki-gabala": ["Baku", "Gabala", "Sheki"],
+  "sheki-gabala": ["Gabala", "Sheki", "Sheki"],
 };
-const photo = (city: string) =>
-  city === "Baku"
-    ? "baku"
-    : city === "Gabala"
-      ? "gabala"
-      : city === "Sheki"
-        ? "sheki"
-        : "khinalug";
-const MAX_DAYS = 14;
-const valid = (route: string[]) =>
-  route.length > 0 &&
-  route.length <= MAX_DAYS &&
-  route.every(
-    (city, i) =>
-      Object.hasOwn(transitions, city) &&
-      (i === 0 || transitions[route[i - 1]].includes(city)),
-  );
-// The route is stored one city per day (it is also what the quote API and share links use);
-// the form works with stops: a destination and how many days are spent there.
-const toStops = (route: string[]) =>
-  route.reduce<RouteStop[]>((all, city) => {
-    const last = all[all.length - 1];
-    if (last && last.city === city) last.days++;
-    else all.push({ city, days: 1 });
-    return all;
-  }, []);
-const toRoute = (stops: RouteStop[]) =>
-  stops.flatMap((s) => Array<string>(s.days).fill(s.city));
-const keys = ["driver", "stay", "guide", "transfer", "activity"] as const;
+const cities = Object.keys(transitions);
+/** Nothing is ticked for the customer: every day starts clear and they choose what they need. */
+const defaultServices = (_day: number, _total: number): string[] => [];
+/** A ready-made tour shows what it already includes, so a customer adjusting it starts from that. */
+const tourServices = (day: number, total: number) => [
+  "transport",
+  "guide",
+  ...(day < total - 1 ? ["hotel"] : []),
+  ...(day === 0 ? ["transfer", "activity"] : []),
+];
+const planFromCities = (list: string[], fromTour = false): PlanDay[] =>
+  list.map((city, i) => ({
+    places: [
+      {
+        city,
+        services: fromTour ? tourServices(i, list.length) : defaultServices(i, list.length),
+      },
+    ],
+  }));
+const encodePlan = (plan: PlanDay[]) =>
+  plan
+    .map((d) => d.places.map((p) => p.city + ":" + p.services.join("+")).join(","))
+    .join("~");
+function decodePlan(raw: string | null): PlanDay[] | null {
+  if (!raw) return null;
+  const days = raw.split("~");
+  if (days.length < 1 || days.length > MAX_DAYS) return null;
+  const out: PlanDay[] = [];
+  for (const day of days) {
+    const list = day.split(",");
+    if (list.length < 1 || list.length > MAX_PLACES) return null;
+    const dayPlaces: PlanPlace[] = [];
+    for (const item of list) {
+      const [city, services = ""] = item.split(":");
+      if (!Object.hasOwn(transitions, city)) return null;
+      const kinds = services.split("+").filter(Boolean);
+      if (!kinds.every((k) => (SERVICE_KEYS as readonly string[]).includes(k))) return null;
+      dayPlaces.push({ city, services: [...new Set(kinds)] });
+    }
+    out.push({ places: dayPlaces });
+  }
+  return out;
+}
+const uniqRun = (list: string[]) => list.filter((c, i) => c !== list[i - 1]);
 
 export default function TripPlanner({
   locale: l,
@@ -76,100 +126,58 @@ export default function TripPlanner({
     l === "az" ? az : l === "ru" ? ru : en;
   const idx = l === "az" ? 2 : l === "ru" ? 1 : 0;
   const cityName = (city: string) => places[city]?.name[idx] ?? city;
-  const [route, setRoute] = useState<string[]>([]),
+  const [plan, setPlan] = useState<PlanDay[]>([]),
     [ready, setReady] = useState(false);
   const [input, setInput] = useState<QuoteInput>({
     slug: "quba-khinalug",
     date: "",
     pax: 2,
     hotel: "comfort",
-    driver: true,
-    stay: true,
-    guide: true,
+    guide: false,
     guideLanguage: l,
-    transfer: true,
-    activity: true,
+    transfer: false,
+    activity: false,
     currency: c,
+    startCity: "Baku",
+    endCity: "Baku",
   });
   const [quote, setQuote] = useState<Quote | null>(null),
     [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
     [retry, setRetry] = useState(0),
-    [notice, setNotice] = useState(""),
     [notes, setNotes] = useState(""),
-    [shared, setShared] = useState("");
-  const [dialog, setDialog] = useState<"stop" | "tours" | null>(null),
-    [draft, setDraft] = useState<{ index: number; city: string; days: number }>({
-      index: 0,
-      city: "",
-      days: 1,
-    }),
-    [chosen, setChosen] = useState<string[]>([]),
-    [search, setSearch] = useState("");
+    [shared, setShared] = useState(""),
+    [step, setStep] = useState(0),
+    [showTours, setShowTours] = useState(false);
   const dialogRef = useRef<HTMLDialogElement>(null),
-    formRef = useRef<HTMLFormElement>(null),
-    returnFocus = useRef<HTMLElement | null>(null);
-  const stops = toStops(route),
-    days = route.length,
-    nights = Math.max(0, days - 1);
+    formRef = useRef<HTMLFormElement>(null);
+  const days = plan.length,
+    allPlaces = plan.flatMap((d) => d.places),
+    startCity = input.startCity ?? "Baku",
+    endCity = input.endCity ?? "Baku",
+    fullRoute: RouteStop[] = days
+      ? [
+          { city: startCity, days: 0 },
+          ...allPlaces.map((p) => ({ city: p.city, days: 1 })),
+          { city: endCity, days: 0 },
+        ]
+      : [];
+  const picked = (key: string) => allPlaces.some((p) => p.services.includes(key)),
+    hasMain = allPlaces.some((p) => p.services.some((s) => MAIN_KEYS.includes(s)));
   const dateProblem =
     !!input.date &&
     (input.date < dateLimit(3) || input.date > dateLimit(365));
-  const labels = {
-    driver: t(
-      "Private car & driver",
-      "Автомобиль с водителем",
-      "Şəxsi avtomobil və sürücü",
-    ),
-    stay: t("Accommodation", "Проживание", "Qalma yeri"),
-    guide: t("Local guide", "Местный гид", "Yerli gid"),
-    transfer: t(
-      "Airport transfer",
-      "Трансфер из аэропорта",
-      "Hava limanı transferi",
-    ),
-    activity: t(
-      "Local craft experience",
-      "Местный мастер-класс",
-      "Yerli sənətkarlıq təcrübəsi",
-    ),
-  };
-  const hints = {
-    driver: t(
-      "A private car with a driver every day",
-      "Личный автомобиль с водителем каждый день",
-      "Hər gün sürücülü şəxsi avtomobil",
-    ),
-    stay: t(
-      "Our team confirms the property",
-      "Отель подтвердит наша команда",
-      "Oteli komandamız təsdiqləyir",
-    ),
-    guide: t(
-      "A local guide for the whole trip",
-      "Местный гид на всё путешествие",
-      "Bütün səfər boyu yerli gid",
-    ),
-    transfer: t(
-      "Pick-up on arrival",
-      "Встреча по прилёту",
-      "Gəlişdə qarşılanma",
-    ),
-    activity: t(
-      "A hands-on workshop with local makers",
-      "Мастер-класс у местных мастеров",
-      "Yerli ustalarla praktik təcrübə",
-    ),
-  };
-  const selected = keys.filter(
-    (key) => input[key] && (key !== "stay" || nights > 0),
-  );
-  const icons = {
-    driver: Car,
-    stay: BedDouble,
-    guide: Users,
-    transfer: Plane,
-    activity: Flower2,
+  const labels: Record<string, string> = {
+    transport: t("Private car & driver", "Автомобиль с водителем", "Şəxsi avtomobil və sürücü"),
+    hotel: t("Accommodation", "Проживание", "Qalma yeri"),
+    guide: t("Local guide", "Местный гид", "Yerli bələdçi"),
+    transfer: t("Airport transfer", "Трансфер из аэропорта", "Hava limanı transferi"),
+    intercity: t("Transfer to the next region", "Трансфер в следующий регион", "Növbəti rayona transfer"),
+    activity: t("Local craft experience", "Местный мастер-класс", "Yerli sənətkarlıq təcrübəsi"),
+    event: t("Event", "Мероприятие", "Tədbir"),
+    meals: t("Local meals", "Местная кухня", "Yerli yeməklər"),
+    tickets: t("Entrance tickets", "Входные билеты", "Giriş biletləri"),
+    photographer: t("Photographer", "Фотограф", "Fotoqraf"),
   };
   const hotels = {
     standard: t("Standard", "Стандарт", "Standart"),
@@ -181,30 +189,42 @@ export default function TripPlanner({
     ru: "Русский",
     az: "Azərbaycanca",
   };
+  const dayWord = (n: number) =>
+    n === 1 ? t("day", "день", "gün") : t("days", "дн.", "gün");
+
+  // What was in the link: a plan, or an older link with a route and service flags, or a ready-made tour.
   useEffect(() => {
     const p = new URLSearchParams(location.search);
-    const template = templates[p.get("template") || ""];
-    const saved = p.get("route")?.split(",");
-    if (saved && valid(saved)) setRoute(saved);
-    else if (template) setRoute(template);
-    setInput((s) => {
-      const next = {
-        ...s,
-        date: p.get("date") || "",
-        pax: Math.max(1, Math.min(12, Number(p.get("pax")) || 2)),
-      };
-      for (const key of keys) {
-        if (p.has(key)) next[key] = p.get(key) !== "false";
-        else if (p.has("services"))
-          next[key] = (p.get("services") || "")
-            .split(",")
-            .includes(key === "stay" ? "hotel" : key);
+    let next = decodePlan(p.get("plan"));
+    if (!next) {
+      const saved = p.get("route")?.split(",").filter((x) => Object.hasOwn(transitions, x));
+      const base = saved?.length ? saved : templates[p.get("template") || ""];
+      if (base) {
+        next = planFromCities(base.slice(0, MAX_DAYS), !saved?.length);
+        const off: Record<string, string> = {
+          driver: "transport",
+          stay: "hotel",
+          guide: "guide",
+          transfer: "transfer",
+          activity: "activity",
+        };
+        for (const [param, kind] of Object.entries(off))
+          if (p.get(param) === "false")
+            next = next.map((d) => ({
+              places: d.places.map((pl) => ({ ...pl, services: pl.services.filter((s) => s !== kind) })),
+            }));
       }
+    }
+    if (next) setPlan(next);
+    setInput((s) => {
+      const out = { ...s, date: p.get("date") || "", pax: snapPax(Number(p.get("pax")) || 2) };
+      for (const [param, field] of [["start", "startCity"], ["end", "endCity"]] as const)
+        if (Object.hasOwn(transitions, p.get(param) || "")) out[field] = p.get(param) as string;
       if (["standard", "comfort", "premium"].includes(p.get("hotel") || ""))
-        next.hotel = p.get("hotel") as QuoteInput["hotel"];
+        out.hotel = p.get("hotel") as QuoteInput["hotel"];
       if (["en", "ru", "az"].includes(p.get("guideLanguage") || ""))
-        next.guideLanguage = p.get("guideLanguage") as Locale;
-      return next;
+        out.guideLanguage = p.get("guideLanguage") as Locale;
+      return out;
     });
     try {
       setNotes(sessionStorage.getItem("azertur-planner-notes") || "");
@@ -214,27 +234,23 @@ export default function TripPlanner({
   useEffect(() => {
     if (!ready) return;
     const p = new URLSearchParams();
-    p.set("route", route.join(","));
-    for (const key of [
-      "date",
-      "pax",
-      "hotel",
-      "guideLanguage",
-      ...keys,
-    ] as const)
+    if (plan.length) p.set("plan", encodePlan(plan));
+    for (const key of ["date", "pax", "hotel", "guideLanguage"] as const)
       p.set(key, String(input[key] ?? ""));
+    if (input.startCity && input.startCity !== "Baku") p.set("start", input.startCity);
+    if (input.endCity && input.endCity !== "Baku") p.set("end", input.endCity);
     const url = location.pathname + "?" + p;
     history.replaceState({}, "", url);
     try {
       sessionStorage.setItem("azertur-draft-url", url);
       sessionStorage.setItem("azertur-planner-notes", notes);
     } catch {}
-  }, [ready, route, input, notes]);
-  // The server still prices the request internally; the customer never sees amounts here.
+  }, [ready, plan, input, notes]);
+  // The server still prices the request internally; the customer only sees an estimate range.
   useEffect(() => {
     setQuote(null);
     setError("");
-    if (!ready || !input.date || dateProblem || !selected.length || !route.length) {
+    if (!ready || !input.date || dateProblem || !hasMain || !days) {
       setBusy(false);
       return;
     }
@@ -247,10 +263,14 @@ export default function TripPlanner({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             ...input,
-            stay: input.stay && nights > 0,
             currency: c,
+            // The server works out the days, the route and the service flags from the plan.
+            guide: false,
+            transfer: false,
+            activity: false,
             customDays: days,
-            cities: route,
+            cities: plan.map((d) => d.places[0].city),
+            plan,
           }),
           signal: controller.signal,
         });
@@ -272,99 +292,58 @@ export default function TripPlanner({
           );
         }
       }
-    }, 400);
+    }, 350);
     return () => {
       clearTimeout(timer);
       controller.abort();
     };
-  }, [ready, input, c, route, retry, l]);
+  }, [ready, input, c, plan, retry, l]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     const el = dialogRef.current;
-    if (dialog && el && !el.open) el.showModal();
-  }, [dialog]);
-  function open(kind: "stop" | "tours") {
-    returnFocus.current = document.activeElement as HTMLElement;
-    setSearch("");
-    setNotice("");
-    setDialog(kind);
-  }
-  function close() {
-    dialogRef.current?.close();
-    setDialog(null);
-    returnFocus.current?.focus();
-  }
+    if (showTours && el && !el.open) el.showModal();
+  }, [showTours]);
+
   function change<K extends keyof QuoteInput>(key: K, value: QuoteInput[K]) {
     setQuote(null);
     setInput((s) => ({ ...s, [key]: value }));
   }
-  // Destinations a stop at this position may take: anything except a neighbour's destination
-  // (that would just be more days at the same place).
-  function options(index: number) {
-    const before = stops[index - 1]?.city,
-      after = index < stops.length ? stops[index + 1]?.city : undefined;
-    return Object.keys(transitions).filter(
-      (city) =>
-        (!before || (city !== before && transitions[before].includes(city))) &&
-        (!after || (city !== after && transitions[city].includes(after))),
+  const edit = (next: PlanDay[]) => {
+    setQuote(null);
+    setPlan(next);
+  };
+  const addDay = () => {
+    if (days >= MAX_DAYS) return;
+    const last = allPlaces[allPlaces.length - 1]?.city ?? cities[0];
+    // The new day starts in the last place with no service ticked.
+    edit([...plan, { places: [{ city: last, services: [] }] }]);
+  };
+  const removeDay = (di: number) => edit(plan.filter((_, i) => i !== di));
+  const addPlace = (di: number) => {
+    if (plan[di].places.length >= MAX_PLACES) return;
+    const last = plan[di].places[plan[di].places.length - 1].city;
+    const next = cities.find((x) => x !== last) ?? last;
+    edit(plan.map((d, i) => (i === di ? { places: [...d.places, { city: next, services: [] }] } : d)));
+  };
+  const removePlace = (di: number, pi: number) =>
+    edit(plan.map((d, i) => (i === di ? { places: d.places.filter((_, n) => n !== pi) } : d)));
+  const patchPlace = (di: number, pi: number, patch: Partial<PlanPlace>) =>
+    edit(
+      plan.map((d, i) =>
+        i === di ? { places: d.places.map((p, n) => (n === pi ? { ...p, ...patch } : p)) } : d,
+      ),
     );
-  }
-  function daysLeft(index: number) {
-    return MAX_DAYS - (days - (stops[index]?.days ?? 0));
-  }
-  function openStop(index: number) {
-    const existing = stops[index];
-    const first = options(index)[0] ?? "";
-    setDraft({
-      index,
-      city: existing ? existing.city : first,
-      days: existing ? existing.days : 1,
+  const toggle = (di: number, pi: number, key: string, on: boolean) => {
+    const current = plan[di].places[pi].services;
+    patchPlace(di, pi, {
+      services: on ? [...new Set([...current, key])] : current.filter((s) => s !== key),
     });
-    open("stop");
-  }
-  function mergeNeighbours(list: RouteStop[]) {
-    return list.reduce<RouteStop[]>((all, s) => {
-      const last = all[all.length - 1];
-      if (last && last.city === s.city) last.days += s.days;
-      else all.push({ ...s });
-      return all;
-    }, []);
-  }
-  function saveStop() {
-    const next = stops.map((s) => ({ ...s }));
-    if (draft.index >= next.length) next.push({ city: draft.city, days: draft.days });
-    else next[draft.index] = { city: draft.city, days: draft.days };
-    const route2 = toRoute(next);
-    if (!valid(route2)) return;
-    setQuote(null);
-    setRoute(route2);
-    close();
-  }
-  function stopsWithout(index: number) {
-    return mergeNeighbours(stops.filter((_, i) => i !== index));
-  }
-  const canRemove = (index: number) =>
-    stops.length > 1 && valid(toRoute(stopsWithout(index)));
-  function removeStop(index: number) {
-    if (!canRemove(index)) return;
-    setQuote(null);
-    setRoute(toRoute(stopsWithout(index)));
-  }
-  function applyTours() {
-    const next = chosen.flatMap((slug) => templates[slug] || []);
-    if (!valid(next)) {
-      setNotice(
-        t(
-          "A trip can be 14 days at most. Remove a tour from your selection.",
-          "Поездка длится не более 14 дней. Уберите один из туров.",
-          "Səfər ən çox 14 gün ola bilər. Seçimdən bir turu çıxarın.",
-        ),
-      );
-      return;
-    }
-    setQuote(null);
-    setRoute(next);
-    setNotice("");
-    close();
+  };
+  function useTemplate(slug: string) {
+    edit(planFromCities(templates[slug], true));
+    setInput((s) => ({ ...s, startCity: "Baku", endCity: "Baku" }));
+    setStep(0);
+    setShowTours(false);
+    dialogRef.current?.close();
   }
   async function share() {
     const url = location.href;
@@ -383,95 +362,43 @@ export default function TripPlanner({
     } catch {}
     book(quote);
   }
-  const action = t(
-    "Send to our team",
-    "Отправить команде",
-    "Komandaya göndər",
+  const action = t("Send to our team", "Отправить команде", "Komandaya göndər");
+  const stepTitles = [
+    t("Day by day", "День за днём", "Gün-gün marşrut"),
+    t("Dates and travellers", "Даты и участники", "Tarix və səyahətçilər"),
+    t("Review and send", "Проверка и отправка", "Yoxlama və göndərmə"),
+  ];
+  const stepDone = [hasMain && days > 0, !!input.date && !dateProblem, true];
+  const firstOpen = stepDone.indexOf(false);
+  const reachable = firstOpen === -1 ? stepTitles.length - 1 : firstOpen;
+  const stepHint = [
+    days === 0
+      ? t("Add a day to start.", "Добавьте день, чтобы начать.", "Başlamaq üçün gün əlavə et.")
+      : t(
+          "Choose at least one main service (car, stay, guide, transfer or experience) to continue.",
+          "Выберите хотя бы одну основную услугу (авто, проживание, гид, трансфер или впечатление).",
+          "Davam etmək üçün ən azı bir əsas xidmət seç (avtomobil, qalma yeri, bələdçi, transfer və ya təcrübə).",
+        ),
+    t("Choose a valid start date to continue.", "Выберите корректную дату начала.", "Davam etmək üçün düzgün başlama tarixi seç."),
+    "",
+  ][step];
+  function goStep(n: number) {
+    if (n < 0 || n > reachable) return;
+    setStep(n);
+    formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+  const submitDisabled = busy || !hasMain || !days || dateProblem || !input.date || !quote;
+  const pickedKeys = SERVICE_KEYS.filter((k) => picked(k));
+  const citySelect = (value: string, label: string, onChange: (v: string) => void) => (
+    <select aria-label={label} value={value} onChange={(e) => onChange(e.target.value)}>
+      {cities.map((city) => (
+        <option key={city} value={city}>
+          {cityName(city)}
+        </option>
+      ))}
+    </select>
   );
-  const dayWord = (n: number) =>
-    n === 1 ? t("day", "день", "gün") : t("days", "дн.", "gün");
-  const stayInfo = {
-    standard: t(
-      "Standard: simple, clean guesthouses and 3-star hotels",
-      "Стандарт: простые и чистые гостевые дома и отели 3*",
-      "Standart: sadə və təmiz qonaq evləri, 3 ulduzlu otellər",
-    ),
-    comfort: t(
-      "Comfort: 4-star hotels with a private room",
-      "Комфорт: отели 4* с отдельным номером",
-      "Komfort: ayrıca otaqlı 4 ulduzlu otellər",
-    ),
-    premium: t(
-      "Premium: 5-star and boutique hotels",
-      "Премиум: отели 5* и бутик-отели",
-      "Premium: 5 ulduzlu və butik otellər",
-    ),
-  };
-  const details: Record<(typeof keys)[number], string[]> = {
-    driver: [
-      t(
-        "Vehicle class (sedan, minivan or minibus) is chosen for your group size",
-        "Класс автомобиля (седан, минивэн или микроавтобус) подбирается под вашу группу",
-        "Avtomobilin sinfi (sedan, miniven və ya mikroavtobus) qrupunun sayına görə seçilir",
-      ),
-      t(
-        "The same driver stays with you each day of the trip",
-        "Водитель сопровождает вас каждый день поездки",
-        "Sürücü səfərin hər günü səninlə olur",
-      ),
-    ],
-    stay: [
-      stayInfo[input.hotel],
-      `${t("Nights", "Ночей", "Gecə")}: ${nights}`,
-      t(
-        "Room type is arranged for your group size",
-        "Тип номера подбирается под размер группы",
-        "Otaq növü qrupun sayına uyğun seçilir",
-      ),
-    ],
-    guide: [
-      `${t("Language", "Язык", "Dil")}: ${langNames[input.guideLanguage ?? l]}`,
-      ...(days > 0
-        ? [`${t("Duration", "Длительность", "Müddət")}: ${days} ${dayWord(days)}`]
-        : []),
-    ],
-    transfer: [
-      t(
-        "Pick-up at the airport on arrival",
-        "Встреча в аэропорту по прилёту",
-        "Gəlişdə hava limanında qarşılanma",
-      ),
-      t(
-        "Vehicle class matches your group size",
-        "Класс автомобиля подбирается под вашу группу",
-        "Avtomobilin sinfi qrupun sayına uyğun olur",
-      ),
-    ],
-    activity: [
-      t(
-        "A hands-on workshop with local makers",
-        "Практический мастер-класс у местных мастеров",
-        "Yerli ustalarla praktik təcrübə",
-      ),
-      t(
-        "The workshop and its length are set by our team for your dates",
-        "Мастерскую и её длительность команда подбирает под ваши даты",
-        "Emalatxananı və müddətini komandamız tarixlərinə uyğun təyin edir",
-      ),
-    ],
-  };
-  const dayRange = (index: number) => {
-    const from = stops.slice(0, index).reduce((n, s) => n + s.days, 0) + 1,
-      to = from + stops[index].days - 1;
-    return from === to ? `${t("Day", "День", "Gün")} ${from}` : `${t("Days", "Дни", "Günlər")} ${from}–${to}`;
-  };
-  const choices = options(draft.index);
-  const submitDisabled =
-    busy ||
-    !selected.length ||
-    !route.length ||
-    dateProblem ||
-    (!quote && !!input.date);
+
   return (
     <section className="trip-planner">
       <div className="tp-container">
@@ -489,36 +416,25 @@ export default function TripPlanner({
         </p>
         <header className="tp-heading">
           <div>
-            <h1>
-              {t(
-                "Your trip. Your choices.",
-                "Ваш маршрут. Ваш выбор.",
-                "Sənin səfərin. Sənin seçimin.",
-              )}
-            </h1>
+            <h1>{t("Your trip. Your choices.", "Ваш маршрут. Ваш выбор.", "Sənin səfərin. Sənin seçimin.")}</h1>
             <p>
               {t(
-                "Pick the route and what you need. Our team replies with a personal offer.",
-                "Выберите маршрут и нужные услуги. Команда пришлёт персональное предложение.",
-                "Marşrutu və lazım olanları seç. Komandamız fərdi təklif göndərəcək.",
+                "Add the days, choose where you go each day and what you need there. Our team replies with a personal offer.",
+                "Добавляйте дни, выбирайте, куда вы едете и что нужно на месте. Команда пришлёт персональное предложение.",
+                "Gün əlavə et, hər gün hara getdiyini və orada nələr lazım olduğunu seç. Komandamız fərdi təklif göndərəcək.",
               )}
             </p>
           </div>
           <div>
-            <button type="button" onClick={() => open("tours")}>
-              {t(
-                "Start with a ready-made tour",
-                "Начать с готового тура",
-                "Hazır turla başla",
-              )}{" "}
+            <button type="button" onClick={() => setShowTours(true)}>
+              {t("Start with a ready-made tour", "Начать с готового тура", "Hazır turla başla")}{" "}
               <ArrowRight size={14} />
             </button>
             <button
               type="button"
               onClick={() => {
-                setQuote(null);
-                setRoute([]);
-                setNotice("");
+                edit([{ places: [{ city: cities[0], services: ["transport", "guide"] }] }]);
+                setStep(0);
               }}
             >
               {t("Start from scratch", "Начать с нуля", "Sıfırdan başla")}
@@ -529,247 +445,321 @@ export default function TripPlanner({
           ref={formRef}
           onSubmit={(e) => {
             e.preventDefault();
+            // Enter on an earlier step moves on instead of sending the request.
+            if (step < stepTitles.length - 1) {
+              if (stepDone[step]) goStep(step + 1);
+              return;
+            }
             review();
           }}
         >
+          <ol className="tpx-steps" aria-label={t("Steps", "Шаги", "Addımlar")}>
+            {stepTitles.map((title, n) => (
+              <li key={n}>
+                <button
+                  type="button"
+                  aria-current={step === n ? "step" : undefined}
+                  data-done={n < step && stepDone[n] ? "true" : undefined}
+                  disabled={n > reachable}
+                  onClick={() => goStep(n)}
+                >
+                  <b aria-hidden="true">{n + 1}</b>
+                  <span>{title}</span>
+                </button>
+              </li>
+            ))}
+          </ol>
           <div className="tpx-layout">
             <div className="tpx-card">
-              <section className="tpx-basics">
-                <label>
-                  {t("Start date", "Дата начала", "Başlama tarixi")}
-                  <input
-                    required
-                    type="date"
-                    min={dateLimit(3)}
-                    max={dateLimit(365)}
-                    value={input.date}
-                    onChange={(e) => change("date", e.target.value)}
-                    aria-invalid={dateProblem}
-                    aria-describedby={dateProblem ? "date-problem" : undefined}
-                  />
-                  {dateProblem && (
-                    <small id="date-problem" role="alert" className="tpx-field-error">
-                      {t(
-                        "The start date must be between 3 and 365 days from today.",
-                        "Дата начала должна быть от 3 до 365 дней от сегодняшнего дня.",
-                        "Səfər tarixi cari gündən ən azı 3 gün, ən çoxu 365 gün sonra olmalıdır.",
-                      )}
-                    </small>
-                  )}
-                </label>
-                <label>
-                  {t("Travelers", "Путешественники", "Səyahətçilər")}
-                  <select
-                    value={input.pax}
-                    onChange={(e) => change("pax", Number(e.target.value))}
-                  >
-                    {Array.from({ length: 12 }, (_, i) => (
-                      <option key={i} value={i + 1}>
-                        {i + 1} {t("traveler(s)", "чел.", "nəfər")}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <p className="tpx-length">
-                  <strong>
-                    {days} {dayWord(days)}
-                  </strong>
-                  <span>
-                    {nights} {t("night(s)", "ноч.", "gecə")}
-                  </span>
-                </p>
-              </section>
-              <section className="tpx-route" aria-labelledby="tpx-route">
-                <div>
-                  <h2 id="tpx-route">{t("Route", "Маршрут", "Marşrut")}</h2>
-                  <ol className="tpx-stops">
-                    {stops.map((stop, i) => (
-                      <li key={i}>
-                        <b aria-hidden="true">{i + 1}</b>
-                        <div>
-                          <strong>{cityName(stop.city)}</strong>
-                          <small>
-                            {dayRange(i)} · {stop.days} {dayWord(stop.days)}
-                          </small>
-                        </div>
-                        <button
-                          type="button"
-                          aria-label={`${t("Edit", "Изменить", "Dəyiş")}: ${cityName(stop.city)}`}
-                          onClick={() => openStop(i)}
-                        >
-                          <Pencil size={15} />
-                        </button>
-                        <button
-                          type="button"
-                          aria-label={`${t("Remove", "Убрать", "Sil")}: ${cityName(stop.city)}`}
-                          disabled={!canRemove(i)}
-                          onClick={() => removeStop(i)}
-                        >
-                          <X size={16} />
-                        </button>
+              {step === 0 && (
+                <section className="tpx-days" aria-labelledby="tpx-days-h">
+                  <h2 id="tpx-days-h">{stepTitles[0]}</h2>
+                  <p className="tpx-hint">
+                    {t(
+                      "Add a day, choose where you want to go, then tick the services you want in that place. A day can have several places.",
+                      "Добавьте день, выберите, куда хотите поехать, и отметьте нужные услуги. В один день можно посетить несколько мест.",
+                      "Gün əlavə et, hara getmək istədiyini seç, sonra orada istədiyin xidmətləri işarələ. Bir gündə bir neçə yer ola bilər.",
+                    )}
+                  </p>
+                  <div className="tpx-endrow">
+                    <b aria-hidden="true">
+                      <Plane size={14} />
+                    </b>
+                    <div>
+                      <small>{t("Start", "Старт", "Başlanğıc")}</small>
+                      {citySelect(startCity, t("Start city", "Город старта", "Başlanğıc şəhəri"), (v) => change("startCity", v))}
+                    </div>
+                  </div>
+                  <p className="tpx-hint">
+                    {t(
+                      "Tick the services you need for each day and place. Nothing is chosen for you.",
+                      "Отметьте нужные услуги для каждого дня и места. Ничего не выбрано заранее.",
+                      "Hər gün və hər yer üçün lazım olan xidmətləri işarələyin. Əvvəlcədən heç nə seçilmir.",
+                    )}
+                  </p>
+                  <ol className="tpx-daylist">
+                    {plan.map((day, di) => (
+                      <li className="tpx-day" key={di}>
+                        <details open>
+                          <summary>
+                            <strong>
+                              {t("Day", "День", "Gün")} {di + 1}
+                            </strong>
+                            <span>{day.places.map((pl) => cityName(pl.city)).join(", ")}</span>
+                            <small>
+                              {day.places.reduce((n, pl) => n + pl.services.length, 0)}{" "}
+                              {t("services", "услуг", "xidmət")}
+                            </small>
+                          </summary>
+                          <div className="tpx-daybody">
+                            {day.places.map((pl, pi) => (
+                              <details className="tpx-place" open key={pi}>
+                                <summary>
+                                  <strong>{cityName(pl.city)}</strong>
+                                  <small>
+                                    {pl.services.length} {t("services", "услуг", "xidmət")}
+                                  </small>
+                                </summary>
+                                <div className="tpx-placebody">
+                                  <div className="tpx-placehead">
+                                    {citySelect(
+                                      pl.city,
+                                      t("Place ", "Место ", "Yer ") + (pi + 1) + t(" of day ", " дня ", ", gün ") + (di + 1),
+                                      (v) => patchPlace(di, pi, { city: v }),
+                                    )}
+                                    {day.places.length > 1 && (
+                                      <button
+                                        type="button"
+                                        className="tpx-x"
+                                        aria-label={t("Remove place ", "Убрать место ", "Yeri sil ") + cityName(pl.city)}
+                                        onClick={() => removePlace(di, pi)}
+                                      >
+                                        <X size={15} />
+                                      </button>
+                                    )}
+                                  </div>
+                                  <div
+                                    className="tpx-chips"
+                                    role="group"
+                                    aria-label={t("Services in ", "Услуги: ", "Xidmətlər: ") + cityName(pl.city)}
+                                  >
+                                    {SERVICE_KEYS.map((key) => {
+                                      const Icon = icons[key];
+                                      const on = pl.services.includes(key);
+                                      return (
+                                        <label key={key} className={"tpx-chip" + (on ? " on" : "")}>
+                                          <input
+                                            type="checkbox"
+                                            checked={on}
+                                            onChange={(e) => toggle(di, pi, key, e.target.checked)}
+                                          />
+                                          <Icon size={15} aria-hidden="true" />
+                                          {labels[key]}
+                                        </label>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              </details>
+                            ))}
+                            <div className="tpx-dayactions">
+                              <button
+                                type="button"
+                                className="tpx-addplace"
+                                disabled={day.places.length >= MAX_PLACES}
+                                onClick={() => addPlace(di)}
+                              >
+                                <Plus size={15} />
+                                {t("Add another place this day", "Добавить место в этот день", "Bu gün başqa yer əlavə et")}
+                              </button>
+                              <button
+                                type="button"
+                                className="tpx-removeday"
+                                aria-label={t("Remove day ", "Убрать день ", "Günü sil ") + (di + 1)}
+                                onClick={() => removeDay(di)}
+                              >
+                                <X size={15} />
+                                {t("Remove this day", "Убрать этот день", "Bu günü sil")}
+                              </button>
+                            </div>
+                          </div>
+                        </details>
                       </li>
                     ))}
                   </ol>
-                  {!stops.length && (
-                    <p className="tpx-empty">
-                      {t(
-                        "No stops yet. Add the places you want to visit.",
-                        "Остановок пока нет. Добавьте места, которые хотите посетить.",
-                        "Hələ dayanacaq yoxdur. Getmək istədiyin yerləri əlavə et.",
-                      )}
-                    </p>
-                  )}
                   <button
                     type="button"
-                    className="tpx-add"
-                    disabled={days >= MAX_DAYS || !options(stops.length).length}
-                    onClick={() => openStop(stops.length)}
+                    className="tpx-addday"
+                    disabled={days >= MAX_DAYS}
+                    onClick={addDay}
                   >
                     <Plus size={16} />
-                    {t("Add a stop", "Добавить остановку", "Dayanacaq əlavə et")}
+                    {t("Add a day", "Добавить день", "Gün əlavə et")}
                   </button>
-                  {notice && !dialog && <p role="status">{notice}</p>}
-                  <small className="tpx-return">
+                  {days >= MAX_DAYS && (
+                    <small>{t("Up to 14 days.", "До 14 дней.", "Ən çoxu 14 gün.")}</small>
+                  )}
+                  <div className="tpx-endrow">
+                    <b aria-hidden="true">
+                      <Plane size={14} />
+                    </b>
+                    <div>
+                      <small>{t("Return", "Возвращение", "Qayıdış")}</small>
+                      {citySelect(endCity, t("Return city", "Город возвращения", "Qayıdış şəhəri"), (v) => change("endCity", v))}
+                    </div>
+                  </div>
+                  <p className="tpx-provider-note" role="note">
                     {t(
-                      "Your return route is arranged with our team.",
-                      "Обратный маршрут согласуется с командой.",
-                      "Geri dönüş marşrutu komandamızla razılaşdırılır.",
+                      "Specific hotels, cars and guides are not chosen yet. Our team confirms them and the final price after you send the request. Meals, tickets, events and a photographer are priced in your offer.",
+                      "Конкретные отели, автомобили и гиды пока не выбраны. Команда подтвердит их и итоговую цену после отправки заявки. Питание, билеты, мероприятия и фотограф оцениваются в предложении.",
+                      "Konkret otel, avtomobil və bələdçi hələ seçilməyib. Komandamız onları və yekun qiyməti sorğunu göndərdikdən sonra təsdiqləyir. Yemək, bilet, tədbir və fotoqrafın qiyməti təklifdə göstərilir.",
                     )}
-                  </small>
-                </div>
-                <RouteMap
-                  stops={stops}
-                  name={cityName}
-                  label={
-                    t("Route: ", "Маршрут: ", "Marşrut: ") +
-                    stops.map((s) => cityName(s.city)).join(" → ")
-                  }
-                />
-              </section>
-              <section aria-labelledby="tpx-services">
-                <h2 id="tpx-services">
-                  {t("What do you need?", "Что вам нужно?", "Nələr lazımdır?")}
-                </h2>
-                <div className="tpx-services">
-                  {keys.map((key) => {
-                    const Icon = icons[key];
-                    const off = key === "stay" && nights === 0;
-                    return (
-                      <div
-                        className={"tpx-service" + (input[key] && !off ? " on" : "")}
-                        key={key}
+                  </p>
+                </section>
+              )}
+              {step === 1 && (
+                <section className="tpx-basics">
+                  <h2>{stepTitles[1]}</h2>
+                  <label>
+                    {t("Start date", "Дата начала", "Başlama tarixi")}
+                    <input
+                      required
+                      type="date"
+                      min={dateLimit(3)}
+                      max={dateLimit(365)}
+                      value={input.date}
+                      onChange={(e) => change("date", e.target.value)}
+                      aria-invalid={dateProblem}
+                      aria-describedby={dateProblem ? "date-problem" : undefined}
+                    />
+                    {dateProblem && (
+                      <small id="date-problem" role="alert" className="tpx-field-error">
+                        {t(
+                          "The start date must be between 3 and 365 days from today.",
+                          "Дата начала должна быть от 3 до 365 дней от сегодняшнего дня.",
+                          "Səfər tarixi cari gündən ən azı 3 gün, ən çoxu 365 gün sonra olmalıdır.",
+                        )}
+                      </small>
+                    )}
+                  </label>
+                  <label>
+                    {t("Travelers", "Путешественники", "Səyahətçilər")}
+                    <select value={input.pax} onChange={(e) => change("pax", Number(e.target.value))}>
+                      {PAX_OPTIONS.map((n) => (
+                        <option key={n} value={n}>
+                          {travellerCount(n, l)}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <p className="tpx-length">
+                    <strong>
+                      {days} {dayWord(days)}
+                    </strong>
+                  </p>
+                  {picked("hotel") && (
+                    <label>
+                      {t("Accommodation category", "Категория проживания", "Qalma yerinin kateqoriyası")}
+                      <select
+                        value={input.hotel}
+                        onChange={(e) => change("hotel", e.target.value as QuoteInput["hotel"])}
                       >
-                        <label>
-                          <input
-                            type="checkbox"
-                            checked={!!input[key] && !off}
-                            disabled={off}
-                            onChange={(e) => change(key, e.target.checked)}
-                          />
-                          <Icon size={20} aria-hidden="true" />
-                          <span>
-                            <strong>{labels[key]}</strong>
-                            <small>
-                              {off
-                                ? t(
-                                    "Needs a trip of two days or more",
-                                    "Нужна поездка от двух дней",
-                                    "İki gün və daha uzun səfər lazımdır",
-                                  )
-                                : hints[key]}
-                            </small>
-                          </span>
-                        </label>
-                        {key === "stay" && input.stay && !off && (
-                          <select
-                            aria-label={t("Accommodation category", "Категория проживания", "Qalma yerinin kateqoriyası")}
-                            value={input.hotel}
-                            onChange={(e) =>
-                              change("hotel", e.target.value as QuoteInput["hotel"])
-                            }
-                          >
-                            {Object.entries(hotels).map(([value, name]) => (
-                              <option key={value} value={value}>
-                                {name}
-                              </option>
-                            ))}
-                          </select>
-                        )}
-                        {key === "guide" && input.guide && (
-                          <select
-                            aria-label={t("Guide language", "Язык гида", "Gid dili")}
-                            value={input.guideLanguage}
-                            onChange={(e) =>
-                              change("guideLanguage", e.target.value as Locale)
-                            }
-                          >
-                            {(Object.keys(langNames) as Locale[]).map((code) => (
-                              <option key={code} value={code}>
-                                {langNames[code]}
-                              </option>
-                            ))}
-                          </select>
-                        )}
-                        {input[key] && !off && (
-                          <ul className="tpx-detail">
-                            {details[key].map((line) => (
-                              <li key={line}>{line}</li>
-                            ))}
-                          </ul>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-                <p className="tpx-provider-note" role="note">
-                  {t(
-                    "Specific hotels, cars and guides are not chosen yet. Our team confirms them and the final price after you send the request.",
-                    "Конкретные отели, автомобили и гиды пока не выбраны. Команда подтвердит их и итоговую цену после отправки заявки.",
-                    "Konkret otel, avtomobil və gid hələ seçilməyib. Komandamız onları və yekun qiyməti sorğunu göndərdikdən sonra təsdiqləyir.",
+                        {Object.entries(hotels).map(([value, name]) => (
+                          <option key={value} value={value}>
+                            {name}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
                   )}
-                </p>
-              </section>
-              <section className="tpx-notes">
-                <label>
-                  {t(
-                    "Anything else we should know?",
-                    "Что ещё нам нужно знать?",
-                    "Əlavə nəyi bilməliyik?",
+                  {picked("guide") && (
+                    <label>
+                      {t("Guide language", "Язык гида", "Bələdçi dili")}
+                      <select
+                        value={input.guideLanguage}
+                        onChange={(e) => change("guideLanguage", e.target.value as Locale)}
+                      >
+                        {(Object.keys(langNames) as Locale[]).map((code) => (
+                          <option key={code} value={code}>
+                            {langNames[code]}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
                   )}
-                  <textarea
-                    value={notes}
-                    maxLength={2000}
-                    rows={2}
-                    onChange={(e) => setNotes(e.target.value)}
-                    placeholder={t(
-                      "Your pace, luggage or accessibility needs…",
-                      "Темп, багаж, особые потребности…",
-                      "Səfər tempi, baqaj və ya əlçatanlıq ehtiyacları…",
+                </section>
+              )}
+              {step === 2 && (
+                <section className="tpx-notes">
+                  <h2>{stepTitles[2]}</h2>
+                  <label>
+                    {t("Anything else we should know?", "Что ещё нам нужно знать?", "Əlavə nəyi bilməliyik?")}
+                    <textarea
+                      value={notes}
+                      maxLength={2000}
+                      rows={2}
+                      onChange={(e) => setNotes(e.target.value)}
+                      placeholder={t(
+                        "Your pace, luggage or accessibility needs…",
+                        "Темп, багаж, особые потребности…",
+                        "Səfər tempi, baqaj və ya əlçatanlıq ehtiyacları…",
+                      )}
+                    />
+                  </label>
+                  <a
+                    href={"/" + l + "/request"}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      go("/request" + location.search);
+                    }}
+                  >
+                    {t(
+                      "Need flights or visa support? Tell our team →",
+                      "Нужны билеты или виза? Напишите нам →",
+                      "Bilet və ya viza dəstəyi lazımdır? Bizə yaz →",
                     )}
-                  />
-                </label>
-                <a
-                  href={"/" + l + "/request"}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    go("/request" + location.search);
-                  }}
-                >
-                  {t(
-                    "Need flights or visa support? Tell our team →",
-                    "Нужны билеты или виза? Напишите нам →",
-                    "Bilet və ya viza dəstəyi lazımdır? Bizə yaz →",
+                  </a>
+                </section>
+              )}
+              <div className="tpx-nav">
+                {stepHint && !stepDone[step] && <p role="status">{stepHint}</p>}
+                <div>
+                  {step > 0 && (
+                    <button type="button" className="tpx-back" onClick={() => goStep(step - 1)}>
+                      {t("Back", "Назад", "Geri")}
+                    </button>
                   )}
-                </a>
-              </section>
+                  {step < stepTitles.length - 1 && (
+                    <button
+                      type="button"
+                      className="tp-primary"
+                      disabled={!stepDone[step]}
+                      onClick={() => goStep(step + 1)}
+                    >
+                      {t("Next", "Далее", "Növbəti")}
+                      <ArrowRight size={18} />
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
             <aside className="tpx-aside">
               <h2>{t("Your request", "Ваша заявка", "Sənin sorğun")}</h2>
+              {fullRoute.length > 0 && (
+                <RouteMap
+                  stops={fullRoute}
+                  name={cityName}
+                  label={
+                    t("Route: ", "Маршрут: ", "Marşrut: ") +
+                    fullRoute.map((s) => cityName(s.city)).join(" → ")
+                  }
+                />
+              )}
               <p className="tpx-route-line">
-                {stops.length ? (
-                  stops.map((s) => cityName(s.city)).join(" → ")
+                {days ? (
+                  uniqRun(fullRoute.map((s) => s.city)).map(cityName).join(" → ")
                 ) : (
-                  <em>{t("Add your first stop", "Добавьте первую остановку", "İlk dayanacağı əlavə et")}</em>
+                  <em>{t("Add your first day", "Добавьте первый день", "İlk günü əlavə et")}</em>
                 )}
               </p>
               <dl>
@@ -782,24 +772,24 @@ export default function TripPlanner({
                   </dd>
                 </div>
                 <div>
-                  <dt>{t("Length", "Длительность", "Müddət")}</dt>
+                  <dt>{t("Duration", "Длительность", "Müddət")}</dt>
                   <dd>
-                    {days} {dayWord(days)} · {nights} {t("night(s)", "ноч.", "gecə")}
+                    {days} {dayWord(days)}
                   </dd>
                 </div>
                 <div>
                   <dt>{t("Travelers", "Путешественники", "Səyahətçilər")}</dt>
-                  <dd>{input.pax}</dd>
+                  <dd>{travellerCount(input.pax, l)}</dd>
                 </div>
               </dl>
               <ul className="tpx-picked">
-                {selected.map((key) => {
+                {pickedKeys.map((key) => {
                   const Icon = icons[key];
                   const extra =
-                    key === "stay"
+                    key === "hotel"
                       ? hotels[input.hotel]
                       : key === "guide"
-                        ? langNames[input.guideLanguage as Locale]
+                        ? langNames[(input.guideLanguage ?? l) as Locale]
                         : "";
                   return (
                     <li key={key}>
@@ -809,7 +799,7 @@ export default function TripPlanner({
                     </li>
                   );
                 })}
-                {!selected.length && (
+                {!pickedKeys.length && (
                   <li>
                     <em>{t("No services selected", "Услуги не выбраны", "Xidmət seçilməyib")}</em>
                   </li>
@@ -832,19 +822,11 @@ export default function TripPlanner({
                   <em>{t("Calculating…", "Считаем…", "Hesablanır…")}</em>
                 ) : quote ? (
                   <em>
-                    {t(
-                      "Our team will price this trip.",
-                      "Цену рассчитает наша команда.",
-                      "Bu səfərin qiymətini komandamız hesablayacaq.",
-                    )}
+                    {t("Our team will price this trip.", "Цену рассчитает наша команда.", "Bu səfərin qiymətini komandamız hesablayacaq.")}
                   </em>
-                ) : !selected.length ? (
+                ) : !hasMain ? (
                   <em>
-                    {t(
-                      "Select at least one service.",
-                      "Выберите хотя бы одну услугу.",
-                      "Ən azı bir xidmət seç.",
-                    )}
+                    {t("Select at least one main service.", "Выберите хотя бы одну основную услугу.", "Ən azı bir əsas xidmət seç.")}
                   </em>
                 ) : (
                   <em>
@@ -856,31 +838,29 @@ export default function TripPlanner({
                   </em>
                 )}
               </div>
-              <button className="tp-primary" type="submit" disabled={submitDisabled}>
-                {busy ? t("Preparing…", "Готовим…", "Hazırlanır…") : action}
-                <ArrowRight size={18} />
-              </button>
-              <small>
-                {t(
-                  "No payment now. Our team checks availability and replies with an offer. You sign in to send it.",
-                  "Оплата сейчас не нужна. Команда проверит доступность и пришлёт предложение. Для отправки нужен вход.",
-                  "İndi ödəniş yoxdur. Komandamız mövcudluğu yoxlayıb təklif göndərəcək. Göndərmək üçün daxil olursan.",
-                )}
-              </small>
+              {step === stepTitles.length - 1 && (
+                <>
+                  <button className="tp-primary" type="submit" disabled={submitDisabled}>
+                    {busy ? t("Preparing…", "Готовим…", "Hazırlanır…") : action}
+                    <ArrowRight size={18} />
+                  </button>
+                  <small>
+                    {t(
+                      "No payment now. Our team checks availability and replies with an offer. You sign in to send it.",
+                      "Оплата сейчас не нужна. Команда проверит доступность и пришлёт предложение. Для отправки нужен вход.",
+                      "İndi ödəniş yoxdur. Komandamız mövcudluğu yoxlayıb təklif göndərəcək. Göndərmək üçün daxil olursan.",
+                    )}
+                  </small>
+                </>
+              )}
               {error && (
                 <div role="status">
                   <p>{error}</p>
                   <button type="button" onClick={() => setRetry((x) => x + 1)}>
                     {t("Retry", "Повторить", "Yenidən yoxla")}
                   </button>{" "}
-                  ·{" "}
                   <a
-                    href={
-                      "/" +
-                      l +
-                      "/request" +
-                      (typeof window !== "undefined" ? location.search : "")
-                    }
+                    href={"/" + l + "/request" + (typeof window !== "undefined" ? location.search : "")}
                   >
                     {t("Write to our team", "Написать команде", "Komandaya yaz")}
                   </a>
@@ -942,8 +922,7 @@ export default function TripPlanner({
         </div>
         <div className="tpx-mobile-action">
           <span>
-            {days} {dayWord(days)} · {selected.length}{" "}
-            {t("services", "услуг", "xidmət")}
+            {days} {dayWord(days)}, {pickedKeys.length} {t("services", "услуг", "xidmət")}
           </span>
           <button
             className="tp-primary"
@@ -955,253 +934,44 @@ export default function TripPlanner({
           </button>
         </div>
       </div>
-      {dialog && (
+      {showTours && (
         <dialog
           ref={dialogRef}
           className="tp-dialog"
-          aria-label={
-            dialog === "stop"
-              ? draft.index >= stops.length
-                ? t("Add a stop", "Добавить остановку", "Dayanacaq əlavə et")
-                : t("Edit the stop", "Изменить остановку", "Dayanacağı dəyiş")
-              : t(
-                  "Add tours to your route",
-                  "Добавьте туры в маршрут",
-                  "Marşrutuna turlar əlavə et",
-                )
-          }
-          onCancel={(e) => {
-            e.preventDefault();
-            close();
-          }}
+          aria-label={t("Start with a ready-made tour", "Начать с готового тура", "Hazır turla başla")}
+          onClose={() => setShowTours(false)}
         >
           <button
-            type="button"
             className="tp-close"
+            type="button"
             aria-label={t("Close", "Закрыть", "Bağla")}
-            onClick={close}
+            onClick={() => {
+              dialogRef.current?.close();
+              setShowTours(false);
+            }}
           >
-            <X />
+            <X size={18} />
           </button>
-          {dialog === "stop" ? (
-            <>
-              <h2>
-                {draft.index >= stops.length
-                  ? t("Add a stop", "Добавить остановку", "Dayanacaq əlavə et")
-                  : t("Edit the stop", "Изменить остановку", "Dayanacağı dəyiş")}
-              </h2>
-              <p>
-                {t(
-                  "Choose where you go next and how many days you stay. Our team arranges the transfers.",
-                  "Выберите, куда едете дальше и сколько дней остаётесь. Переезды организует команда.",
-                  "Növbəti istiqaməti və orada neçə gün qalacağını seç. Yerdəyişmələri komandamız təşkil edir.",
-                )}
-              </p>
-              {choices.length ? (
-                <div className="tpx-choices" role="radiogroup" aria-label={t("Destination", "Направление", "İstiqamət")}>
-                  {choices.map((city) => (
-                    <label key={city} className={draft.city === city ? "on" : ""}>
-                      <input
-                        type="radio"
-                        name="stop-city"
-                        checked={draft.city === city}
-                        onChange={() => setDraft((d) => ({ ...d, city }))}
-                      />
-                      <strong>{cityName(city)}</strong>
-                      <small>{places[city]?.note[idx]}</small>
-                    </label>
-                  ))}
-                </div>
-              ) : (
-                <p role="status">
-                  {t(
-                    "No other destination is available here.",
-                    "Других направлений здесь нет.",
-                    "Burada başqa istiqamət yoxdur.",
-                  )}
-                </p>
-              )}
-              <div className="tpx-days">
-                <span>{t("Days at this stop", "Дней на остановке", "Bu dayanacaqda neçə gün")}</span>
-                <div className="tp-stepper">
-                  <button
-                    type="button"
-                    disabled={draft.days <= 1}
-                    aria-label={t("Fewer days", "Меньше дней", "Daha az gün")}
-                    onClick={() => setDraft((d) => ({ ...d, days: d.days - 1 }))}
-                  >
-                    <Minus size={16} />
-                  </button>
-                  <output>
-                    {draft.days} {dayWord(draft.days)}
-                  </output>
-                  <button
-                    type="button"
-                    disabled={draft.days >= daysLeft(draft.index)}
-                    aria-label={t("More days", "Больше дней", "Daha çox gün")}
-                    onClick={() => setDraft((d) => ({ ...d, days: d.days + 1 }))}
-                  >
-                    <Plus size={16} />
-                  </button>
-                </div>
-                <small>
-                  {t("Up to", "Всего до", "Ümumilikdə")} {MAX_DAYS} {t("days in total", "дней", "günədək")}
-                </small>
-              </div>
-              <div className="tp-dialog-actions">
-                <span>
-                  {draft.city ? cityName(draft.city) : "—"} · {draft.days} {dayWord(draft.days)}
-                </span>
-                <button
-                  type="button"
-                  className="tp-primary"
-                  disabled={!draft.city || !choices.includes(draft.city)}
-                  onClick={saveStop}
-                >
-                  {draft.index >= stops.length
-                    ? t("Add to route", "Добавить в маршрут", "Marşruta əlavə et")
-                    : t("Save", "Сохранить", "Yadda saxla")}
-                  <ArrowRight size={16} />
+          <h2>{t("Start with a ready-made tour", "Начать с готового тура", "Hazır turla başla")}</h2>
+          <p>
+            {t(
+              "You can change the days, places and services afterwards.",
+              "Дни, места и услуги можно изменить потом.",
+              "Gün, yer və xidmətləri sonra dəyişə bilərsən.",
+            )}
+          </p>
+          <ul className="tpx-tourlist">
+            {tours.map((tour) => (
+              <li key={tour.slug}>
+                <button type="button" onClick={() => useTemplate(tour.slug)}>
+                  <strong>{tour.name[idx] ?? tour.name[0]}</strong>
+                  <small>
+                    {uniqRun(templates[tour.slug]).map(cityName).join(" → ")}, {tour.days} {dayWord(tour.days)}
+                  </small>
                 </button>
-              </div>
-            </>
-          ) : (
-            <>
-              <h2>
-                {t(
-                  "Add tours to your route",
-                  "Добавьте туры в маршрут",
-                  "Marşrutuna turlar əlavə et",
-                )}
-              </h2>
-              <p>
-                {t(
-                  "Start with one or combine a few. Make each day yours.",
-                  "Выберите один или объедините несколько.",
-                  "Birini seç və ya bir neçəsini birləşdir.",
-                )}
-              </p>
-              <input
-                type="search"
-                aria-label={t("Search tours", "Поиск туров", "Tur axtar")}
-                placeholder={t(
-                  "Search tours or destinations",
-                  "Туры и направления",
-                  "Tur və ya istiqamət axtar",
-                )}
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-              {tours
-                .filter((tour) =>
-                  (tour.name.join(" ") + templates[tour.slug].join(" "))
-                    .toLowerCase()
-                    .includes(search.toLowerCase()),
-                )
-                .map((tour) => (
-                  <label className="tp-tour-option" key={tour.slug}>
-                    <input
-                      type="checkbox"
-                      checked={chosen.includes(tour.slug)}
-                      onChange={(e) => {
-                        setNotice("");
-                        setChosen((s) =>
-                          e.target.checked
-                            ? [...s, tour.slug]
-                            : s.filter((x) => x !== tour.slug),
-                        );
-                      }}
-                    />
-                    <Image
-                      src={
-                        "/images/homepage-v3/" +
-                        photo(templates[tour.slug].at(-1)!) +
-                        ".webp"
-                      }
-                      alt=""
-                      width={150}
-                      height={100}
-                    />
-                    <div>
-                      <strong>
-                        {tour.name[l === "az" ? 2 : l === "ru" ? 1 : 0]}
-                      </strong>
-                      <small>
-                        {templates[tour.slug].join(" · ")} · {tour.days}{" "}
-                        {t("days", "дн.", "gün")}
-                      </small>
-                    </div>
-                  </label>
-                ))}
-              <h3>
-                {t(
-                  "Your route order",
-                  "Порядок маршрута",
-                  "Marşrut ardıcıllığın",
-                )}
-              </h3>
-              {chosen.map((slug, i) => (
-                <div className="tp-order" key={slug}>
-                  <span>
-                    {i + 1}. {templates[slug].join(" → ")}
-                  </span>
-                  <button
-                    disabled={!i}
-                    aria-label={t("Move up", "Вверх", "Yuxarı")}
-                    onClick={() =>
-                      setChosen((s) => {
-                        const a = [...s];
-                        [a[i - 1], a[i]] = [a[i], a[i - 1]];
-                        return a;
-                      })
-                    }
-                  >
-                    ↑
-                  </button>
-                  <button
-                    disabled={i === chosen.length - 1}
-                    aria-label={t("Move down", "Вниз", "Aşağı")}
-                    onClick={() =>
-                      setChosen((s) => {
-                        const a = [...s];
-                        [a[i + 1], a[i]] = [a[i], a[i + 1]];
-                        return a;
-                      })
-                    }
-                  >
-                    ↓
-                  </button>
-                </div>
-              ))}
-              <p>
-                {t(
-                  "Combine as many tours as you like; our team arranges the transfers between them.",
-                  "Объединяйте любое число туров; переезды между ними организует команда.",
-                  "İstədiyin qədər turu birləşdirə bilərsən; aralarındakı yerdəyişmələri komandamız təşkil edir.",
-                )}
-              </p>
-              {notice && <p role="status">{notice}</p>}
-              <div className="tp-dialog-actions">
-                <span>
-                  {chosen.length} {t("tour(s)", "тур.", "tur")} ·{" "}
-                  {chosen.flatMap((s) => templates[s]).length}{" "}
-                  {t("days", "дн.", "gün")}
-                </span>
-                <button
-                  className="tp-primary"
-                  disabled={!chosen.length}
-                  onClick={applyTours}
-                >
-                  {t(
-                    "Add selected tours",
-                    "Добавить туры",
-                    "Seçilmiş turları əlavə et",
-                  )}
-                  <ArrowRight size={16} />
-                </button>
-              </div>
-            </>
-          )}
+              </li>
+            ))}
+          </ul>
         </dialog>
       )}
     </section>

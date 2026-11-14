@@ -88,7 +88,9 @@ assert.equal(invalid.maxPrice, 500);
 assert.equal(invalid.sort, "recommended");
 assert.equal(invalid.activities.length, 0);
 assert.equal(invalid.regions.length, 0);
-assert.equal(readDiscovery("?pax=99").pax, 12);
+// Group sizes snap to the band that contains them: 99 is in 50-100, and anything above 100 is "100+" (101).
+assert.equal(readDiscovery("?pax=99").pax, 100);
+assert.equal(readDiscovery("?pax=500").pax, 101);
 assert.equal(readDiscovery("?pax=-2").pax, 2);
 assert.equal(readDiscovery("?pax=3.7").pax, 3);
 const booking = new URLSearchParams(

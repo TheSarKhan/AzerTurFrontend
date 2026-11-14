@@ -878,14 +878,6 @@ body:has(.tx-dialog[open]) {
   height: 0;
   border-left: 1px dashed #526d5c;
 }
-.tx-route li > small {
-  margin-left: auto;
-  padding-left: 12px;
-  font-size: 12px;
-  font-weight: 500;
-  color: #5d675f;
-  white-space: nowrap;
-}
 .tx-route li > span {
   flex: 0 0 24px;
   width: 24px;
@@ -958,45 +950,35 @@ body:has(.tx-dialog[open]) {
 }
 .tx-services-grid {
   display: grid;
-  grid-template-columns: 1.4fr 1fr;
-  gap: 38px;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 38px;
 }
 .tx-service {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 20px;
+  padding: 18px 0;
   min-height: 77px;
   border-bottom: 1px solid var(--tx-line);
 }
-.tx-service:first-child {
+.tx-service:nth-child(-n + 2) {
   border-top: 1px solid var(--tx-line);
 }
 .tx-service > svg {
   flex-shrink: 0;
 }
-.tx-service > strong {
+.tx-service > div {
+  min-width: 0;
+}
+.tx-service strong {
+  display: block;
   font-size: 15px;
 }
-.tx-service > span {
-  font-size: 12px;
-  color: var(--tx-muted);
-  margin-left: auto;
-}
-.tx-service:hover {
-  color: #a93c14;
-}
-.tx-exclusions {
-  border-left: 1px solid var(--tx-line);
-  padding: 8px 0 8px 28px;
-}
-.tx-exclusions h3 {
-  font-size: 17px;
-}
-.tx-exclusions p {
+.tx-service p {
+  margin-top: 4px;
   font-size: 13px;
-  line-height: 1.8;
+  line-height: 1.6;
   color: var(--tx-muted);
-  margin-top: 16px;
 }
 .tx-rhythm {
   grid-column: 1/-1;
@@ -1273,7 +1255,7 @@ body:has(.tx-dialog[open]) {
     font-size: 13px;
   }
   .tx-services-grid {
-    gap: 24px;
+    gap: 0 24px;
   }
   .tx-related-card {
     display: block;
@@ -1725,36 +1707,23 @@ body:has(.tx-dialog[open]) {
   }
   .tx-services-grid {
     grid-template-columns: 1fr;
-    gap: 22px;
+    gap: 0;
+  }
+  .tx-service:nth-child(2) {
+    border-top: 0;
   }
   .tx-service {
     gap: 12px;
     min-height: 80px;
-    flex-wrap: wrap;
-    padding: 12px 0;
+    padding: 14px 0;
   }
-  .tx-service > strong {
+  .tx-service strong {
     font-size: 15px;
-  }
-  .tx-service > span {
-    font-size: 11px;
-    max-width: 100px;
-    text-align: right;
   }
   .tx-service > svg:first-child {
     width: 25px;
   }
-  .tx-exclusions {
-    border: 0;
-    padding: 0;
-  }
-  .tx-exclusions h3 {
-    font-size: 16px;
-  }
-  .tx-exclusions p {
-    font-size: 14px;
-  }
-  .tx-rhythm {
+        .tx-rhythm {
     display: block;
     padding: 25px;
     margin-bottom: 35px;
@@ -1900,12 +1869,11 @@ body:has(.tx-dialog[open]) {
   .tx-service {
     gap: 10px;
   }
-  .tx-service > strong {
+  .tx-service strong {
     font-size: 14px;
   }
-  .tx-service > span {
-    max-width: 85px;
-    font-size: 10px;
+  .tx-service p {
+    font-size: 12px;
   }
   .tx-mobile-action {
     padding-inline: 12px;

@@ -4,7 +4,7 @@ import { customerApi } from "@/lib/customer-api";
 import type { Locale } from "@/lib/travel";
 
 type Contract = { id: string; version: number; filename: string; sha256: string; state: string; accepted_at: string | null };
-export default function CustomerContract({ bookingId, locale }: { bookingId: string; locale: Locale }) {
+export default function CustomerContract({ bookingId, locale, onChange }: { bookingId: string; locale: Locale; onChange?: () => void }) {
   const t = (en: string, ru: string, az: string) => locale === "az" ? az : locale === "ru" ? ru : en;
   const [contract, setContract] = useState<Contract | null>(null);
   const [loading, setLoading] = useState(true);
@@ -17,7 +17,7 @@ export default function CustomerContract({ bookingId, locale }: { bookingId: str
   useEffect(() => {
     let live = true;
     setLoading(true); setError(""); setContract(null); setOpen(false); setChecked(false);
-    customerApi<Contract | null>(path).then(x => { if (live) setContract(x); }).catch(() => { if (live) setError(t("Could not load documents.", "Не удалось загрузить документы.", "Sənədləri yükləmək olmadı.")); }).finally(() => { if (live) setLoading(false); });
+    customerApi<Contract | null>(path).then(x => { if (live) { setContract(x); setOpen(x?.state === "SENT"); } }).catch(() => { if (live) setError(t("Could not load documents.", "Не удалось загрузить документы.", "Sənədləri yükləmək olmadı.")); }).finally(() => { if (live) setLoading(false); });
     return () => { live = false; };
   }, [bookingId]);
   useEffect(() => {
@@ -32,7 +32,7 @@ export default function CustomerContract({ bookingId, locale }: { bookingId: str
   async function accept() {
     if (!contract || !checked || !pdf) return;
     setBusy(true); setError("");
-    try { setContract(await customerApi<Contract>(path + "/" + contract.id + "/accept", { sha256: contract.sha256 })); setChecked(false); }
+    try { setContract(await customerApi<Contract>(path + "/" + contract.id + "/accept", { sha256: contract.sha256 })); setChecked(false); onChange?.(); }
     catch { setError(t("Could not confirm. The contract or offer may have changed; refresh and review again.", "Не удалось подтвердить. Договор или предложение могли измениться; обновите страницу.", "Təsdiq alınmadı. Müqavilə və ya təklif dəyişmiş ola bilər; səhifəni yeniləyib yenidən yoxlayın.")); }
     finally { setBusy(false); }
   }
@@ -40,9 +40,9 @@ export default function CustomerContract({ bookingId, locale }: { bookingId: str
   if (!contract) return <p>{error || t("No documents yet.","Документов пока нет.","Hələ sənəd yoxdur.")}</p>;
   return <div className="contract-review">
     <div className="cc-sage"><strong>{contract.state === "ACCEPTED" ? t("Contract confirmed","Договор подтверждён","Müqavilə təsdiqlənib") : t("Awaiting your confirmation","Ожидает вашего подтверждения","Təsdiqinizi gözləyir")}</strong></div>
-    <p><strong>{contract.filename}</strong> · v{contract.version}</p>
+    <p><strong>{contract.filename}</strong>, v{contract.version}</p>
     {contract.accepted_at && <p>{t("Confirmed on", "Подтверждено", "Təsdiq tarixi")}: {new Date(contract.accepted_at).toLocaleString(locale === "az" ? "az-AZ" : locale === "ru" ? "ru-RU" : "en-GB")}</p>}
-    <p>{t("Review your contract before confirming. No payment is requested here.", "Изучите договор перед подтверждением. Оплата здесь не запрашивается.", "Təsdiqdən əvvəl müqaviləyə baxın. Burada ödəniş tələb olunmur.")}</p>
+    {contract.state !== "ACCEPTED" && <p>{t("Review your contract before confirming. No payment is requested here.", "Изучите договор перед подтверждением. Оплата здесь не запрашивается.", "Təsdiqdən əvvəl müqaviləyə baxın. Burada ödəniş tələb olunmur.")}</p>}
     <button className="cc-outline" onClick={() => { setChecked(false); setOpen(!open); }}>{open ? t("Close preview","Закрыть просмотр","Baxışı bağla") : t("Review PDF","Посмотреть PDF","PDF-ə bax")}</button>
     {error && <p role="alert">{error}</p>}
     {open && pdf && <><p><a href={pdf} download={contract.filename}>{t("Download PDF","Скачать PDF","PDF-i yüklə")}</a></p><iframe title={t("Contract PDF","PDF договора","Müqavilə PDF-i")} src={pdf} style={{width:"100%",height:"min(70vh, 720px)",border:"1px solid #ddd"}} /></>}

@@ -211,7 +211,7 @@ export default function CustomerAmendments({
           >
             {items.map((x) => (
               <option key={x.id} value={x.id}>
-                v{x.draft_version} · {state(x.state)} ·{" "}
+                v{x.draft_version}, {state(x.state)},{" "}
                 {new Date(x.sent_at).toLocaleString(l)}
               </option>
             ))}
@@ -224,11 +224,11 @@ export default function CustomerAmendments({
             <div>
               <article className="change-card">
                 <p>
-                  {state(a.state)} · v{a.draft_version}
+                  {state(a.state)}, v{a.draft_version}
                 </p>
                 <h2>{p.title}</h2>
                 <p>
-                  {p.date} · {p.travelers} {t("travelers", "туристов", "nəfər")}
+                  {p.date}, {p.travelers} {t("travelers", "туристов", "nəfər")}
                 </p>
                 <p>{p.message}</p>
                 <h3>{t("New itinerary", "Новый маршрут", "Yeni marşrut")}</h3>
