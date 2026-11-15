@@ -256,7 +256,7 @@ tours.push(
     ],
     stops: ["Baku", ...route].filter((city, i, all) => i === 0 || city !== all[i - 1]),
     plans: route.map((city, index) => index === 0
-      ? [tour.name[0] + " · " + city, tour.name[1] + " · " + city, tour.name[2] + " · " + city]
+      ? [tour.name[0] + ", " + city, tour.name[1] + ", " + city, tour.name[2] + ", " + city]
       : ["Explore " + city, "Знакомство с " + city, city + " ilə tanışlıq"]),
   })),
 );

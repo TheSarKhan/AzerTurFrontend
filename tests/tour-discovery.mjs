@@ -18,7 +18,15 @@ function load(file) {
   vm.runInNewContext(code, {
     exports,
     URLSearchParams,
-    require: (name) => load(path.resolve(path.dirname(file), name + ".ts")),
+    // JSON data (the starter catalogue) is read as it is; code is transpiled.
+    require: (name) =>
+      name.endsWith(".json")
+        ? {
+            default: JSON.parse(
+              fs.readFileSync(path.resolve(path.dirname(file), name), "utf8"),
+            ),
+          }
+        : load(path.resolve(path.dirname(file), name + ".ts")),
   });
   return exports;
 }
@@ -34,43 +42,77 @@ const names = (filters) =>
   discoverTours(tours, { ...defaultDiscovery(), ...filters })
     .map((t) => t.slug)
     .join(",");
-assert.equal(names({}), "quba-khinalug,sheki-gabala,baku-discovery");
-assert.equal(names({ regions: ["gabala"] }), "sheki-gabala");
+// The catalogue grows (starter tours were added), so filters are checked against what each tour
+// is rather than against a fixed list of slugs.
+const slugs = (list) => list.map((t) => t.slug).join(",");
+const where = (test) => slugs(tours.filter(test));
+const inRegion = (t, ...images) => images.includes(t.image);
+assert.equal(
+  new Set(tours.map((t) => t.slug)).size,
+  tours.length,
+  "tour slugs are unique",
+);
+// The three original tours stay first, so existing links and the recommended order keep working.
+assert.equal(
+  slugs(tours.slice(0, 3)),
+  "quba-khinalug,sheki-gabala,baku-discovery",
+);
+assert.equal(names({}), slugs(tours));
+assert.equal(
+  names({ regions: ["gabala"] }),
+  where((t) => inRegion(t, "gabala", "sheki")),
+);
+assert.ok(names({ regions: ["gabala"] }).split(",").includes("sheki-gabala"));
 assert.equal(
   names({ regions: ["gabala", "baku"] }),
-  "sheki-gabala,baku-discovery",
+  where((t) => inRegion(t, "gabala", "sheki", "baku")),
 );
 assert.equal(names({ category: "medical" }), "");
 assert.equal(names({ category: "business" }), "");
 assert.equal(
   names({ category: "nature", activities: ["easy"] }),
-  "sheki-gabala",
+  where((t) => inRegion(t, "sheki", "gabala")),
 );
-assert.equal(names({ durations: ["weekend"], maxPrice: 250 }), "quba-khinalug");
-assert.equal(names({ durations: ["extended"] }), "");
-assert.equal(names({ durations: ["long"] }), "sheki-gabala"); // Existing shared links retain their 3+ day meaning.
-assert.equal(names({ durations: ["short"] }), "quba-khinalug,baku-discovery");
+assert.equal(
+  names({ durations: ["weekend"], maxPrice: 250 }),
+  where((t) => t.days >= 2 && t.days <= 3 && t.base <= 250),
+);
+assert.ok(
+  names({ durations: ["weekend"], maxPrice: 250 })
+    .split(",")
+    .includes("quba-khinalug"),
+);
+assert.equal(
+  names({ durations: ["extended"] }),
+  where((t) => t.days >= 4),
+);
+// Existing shared links retain their 3+ day meaning.
+assert.equal(
+  names({ durations: ["long"] }),
+  where((t) => t.days >= 3),
+);
+assert.ok(names({ durations: ["long"] }).split(",").includes("sheki-gabala"));
+assert.equal(
+  names({ durations: ["short"] }),
+  where((t) => t.days <= 2),
+);
 assert.equal(
   names({ durations: ["day", "weekend"] }),
-  "quba-khinalug,sheki-gabala,baku-discovery",
+  where((t) => t.days >= 1 && t.days <= 3),
 );
 assert.equal(names({ maxPrice: 0 }), "");
-assert.equal(
-  names({ sort: "price-low" }),
-  "baku-discovery,quba-khinalug,sheki-gabala",
-);
-assert.equal(
-  names({ sort: "price-high" }),
-  "sheki-gabala,quba-khinalug,baku-discovery",
-);
-assert.equal(
-  names({ sort: "duration" }),
-  "baku-discovery,quba-khinalug,sheki-gabala",
-);
-assert.equal(
-  tours.map((t) => t.slug).join(","),
-  "quba-khinalug,sheki-gabala,baku-discovery",
-);
+const ordered = (filters, key, direction) => {
+  const list = discoverTours(tours, { ...defaultDiscovery(), ...filters });
+  assert.equal(list.length, tours.length, "sorting never drops a tour");
+  for (let k = 1; k < list.length; k++)
+    assert.ok(
+      direction * (list[k][key] - list[k - 1][key]) >= 0,
+      filters.sort + " is in order at " + list[k].slug,
+    );
+};
+ordered({ sort: "price-low" }, "base", 1);
+ordered({ sort: "price-high" }, "base", -1);
+ordered({ sort: "duration" }, "days", 1);
 const f = readDiscovery(
   "?region=gabala,baku,baku,nonsense&duration=weekend&activity=easy&category=culture&maxPrice=415&sort=price-low&date=2026-12-15&pax=4",
 );
@@ -111,7 +153,16 @@ Object.values(tourCopy).forEach(translated);
 Object.values(mediaAlt).forEach(translated);
 for (const tour of tours) {
   const media = tourMedia[tour.slug];
-  assert.ok(media);
+  if (!media) {
+    // Starter tours have no hand-written media entry. The tour page falls back to the tour's own
+    // copy, so that copy has to be complete in all three languages.
+    translated(tour.description);
+    translated(tour.difficulty);
+    assert.ok(tour.plans.length > 0);
+    tour.plans.forEach(translated);
+    assert.ok(tour.stops.length > 0);
+    continue;
+  }
   translated(media.subtitle);
   assert.equal(media.itinerary.length, tour.days);
   media.itinerary.forEach(translated);

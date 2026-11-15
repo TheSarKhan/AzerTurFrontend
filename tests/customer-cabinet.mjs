@@ -18,7 +18,15 @@ function load(file) {
     }).outputText,
     {
       exports,
-      require: (name) => load(path.resolve(path.dirname(file), name + ".ts")),
+      // JSON data (the starter catalogue) is read as it is; code is transpiled.
+      require: (name) =>
+        name.endsWith(".json")
+          ? {
+              default: JSON.parse(
+                fs.readFileSync(path.resolve(path.dirname(file), name), "utf8"),
+              ),
+            }
+          : load(path.resolve(path.dirname(file), name + ".ts")),
     },
   );
   return exports;

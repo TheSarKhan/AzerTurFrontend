@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';import vm from 'node:vm';import ts from 'typescript';
-const cache=new Map();function load(path){if(cache.has(path))return cache.get(path);const exports={};cache.set(path,exports);const source=fs.readFileSync(path,'utf8');const output=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;vm.runInNewContext(output,{exports,require:name=>load(new URL(name+'.ts',new URL('file://'+process.cwd()+'/'+path)).pathname.slice(process.cwd().length+1))});return exports}
+const cache=new Map();function load(path){if(cache.has(path))return cache.get(path);const exports={};cache.set(path,exports);const source=fs.readFileSync(path,'utf8');const output=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;vm.runInNewContext(output,{exports,require:name=>name.endsWith('.json')?{default:JSON.parse(fs.readFileSync(new URL(name,new URL('file://'+process.cwd()+'/'+path)).pathname,'utf8'))}:load(new URL(name+'.ts',new URL('file://'+process.cwd()+'/'+path)).pathname.slice(process.cwd().length+1))});return exports}
 const {tours,faqs,money}=load('lib/travel.ts');const {az}=load('lib/i18n.ts');
 for(const tour of tours){assert.ok(tour.name[2]);assert.ok(tour.description[2]);assert.ok(tour.difficulty[2]);for(const day of tour.plans)assert.ok(day[2])}
 for(const faq of faqs){assert.ok(faq[4]);assert.ok(faq[5]);assert.notEqual(faq[4],faq[2])}

@@ -151,7 +151,7 @@ export function EventsMap({ pins, position, t, href, open }: {
             <div className="ev-map-popover">
               <button type="button" onClick={() => setSelected(null)} aria-label={t("Close", "Закрыть", "Bağla")}><X size={18} /></button>
               <strong>{selected.title}</strong>
-              <span>{selected.venue} · {selected.when}</span>
+              <span>{selected.venue}, {selected.when}</span>
               <a href={href(selected.slug)} onClick={(event) => { event.preventDefault(); open(selected.slug); }}>{t("Details", "Подробнее", "Ətraflı")}</a>
             </div>
           )}
