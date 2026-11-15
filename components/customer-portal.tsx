@@ -118,6 +118,9 @@ declare global {
   }
 }
 /** Hidden until the API reports a configured Google client ID. */
+// Google sign-in is switched off for now. Set to true to show the button again.
+const SHOW_GOOGLE = false;
+
 function GoogleButton({
   locale: l,
   onCredential,
@@ -228,21 +231,23 @@ export function CustomerAuth({
             "Rezervasiya sorğusu yaratmaq və idarə etmək üçün qeydiyyat vacibdir.",
           )}
         </p>
-        <GoogleButton
-          locale={l}
-          onCredential={async (credential) => {
-            if (busy) return;
-            setBusy(true);
-            setError("");
-            try {
-              await customerApi("auth/google", { credential, locale: l });
-              finish(next);
-            } catch (e) {
-              setError(errorMessage(e, l));
-              setBusy(false);
-            }
-          }}
-        />
+        {SHOW_GOOGLE && (
+          <GoogleButton
+            locale={l}
+            onCredential={async (credential) => {
+              if (busy) return;
+              setBusy(true);
+              setError("");
+              try {
+                await customerApi("auth/google", { credential, locale: l });
+                finish(next);
+              } catch (e) {
+                setError(errorMessage(e, l));
+                setBusy(false);
+              }
+            }}
+          />
+        )}
         <div className="auth-tabs">
           <button
             aria-pressed={mode === "login"}
@@ -486,7 +491,11 @@ export function BookingCheckout({
     return (
       <section className="container page-content" role="status">
         {auto
-          ? t("Sending your request…", "Отправляем заявку…", "Sorğun göndərilir…")
+          ? t(
+              "Sending your request…",
+              "Отправляем заявку…",
+              "Sorğun göndərilir…",
+            )
           : t("Loading…", "Загрузка…", "Yüklənir…")}
       </section>
     );
@@ -537,7 +546,9 @@ export function BookingCheckout({
             try {
               // Older accounts have no number yet; the office needs one on every request.
               if (!customer.phone)
-                await customerApi("auth/phone", { phone: String(f.get("phone")) });
+                await customerApi("auth/phone", {
+                  phone: String(f.get("phone")),
+                });
               await customerApi<Booking>("bookings", {
                 quoteId: quote.id,
                 note: String(f.get("note")),
