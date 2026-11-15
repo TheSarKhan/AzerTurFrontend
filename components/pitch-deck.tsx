@@ -176,9 +176,9 @@ const MARKET = [
   },
   {
     key: "SOM",
-    value: "AZN 321K",
-    lines: ["Year 1 target: 720 bookings × AZN 445.50", "Package AZN 405 + 10% commission (AZN 40.50), extras +5%"],
-    sub: "4 operators × 1 booking/day × 20 days × 9 months",
+    value: "AZN 1.81M",
+    lines: ["111 customers a month", "B2C, groups, corporate and B2B"],
+    sub: "21 bookings a month",
   },
 ];
 
@@ -477,7 +477,7 @@ function Market() {
         ))}
 
         <div className="pd-band-note">
-          SOM is a capacity scenario; AzTrip keeps 10% (AZN 29K). At 1 booking/day: AZN 14,782.50 a year.
+          Capacity scenario. AzTrip earns AZN 176K a year, about AZN 10K a month after costs.
         </div>
         <div className="pd-source">
           Source: State Statistical Committee of Azerbaijan, Domestic Tourism 2025 (tables 1, 22) and Inbound Tourism
