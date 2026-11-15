@@ -176,7 +176,7 @@ function Photo({
 }) {
   return (
     <img
-      src={"/images/" + src + ".webp"}
+      src={src === "gabala" ? "/images/homepage-v3/gabala.webp" : "/images/" + src + ".webp"}
       alt={alt}
       className={className}
       loading={eager ? "eager" : "lazy"}

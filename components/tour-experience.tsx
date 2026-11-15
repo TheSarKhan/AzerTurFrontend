@@ -131,6 +131,16 @@ function TravelImage({
     />
   );
 }
+function mediaFor(tour: Tour) {
+  const image = tour.image === "mountains" ? "khinalug" : tour.image;
+  return tourMedia[tour.slug] ?? {
+    image,
+    gallery: [image],
+    subtitle: tour.description,
+    itinerary: tour.plans,
+  };
+}
+
 function SampleCard({
   tour,
   locale,
@@ -152,7 +162,7 @@ function SampleCard({
         className="tx-card-photo"
         aria-label={tour.name[i]}
       >
-        <TravelImage name={tourMedia[tour.slug].image} locale={locale} />
+        <TravelImage name={mediaFor(tour).image} locale={locale} />
       </PageLink>
       <div className="tx-card-copy">
         <p className="tx-location">
@@ -663,7 +673,7 @@ export function TourDetail({
         </PageLink>
       </div>
     );
-  const media = tourMedia[tour.slug],
+  const media = mediaFor(tour),
     fmt = (n: number) => money(n * rates[currency], currency, locale),
     plan = "/plan" + bookingSearch(date, pax, tour.slug);
   const navProps = { locale, go };
@@ -684,7 +694,7 @@ export function TourDetail({
     setPhoto((v) => (v + n + media.gallery.length) % media.gallery.length);
   }
   const highlight =
-    tour.image === "mountains"
+    !tourMedia[tour.slug] ? [] : tour.image === "mountains"
       ? [
           {
             Icon: Mountain,
@@ -946,15 +956,17 @@ export function TourDetail({
           <h2>{t(copy.overviewTitle)}</h2>
           <p>{tour.description[i]}</p>
           <p>{t(copy.overviewNote)}</p>
-          <div className="tx-highlights">
-            {highlight.map(({ Icon, title, body }) => (
-              <div key={title[0]}>
-                <Icon size={36} strokeWidth={1.3} />
-                <h3>{t(title)}</h3>
-                <p>{t(body)}</p>
-              </div>
-            ))}
-          </div>
+          {highlight.length > 0 && (
+            <div className="tx-highlights">
+              {highlight.map(({ Icon, title, body }) => (
+                <div key={title[0]}>
+                  <Icon size={36} strokeWidth={1.3} />
+                  <h3>{t(title)}</h3>
+                  <p>{t(body)}</p>
+                </div>
+              ))}
+            </div>
+          )}
         </section>
         <section id="itinerary" className="tx-itinerary">
           <h2>{t(copy.routeTitle)}</h2>

@@ -1,0 +1,393 @@
+[
+  {
+    "slug": "baku-old-city-walk",
+    "name": [
+      "Old City courtyards",
+      "Дворики Старого города",
+      "İçərişəhərin həyətləri"
+    ],
+    "region": "Baku",
+    "days": 1,
+    "base": 65,
+    "image": "baku",
+    "route": [
+      "Baku"
+    ]
+  },
+  {
+    "slug": "baku-caspian-promenade",
+    "name": [
+      "Caspian promenade",
+      "Каспийская набережная",
+      "Xəzər sahilində gəzinti"
+    ],
+    "region": "Baku",
+    "days": 1,
+    "base": 72,
+    "image": "baku",
+    "route": [
+      "Baku"
+    ]
+  },
+  {
+    "slug": "baku-architecture-walk",
+    "name": [
+      "Baku architecture walk",
+      "Архитектурная прогулка по Баку",
+      "Bakının memarlıq marşrutu"
+    ],
+    "region": "Baku",
+    "days": 1,
+    "base": 89,
+    "image": "baku",
+    "route": [
+      "Baku"
+    ]
+  },
+  {
+    "slug": "baku-tea-and-bazaars",
+    "name": [
+      "Baku tea and bazaars",
+      "Бакинский чай и базары",
+      "Bakının çay və bazarları"
+    ],
+    "region": "Baku",
+    "days": 2,
+    "base": 79,
+    "image": "baku",
+    "route": [
+      "Baku",
+      "Baku"
+    ]
+  },
+  {
+    "slug": "baku-baku-weekend",
+    "name": [
+      "A weekend in Baku",
+      "Выходные в Баку",
+      "Bakıda həftəsonu"
+    ],
+    "region": "Baku",
+    "days": 2,
+    "base": 185,
+    "image": "baku",
+    "route": [
+      "Baku",
+      "Baku"
+    ]
+  },
+  {
+    "slug": "quba-apple-country",
+    "name": [
+      "Quba apple country",
+      "Яблочные сады Губы",
+      "Qubanın alma bağları"
+    ],
+    "region": "Quba, Khinalug",
+    "days": 1,
+    "base": 105,
+    "image": "mountains",
+    "route": [
+      "Quba"
+    ]
+  },
+  {
+    "slug": "quba-forest-paths",
+    "name": [
+      "Quba forest paths",
+      "Лесные тропы Губы",
+      "Qubanın meşə cığırları"
+    ],
+    "region": "Quba, Khinalug",
+    "days": 1,
+    "base": 115,
+    "image": "mountains",
+    "route": [
+      "Quba"
+    ]
+  },
+  {
+    "slug": "quba-khinalug-village",
+    "name": [
+      "A day in Khinalug",
+      "День в Хыналыге",
+      "Xınalıqda bir gün"
+    ],
+    "region": "Quba, Khinalug",
+    "days": 1,
+    "base": 138,
+    "image": "mountains",
+    "route": [
+      "Khinalug"
+    ]
+  },
+  {
+    "slug": "quba-highland-photography",
+    "name": [
+      "Highland photography weekend",
+      "Фототур в горах",
+      "Dağlarda foto həftəsonu"
+    ],
+    "region": "Quba, Khinalug",
+    "days": 2,
+    "base": 259,
+    "image": "mountains",
+    "route": [
+      "Quba",
+      "Khinalug"
+    ]
+  },
+  {
+    "slug": "quba-mountain-guesthouse",
+    "name": [
+      "Mountain guesthouse escape",
+      "Отдых в горном гостевом доме",
+      "Dağ qonaq evində istirahət"
+    ],
+    "region": "Quba, Khinalug",
+    "days": 2,
+    "base": 289,
+    "image": "mountains",
+    "route": [
+      "Quba",
+      "Khinalug"
+    ]
+  },
+  {
+    "slug": "gabala-lake-day",
+    "name": [
+      "Gabala lakeside day",
+      "День у озера в Габале",
+      "Qəbələdə göl kənarında bir gün"
+    ],
+    "region": "Gabala",
+    "days": 1,
+    "base": 112,
+    "image": "gabala",
+    "route": [
+      "Gabala"
+    ]
+  },
+  {
+    "slug": "gabala-forest-picnic",
+    "name": [
+      "Gabala forest picnic",
+      "Лесной пикник в Габале",
+      "Qəbələ meşəsində piknik"
+    ],
+    "region": "Gabala",
+    "days": 1,
+    "base": 123,
+    "image": "gabala",
+    "route": [
+      "Gabala"
+    ]
+  },
+  {
+    "slug": "gabala-foothill-views",
+    "name": [
+      "Gabala foothill views",
+      "Предгорья Габалы",
+      "Qəbələnin dağətəyi mənzərələri"
+    ],
+    "region": "Gabala",
+    "days": 1,
+    "base": 129,
+    "image": "gabala",
+    "route": [
+      "Gabala"
+    ]
+  },
+  {
+    "slug": "gabala-family-weekend",
+    "name": [
+      "Gabala family weekend",
+      "Семейные выходные в Габале",
+      "Qəbələdə ailəvi həftəsonu"
+    ],
+    "region": "Gabala",
+    "days": 2,
+    "base": 245,
+    "image": "gabala",
+    "route": [
+      "Gabala",
+      "Gabala"
+    ]
+  },
+  {
+    "slug": "gabala-slow-gabala",
+    "name": [
+      "Two slow days in Gabala",
+      "Два неспешных дня в Габале",
+      "Qəbələdə iki sakit gün"
+    ],
+    "region": "Gabala",
+    "days": 2,
+    "base": 269,
+    "image": "gabala",
+    "route": [
+      "Gabala",
+      "Gabala"
+    ]
+  },
+  {
+    "slug": "sheki-palace-courtyards",
+    "name": [
+      "Sheki palace courtyards",
+      "Дворцы и дворы Шеки",
+      "Şəkinin saray həyətləri"
+    ],
+    "region": "Sheki",
+    "days": 1,
+    "base": 145,
+    "image": "sheki",
+    "route": [
+      "Sheki"
+    ]
+  },
+  {
+    "slug": "sheki-craft-lanes",
+    "name": [
+      "Sheki artisan lanes",
+      "Ремесленные улочки Шеки",
+      "Şəkinin sənətkar küçələri"
+    ],
+    "region": "Sheki",
+    "days": 1,
+    "base": 152,
+    "image": "sheki",
+    "route": [
+      "Sheki"
+    ]
+  },
+  {
+    "slug": "sheki-sweets-and-tea",
+    "name": [
+      "Sheki sweets and tea",
+      "Сладости и чай в Шеки",
+      "Şəki şirniyyatı və çayı"
+    ],
+    "region": "Sheki",
+    "days": 1,
+    "base": 155,
+    "image": "sheki",
+    "route": [
+      "Sheki"
+    ]
+  },
+  {
+    "slug": "sheki-caravanserai-weekend",
+    "name": [
+      "Caravanserai weekend",
+      "Выходные у караван-сарая",
+      "Karvansarada həftəsonu"
+    ],
+    "region": "Sheki",
+    "days": 2,
+    "base": 295,
+    "image": "sheki",
+    "route": [
+      "Sheki",
+      "Sheki"
+    ]
+  },
+  {
+    "slug": "sheki-silk-road-stories",
+    "name": [
+      "Silk Road stories in Sheki",
+      "Истории Шёлкового пути в Шеки",
+      "Şəkidə İpək yolu hekayələri"
+    ],
+    "region": "Sheki",
+    "days": 2,
+    "base": 315,
+    "image": "sheki",
+    "route": [
+      "Sheki",
+      "Sheki"
+    ]
+  },
+  {
+    "slug": "caucasus-lakes-and-palaces",
+    "name": [
+      "Lakes and palaces",
+      "Озёра и дворцы",
+      "Göllər və saraylar"
+    ],
+    "region": "Gabala, Sheki",
+    "days": 2,
+    "base": 289,
+    "image": "sheki",
+    "route": [
+      "Gabala",
+      "Sheki"
+    ]
+  },
+  {
+    "slug": "caucasus-tea-and-trails",
+    "name": [
+      "Tea and foothill trails",
+      "Чай и тропы предгорий",
+      "Çay və dağətəyi cığırlar"
+    ],
+    "region": "Gabala, Sheki",
+    "days": 2,
+    "base": 309,
+    "image": "sheki",
+    "route": [
+      "Gabala",
+      "Sheki"
+    ]
+  },
+  {
+    "slug": "caucasus-market-to-mountains",
+    "name": [
+      "From market to mountains",
+      "От рынка к горам",
+      "Bazardan dağlara"
+    ],
+    "region": "Gabala, Sheki",
+    "days": 2,
+    "base": 329,
+    "image": "sheki",
+    "route": [
+      "Gabala",
+      "Sheki"
+    ]
+  },
+  {
+    "slug": "caucasus-craft-and-countryside",
+    "name": [
+      "Craft and countryside",
+      "Ремёсла и загородный отдых",
+      "Sənətkarlıq və kənd istirahəti"
+    ],
+    "region": "Gabala, Sheki",
+    "days": 3,
+    "base": 395,
+    "image": "sheki",
+    "route": [
+      "Gabala",
+      "Sheki",
+      "Sheki"
+    ]
+  },
+  {
+    "slug": "caucasus-grand-silk-road",
+    "name": [
+      "Grand Silk Road route",
+      "Большой маршрут Шёлкового пути",
+      "Böyük İpək yolu marşrutu"
+    ],
+    "region": "Gabala, Sheki",
+    "days": 4,
+    "base": 485,
+    "image": "sheki",
+    "route": [
+      "Gabala",
+      "Sheki",
+      "Sheki",
+      "Sheki"
+    ]
+  }
+]

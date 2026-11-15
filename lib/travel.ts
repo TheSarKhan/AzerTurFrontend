@@ -1,4 +1,5 @@
 import { tourAz, placeAz, faqAz } from "./content-az";
+import catalogTours from "./catalog-tours.json";
 export type Locale = "en" | "ru" | "az";
 export type Currency = "EUR" | "USD" | "AZN";
 export const rates: Record<Currency, number> = { EUR: 1, USD: 1.1, AZN: 1.87 };
@@ -238,6 +239,27 @@ for (const tour of tours) {
     day[2] = az.plans[i];
   });
 }
+export const catalogRoutes: Record<string, string[]> = Object.fromEntries(
+  catalogTours.map(({ slug, route }) => [slug, route]),
+);
+
+tours.push(
+  ...catalogTours.map(({ route, ...tour }) => ({
+    ...tour,
+    difficulty: tour.image === "mountains"
+      ? ["Moderate", "Средняя", "Orta"]
+      : ["Easy", "Лёгкая", "Asan"],
+    description: [
+      "Explore " + tour.region + " with a local guide. The team confirms the stops and services before sending your offer.",
+      "Исследуйте регион " + tour.region + " с местным гидом. Команда согласует остановки и услуги перед отправкой предложения.",
+      "Yerli bələdçi ilə " + tour.region + " bölgəsini kəşf edin. Komanda təklifi göndərməzdən əvvəl dayanacaqları və xidmətləri dəqiqləşdirir.",
+    ],
+    stops: ["Baku", ...route].filter((city, i, all) => i === 0 || city !== all[i - 1]),
+    plans: route.map((city, index) => index === 0
+      ? [tour.name[0] + " · " + city, tour.name[1] + " · " + city, tour.name[2] + " · " + city]
+      : ["Explore " + city, "Знакомство с " + city, city + " ilə tanışlıq"]),
+  })),
+);
 for (const place of places) {
   place.name[2] = placeAz[place.id].name;
   place.text[2] = placeAz[place.id].text;

@@ -28,6 +28,7 @@ import {
   type Currency,
   type Quote,
   type QuoteInput,
+  catalogRoutes,
 } from "@/lib/travel";
 
 // The trip is built day by day: a day has one or more places, and every place has the services wanted there.
@@ -62,6 +63,7 @@ const icons = {
   photographer: Camera,
 };
 const templates: Record<string, string[]> = {
+  ...catalogRoutes,
   "baku-discovery": ["Baku"],
   "quba-khinalug": ["Quba", "Khinalug"],
   "sheki-gabala": ["Gabala", "Sheki", "Sheki"],
@@ -195,10 +197,11 @@ export default function TripPlanner({
   // What was in the link: a plan, or an older link with a route and service flags, or a ready-made tour.
   useEffect(() => {
     const p = new URLSearchParams(location.search);
+    const template = p.get("template") || "";
     let next = decodePlan(p.get("plan"));
     if (!next) {
       const saved = p.get("route")?.split(",").filter((x) => Object.hasOwn(transitions, x));
-      const base = saved?.length ? saved : templates[p.get("template") || ""];
+      const base = saved?.length ? saved : templates[template];
       if (base) {
         next = planFromCities(base.slice(0, MAX_DAYS), !saved?.length);
         const off: Record<string, string> = {
@@ -217,7 +220,12 @@ export default function TripPlanner({
     }
     if (next) setPlan(next);
     setInput((s) => {
-      const out = { ...s, date: p.get("date") || "", pax: snapPax(Number(p.get("pax")) || 2) };
+      const out = {
+        ...s,
+        slug: Object.hasOwn(catalogRoutes, template) ? template : s.slug,
+        date: p.get("date") || "",
+        pax: snapPax(Number(p.get("pax")) || 2),
+      };
       for (const [param, field] of [["start", "startCity"], ["end", "endCity"]] as const)
         if (Object.hasOwn(transitions, p.get(param) || "")) out[field] = p.get(param) as string;
       if (["standard", "comfort", "premium"].includes(p.get("hotel") || ""))
@@ -235,6 +243,7 @@ export default function TripPlanner({
     if (!ready) return;
     const p = new URLSearchParams();
     if (plan.length) p.set("plan", encodePlan(plan));
+    if (Object.hasOwn(catalogRoutes, input.slug)) p.set("template", input.slug);
     for (const key of ["date", "pax", "hotel", "guideLanguage"] as const)
       p.set(key, String(input[key] ?? ""));
     if (input.startCity && input.startCity !== "Baku") p.set("start", input.startCity);
@@ -340,7 +349,12 @@ export default function TripPlanner({
   };
   function useTemplate(slug: string) {
     edit(planFromCities(templates[slug], true));
-    setInput((s) => ({ ...s, startCity: "Baku", endCity: "Baku" }));
+    setInput((s) => ({
+      ...s,
+      slug: Object.hasOwn(catalogRoutes, slug) ? slug : "quba-khinalug",
+      startCity: "Baku",
+      endCity: "Baku",
+    }));
     setStep(0);
     setShowTours(false);
     dialogRef.current?.close();

@@ -107,7 +107,7 @@ export function discoverTours(inventory: Tour[], f: Discovery) {
       f.category === "all" ||
       (["history", "culture"].includes(f.category) &&
         ["baku", "sheki"].includes(t.image)) ||
-      (f.category === "nature" && ["mountains", "sheki"].includes(t.image)) ||
+      (f.category === "nature" && ["mountains", "sheki", "gabala"].includes(t.image)) ||
       (f.category === "entertainment" && t.image === "baku");
     return (
       category &&

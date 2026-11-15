@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft,
   ArrowUpRight,
@@ -16,6 +16,7 @@ import {
   UtensilsCrossed,
 } from "lucide-react";
 import type { Locale } from "@/lib/travel";
+import { EventsMap } from "./events-map";
 
 type EventView = {
   slug: string;
@@ -50,13 +51,14 @@ type EventDetailData = {
 type City = { slug: string; nameEn: string; nameRu: string; nameAz: string };
 type PageData = { items: EventView[]; total: number };
 
-const PAGE = 24;
+const PAGE = 50;
+const MAX_MAP_PAGES = 10;
 const CATEGORIES = ["CONCERT", "FESTIVAL", "SPORT", "CULTURE", "MARKET", "FOOD", "FAMILY", "OTHER"] as const;
 const ICONS = { CONCERT: Music, FESTIVAL: PartyPopper, SPORT: Trophy, CULTURE: Landmark, MARKET: Store, FOOD: UtensilsCrossed, FAMILY: Baby, OTHER: Sparkles };
 const RADII = [10, 25, 50, 100];
 const tag = (l: Locale) => (l === "az" ? "az-AZ" : l === "ru" ? "ru-RU" : "en-GB");
 
-function useText(l: Locale) {
+function eventText(l: Locale) {
   const t = (en: string, ru: string, az: string) => (l === "az" ? az : l === "ru" ? ru : en);
   const i = l === "az" ? 2 : l === "ru" ? 1 : 0;
   const categories: Record<string, string> = {
@@ -94,7 +96,7 @@ function when(e: Pick<EventView, "startsAt" | "endsAt" | "timeKnown">, l: Locale
   if (!e.timeKnown) return same ? day(s) : `${day(s)} – ${day(f)}`;
   return same ? `${day(s)}, ${s.hm}–${f.hm}` : `${day(s)} ${s.hm} – ${day(f)} ${f.hm}`;
 }
-function price(e: EventView, l: Locale, t: ReturnType<typeof useText>["t"]) {
+function price(e: EventView, l: Locale, t: ReturnType<typeof eventText>["t"]) {
   if (e.free) return t("Free", "Бесплатно", "Pulsuz");
   if (e.priceFromMinor == null) return "";
   const amount = new Intl.NumberFormat(tag(l), { style: "currency", currency: e.currency, maximumFractionDigits: e.priceFromMinor % 100 ? 2 : 0 }).format(e.priceFromMinor / 100);
@@ -102,6 +104,11 @@ function price(e: EventView, l: Locale, t: ReturnType<typeof useText>["t"]) {
 }
 const mapsUrl = (e: Pick<EventView, "latitude" | "longitude">) => `https://www.google.com/maps/search/?api=1&query=${e.latitude},${e.longitude}`;
 const round2 = (n: number) => Math.round(n * 100) / 100;
+
+function eventImage(image: string) {
+  const bundled = /^https:\/\/aztrip\.online(\/images\/homepage-v3\/(?:baku|gabala|guesthouse|hiking|khinalug|sheki|tea)\.webp)$/.exec(image);
+  return bundled?.[1] ?? image;
+}
 
 function Banner({ category }: { category: string }) {
   const Icon = ICONS[category as keyof typeof ICONS] ?? Sparkles;
@@ -113,7 +120,7 @@ function Banner({ category }: { category: string }) {
 }
 
 export function EventsPage({ locale: l, go }: { locale: Locale; go: (p: string) => void }) {
-  const { t, categories, title, cityOf } = useText(l);
+  const { t, categories } = eventText(l);
   const [cities, setCities] = useState<City[]>([]),
     [city, setCity] = useState(""),
     [category, setCategory] = useState(""),
@@ -122,9 +129,7 @@ export function EventsPage({ locale: l, go }: { locale: Locale; go: (p: string) 
     [radius, setRadius] = useState(25),
     [point, setPoint] = useState<{ lat: number; lng: number } | null>(null),
     [geo, setGeo] = useState<"idle" | "asking" | "denied" | "unsupported">("idle"),
-    [data, setData] = useState<PageData | null>(null),
     [items, setItems] = useState<EventView[]>([]),
-    [page, setPage] = useState(0),
     [state, setState] = useState<"loading" | "ready" | "error">("loading");
   const debounce = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [query, setQuery] = useState("");
@@ -140,12 +145,11 @@ export function EventsPage({ locale: l, go }: { locale: Locale; go: (p: string) 
     debounce.current = setTimeout(() => setQuery(q.trim()), 300);
     return () => { if (debounce.current) clearTimeout(debounce.current); };
   }, [q]);
-  useEffect(() => { setPage(0); }, [city, category, query, mode, radius, point]);
 
   useEffect(() => {
     const controller = new AbortController();
     setState("loading");
-    const p = new URLSearchParams({ size: String(PAGE), page: String(page) });
+    const p = new URLSearchParams({ size: String(PAGE) });
     if (category) p.set("category", category);
     if (query) p.set("q", query);
     if (mode === "near" && point) {
@@ -153,16 +157,37 @@ export function EventsPage({ locale: l, go }: { locale: Locale; go: (p: string) 
       p.set("lng", String(point.lng));
       p.set("radiusKm", String(radius));
     } else if (city) p.set("city", city);
-    fetch("/api/events?" + p, { signal: controller.signal })
-      .then((r) => (r.ok ? r.json() : Promise.reject()))
-      .then((d: PageData) => {
-        setData(d);
-        setItems((old) => (page === 0 ? d.items : [...old, ...d.items]));
+    async function load() {
+      const events: EventView[] = [];
+      for (let page = 0; page < MAX_MAP_PAGES; page++) {
+        p.set("page", String(page));
+        const response = await fetch("/api/events?" + p, { signal: controller.signal });
+        if (!response.ok) throw new Error("Events unavailable");
+        const result: PageData = await response.json();
+        events.push(...result.items);
+        if (events.length >= result.total || !result.items.length) break;
+      }
+      if (!controller.signal.aborted) {
+        setItems(events);
         setState("ready");
-      })
-      .catch(() => { if (!controller.signal.aborted) setState("error"); });
+      }
+    }
+    void load().catch(() => { if (!controller.signal.aborted) setState("error"); });
     return () => controller.abort();
-  }, [city, category, query, mode, radius, point, page]);
+  }, [city, category, query, mode, radius, point]);
+
+  const pins = useMemo(() => {
+    const { title } = eventText(l);
+    return items.map((event) => ({
+      slug: event.slug,
+      latitude: event.latitude,
+      longitude: event.longitude,
+      title: title(event),
+      venue: event.venueName,
+      when: when(event, l),
+      image: event.image ? eventImage(event.image) : null,
+    }));
+  }, [items, l]);
 
   const chooseCity = (slug: string) => {
     setMode("city");
@@ -188,8 +213,7 @@ export function EventsPage({ locale: l, go }: { locale: Locale; go: (p: string) 
   return (
     <section className="events-page container page-content">
       <header className="ev-head">
-        <h1>{t("What’s on in Azerbaijan", "Что происходит в Азербайджане", "Azərbaycanda nə var")}</h1>
-        <p>{t("Concerts, festivals and shows for your dates. Browse by city or see what is near you.", "Концерты, фестивали и шоу на ваши даты. Выберите город или посмотрите, что рядом.", "Tarixlərinizə uyğun konsertlər, festivallar və şoular. Şəhər seçin və ya yaxınlıqdakılara baxın.")}</p>
+        <h1>{t("Events map", "Карта событий", "Tədbirlər xəritəsi")}</h1>
       </header>
       <div className="ev-controls">
         <div className="ev-tabs" role="group" aria-label={t("City", "Город", "Şəhər")}>
@@ -225,36 +249,14 @@ export function EventsPage({ locale: l, go }: { locale: Locale; go: (p: string) 
         <p className="ev-empty">{t("No events found — try another date or city.", "Событий не найдено — попробуйте другую дату или город.", "Tədbir tapılmadı — başqa tarix və ya şəhər sınayın.")}</p>
       )}
       {state === "loading" && items.length === 0 && <p role="status" className="ev-empty">{t("Loading…", "Загрузка…", "Yüklənir…")}</p>}
-      <ul className="ev-grid">
-        {items.map((e) => (
-          <li key={e.slug}>
-            <article className="ev-card">
-              <a href={`/${l}/events/${e.slug}`} onClick={(x) => { x.preventDefault(); open(e.slug); }}>
-                {e.image ? <img src={e.image} alt="" loading="lazy" referrerPolicy="no-referrer" /> : <Banner category={e.category} />}
-                <div className="ev-body">
-                  <p className="ev-meta">{categories[e.category]}, {cityOf(e)}</p>
-                  <h2>{title(e)}</h2>
-                  <p className="ev-when">{when(e, l)}</p>
-                  <p className="ev-venue"><MapPin size={14} />{e.venueName}</p>
-                  <p className="ev-foot">
-                    <span>{price(e, l, t)}</span>
-                    {e.distanceKm != null && <strong>{e.distanceKm} km</strong>}
-                  </p>
-                </div>
-              </a>
-            </article>
-          </li>
-        ))}
-      </ul>
-      {data && items.length < data.total && (
-        <div className="ev-more"><button onClick={() => setPage((p) => p + 1)} disabled={state === "loading"}>{t("Show more", "Показать ещё", "Daha çox göstər")}</button></div>
-      )}
+      <EventsMap pins={pins} position={mode === "near" ? point : null} t={t}
+        href={(slug) => `/${l}/events/${slug}`} open={open} />
     </section>
   );
 }
 
 export function EventDetail({ locale: l, slug, go }: { locale: Locale; slug: string; go: (p: string) => void }) {
-  const { t, categories, title, cityOf } = useText(l);
+  const { t, categories, title, cityOf } = eventText(l);
   const [d, setD] = useState<EventDetailData | null>(null),
     [state, setState] = useState<"loading" | "ready" | "missing" | "error">("loading");
   useEffect(() => {
@@ -286,7 +288,7 @@ export function EventDetail({ locale: l, slug, go }: { locale: Locale; slug: str
   return (
     <section className="events-page container page-content ev-detail">
       {back}
-      {e.image ? <img className="ev-hero" src={e.image} alt="" referrerPolicy="no-referrer" /> : <Banner category={e.category} />}
+      {e.image ? <img className="ev-hero" src={eventImage(e.image)} alt="" referrerPolicy="no-referrer" /> : <Banner category={e.category} />}
       <p className="ev-meta">{categories[e.category]}, {cityOf(e)}</p>
       <h1>{title(e)}</h1>
       <dl className="ev-facts">
