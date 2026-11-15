@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { FileText } from "lucide-react";
 import { customerApi, ApiError, type Booking } from "@/lib/customer-api";
 import type { Locale } from "@/lib/travel";
 type Proposal = {
@@ -187,13 +188,22 @@ export default function CustomerAmendments({
       {notice && <p role="status">{notice}</p>}
       {!ready && <p>{t("Loading…", "Загрузка…", "Yüklənir…")}</p>}
       {ready && !items.length && (
-        <p>
-          {t(
-            "The office has not sent a change proposal yet. Your request remains with the team.",
-            "Офис ещё не отправил предложение. Команда рассматривает запрос.",
-            "Ofis hələ dəyişiklik təklifi göndərməyib. Komanda sorğunu nəzərdən keçirir.",
-          )}
-        </p>
+        <div className="amend-empty">
+          <FileText size={34} aria-hidden="true" />
+          <strong>
+            {t("No change proposal yet", "Предложений пока нет", "Hələ dəyişiklik təklifi yoxdur")}
+          </strong>
+          <span>
+            {t(
+              "When the team sends a change proposal it appears here. To ask for a change, send a request from your trip page.",
+              "Когда команда отправит предложение, оно появится здесь. Чтобы запросить изменение, отправьте запрос на странице поездки.",
+              "Komanda dəyişiklik təklifi göndərəndə burada görünəcək. Dəyişiklik istəyirsinizsə, səfər səhifəsindən sorğu göndərin.",
+            )}
+          </span>
+          <button className="cc-primary" onClick={() => go("/trips/" + booking.id)}>
+            {t("Go to my trip", "К поездке", "Səfərə keç")}
+          </button>
+        </div>
       )}
       {items.length > 0 && (
         <label>

@@ -283,3 +283,24 @@
   }
 }
 /* tp rev 2 */
+
+.amend-empty {
+  display: grid;
+  justify-items: start;
+  gap: 10px;
+  max-width: 640px;
+  padding: 28px;
+  border: 1px solid #dce2dc;
+  border-radius: 14px;
+  background: #fff;
+}
+.amend-empty strong {
+  font-size: 20px;
+}
+.amend-empty span {
+  color: #4b585f;
+  line-height: 1.5;
+}
+.amend-empty .cc-primary {
+  margin-top: 6px;
+}

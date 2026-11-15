@@ -169,7 +169,19 @@ export default function CustomerCancellation({
     latest = updates.find((u) => u.id === activeUpdate) || updates[0];
   const result = !!latest && !compose;
   async function submit() {
-    if (!context || !consent || !reason || !selection.length || busy) return;
+    if (!context || busy) return;
+    // Say what is missing instead of leaving the button grey.
+    const missing = [
+      ...(!selection.length
+        ? [t("Choose what to cancel (step 01 and 02).", "Выберите, что отменить (шаги 01 и 02).", "Nəyi ləğv etmək istədiyinizi seçin (01 və 02-ci addım).")]
+        : []),
+      ...(!reason ? [t("Choose a reason for the cancellation (step 03).", "Выберите причину отмены (шаг 03).", "Ləğvin səbəbini seçin (03-cü addım).")] : []),
+      ...(!consent ? [t("Tick the box to confirm that you want the team to review the request.", "Отметьте, что хотите, чтобы команда рассмотрела запрос.", "Komandanın sorğunu yoxlamasını istədiyinizi təsdiqləmək üçün qutunu işarələyin.")] : []),
+    ];
+    if (missing.length) {
+      setError(missing.join(" "));
+      return;
+    }
     setBusy(true);
     setError("");
     try {
@@ -266,7 +278,7 @@ export default function CustomerCancellation({
           priority
         />
       </div>
-      {error && (
+      {error && (result || loading || !context) && (
         <p className="cc-error" role="alert">
           {error}
         </p>
@@ -733,6 +745,7 @@ export default function CustomerCancellation({
                 )}
               </h2>
               <form
+                noValidate
                 onSubmit={(e) => {
                   e.preventDefault();
                   void submit();
@@ -826,14 +839,16 @@ export default function CustomerCancellation({
                     "Komandanın bu ləğv sorğusunu yoxlamasını istəyirəm.",
                   )}
                 </label>
+                {error && (
+                  <p className="cc-error" role="alert">
+                    {error}
+                  </p>
+                )}
                 <div className="cancel-submit">
                   <button
                     className="cancel-primary"
                     disabled={
                       busy ||
-                      !consent ||
-                      !reason ||
-                      !selection.length ||
                       pending ||
                       !context.services.length ||
                       ["CANCELLED", "REJECTED"].includes(context.bookingStatus)
@@ -903,7 +918,7 @@ export default function CustomerCancellation({
                     "Ləğv necə işləyir",
                   )}
                 </h2>
-                {latest.refundMessage && <p>{latest.refundMessage}</p>}
+                {latest?.refundMessage && <p>{latest.refundMessage}</p>}
                 <ol className="cancel-timeline">
                   <li>
                     {t("Request received", "Запрос получен", "Sorğu alınır")}
