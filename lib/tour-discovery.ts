@@ -42,7 +42,8 @@ export const defaultDiscovery = (): Discovery => ({
   maxPrice: 500,
   sort: "recommended",
   date: "",
-  pax: 2,
+  // 0 means the visitor has not chosen a number of travellers yet; it is never filled in for them.
+  pax: 0,
 });
 export function validTravelDate(value: string) {
   return (
@@ -77,7 +78,7 @@ export function readDiscovery(search: string): Discovery {
       ? p.get("sort")!
       : "recommended",
     date: validTravelDate(p.get("date") || "") ? p.get("date")! : "",
-    pax: Number.isFinite(pax) && pax > 0 ? snapPax(pax) : 2,
+    pax: Number.isFinite(pax) && pax > 0 ? snapPax(pax) : 0,
   };
 }
 export function discoverySearch(f: Discovery) {
@@ -89,7 +90,7 @@ export function discoverySearch(f: Discovery) {
   if (f.maxPrice !== 500) p.set("maxPrice", String(f.maxPrice));
   if (f.sort !== "recommended") p.set("sort", f.sort);
   if (f.date) p.set("date", f.date);
-  if (f.pax !== 2) p.set("pax", String(f.pax));
+  if (f.pax !== 0) p.set("pax", String(f.pax));
   return p.size ? "?" + p : "";
 }
 export function bookingSearch(date: string, pax: number, template?: string) {
@@ -98,7 +99,7 @@ export function bookingSearch(date: string, pax: number, template?: string) {
   if (validTravelDate(date)) p.set("date", date);
   // 0 means the visitor has not picked a travellers count yet, so none is added.
   if (pax !== 0)
-    p.set("pax", String(snapPax(pax || 2)));
+    p.set("pax", String(snapPax(pax)));
   return "?" + p;
 }
 export function discoverTours(inventory: Tour[], f: Discovery) {

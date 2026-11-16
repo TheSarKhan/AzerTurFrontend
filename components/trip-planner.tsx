@@ -133,7 +133,7 @@ export default function TripPlanner({
   const [input, setInput] = useState<QuoteInput>({
     slug: "quba-khinalug",
     date: "",
-    pax: 2,
+    pax: 0,
     hotel: "comfort",
     guide: false,
     guideLanguage: l,
@@ -224,7 +224,7 @@ export default function TripPlanner({
         ...s,
         slug: Object.hasOwn(catalogRoutes, template) ? template : s.slug,
         date: p.get("date") || "",
-        pax: snapPax(Number(p.get("pax")) || 2),
+        pax: p.has("pax") && Number(p.get("pax")) > 0 ? snapPax(Number(p.get("pax"))) : 0,
       };
       for (const [param, field] of [["start", "startCity"], ["end", "endCity"]] as const)
         if (Object.hasOwn(transitions, p.get(param) || "")) out[field] = p.get(param) as string;
@@ -259,7 +259,7 @@ export default function TripPlanner({
   useEffect(() => {
     setQuote(null);
     setError("");
-    if (!ready || !input.date || dateProblem || !hasMain || !days) {
+    if (!ready || !input.date || !input.pax || dateProblem || !hasMain || !days) {
       setBusy(false);
       return;
     }
@@ -382,7 +382,7 @@ export default function TripPlanner({
     t("Dates and travellers", "Даты и участники", "Tarix və səyahətçilər"),
     t("Review and send", "Проверка и отправка", "Yoxlama və göndərmə"),
   ];
-  const stepDone = [hasMain && days > 0, !!input.date && !dateProblem, true];
+  const stepDone = [hasMain && days > 0, !!input.date && !dateProblem && input.pax > 0, true];
   const firstOpen = stepDone.indexOf(false);
   const reachable = firstOpen === -1 ? stepTitles.length - 1 : firstOpen;
   const stepHint = [
@@ -401,7 +401,7 @@ export default function TripPlanner({
     setStep(n);
     formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
-  const submitDisabled = busy || !hasMain || !days || dateProblem || !input.date || !quote;
+  const submitDisabled = busy || !hasMain || !days || dateProblem || !input.date || !input.pax || !quote;
   const pickedKeys = SERVICE_KEYS.filter((k) => picked(k));
   const citySelect = (value: string, label: string, onChange: (v: string) => void) => (
     <select aria-label={label} value={value} onChange={(e) => onChange(e.target.value)}>
@@ -658,7 +658,14 @@ export default function TripPlanner({
                   </label>
                   <label>
                     {t("Travelers", "Путешественники", "Səyahətçilər")}
-                    <select value={input.pax} onChange={(e) => change("pax", Number(e.target.value))}>
+                    <select
+                      required
+                      value={input.pax || ""}
+                      onChange={(e) => change("pax", Number(e.target.value))}
+                    >
+                      <option value="" disabled>
+                        {t("Select travelers", "Выберите число путешественников", "İştirakçı sayını seçin")}
+                      </option>
                       {PAX_OPTIONS.map((n) => (
                         <option key={n} value={n}>
                           {travellerCount(n, l)}
@@ -793,7 +800,7 @@ export default function TripPlanner({
                 </div>
                 <div>
                   <dt>{t("Travelers", "Путешественники", "Səyahətçilər")}</dt>
-                  <dd>{travellerCount(input.pax, l)}</dd>
+                  <dd>{input.pax ? travellerCount(input.pax, l) : "-"}</dd>
                 </div>
               </dl>
               <ul className="tpx-picked">

@@ -409,10 +409,11 @@ export function TourCatalog({ locale, currency, go }: Props) {
             <span>
               <b>{t(copy.travelers)}</b>
               <select
-                value={filters.pax}
+                value={filters.pax || ""}
                 aria-label={t(copy.travelers)}
                 onChange={(e) => update({ pax: Number(e.target.value) })}
               >
+                <option value="">{t(homeCopy.chooseTravelers)}</option>
                 {PAX_OPTIONS.map((n) => (
                   <option key={n} value={n}>
                     {travellerCount(n, locale)}

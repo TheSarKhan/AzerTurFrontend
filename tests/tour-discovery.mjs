@@ -124,7 +124,12 @@ assert.equal(
 const invalid = readDiscovery(
   "?pax=Infinity&date=2026-02-31&maxPrice=NaN&sort=evil&activity=dangerous&region=unknown",
 );
-assert.equal(invalid.pax, 2);
+// A missing or invalid count is "not chosen" (0), never filled in with a number.
+assert.equal(invalid.pax, 0);
+assert.equal(readDiscovery("").pax, 0);
+assert.equal(defaultDiscovery().pax, 0);
+assert.equal(discoverySearch(defaultDiscovery()), "", "no count means no pax in the link");
+assert.equal(new URLSearchParams(bookingSearch("", 0)).has("pax"), false);
 assert.equal(invalid.date, "");
 assert.equal(invalid.maxPrice, 500);
 assert.equal(invalid.sort, "recommended");
@@ -133,7 +138,7 @@ assert.equal(invalid.regions.length, 0);
 // Group sizes snap to the band that contains them: 99 is in 50-100, and anything above 100 is "100+" (101).
 assert.equal(readDiscovery("?pax=99").pax, 100);
 assert.equal(readDiscovery("?pax=500").pax, 101);
-assert.equal(readDiscovery("?pax=-2").pax, 2);
+assert.equal(readDiscovery("?pax=-2").pax, 0);
 assert.equal(readDiscovery("?pax=3.7").pax, 3);
 const booking = new URLSearchParams(
   bookingSearch(f.date, f.pax, "quba-khinalug"),

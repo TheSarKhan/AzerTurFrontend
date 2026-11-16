@@ -28,6 +28,7 @@ export const homeCopy = {
   ],
   date: ["Travel dates", "Дата поездки", "Səfər tarixi"],
   travelers: ["Travelers", "Путешественники", "Səyahətçilər"],
+  chooseTravelers: ["Select travelers", "Выберите число путешественников", "İştirakçı sayını seçin"],
   search: ["Find a journey", "Найти поездку", "Səfər tap"],
   availability: [
     "Availability and final price confirmed by our team.",

@@ -10,3 +10,14 @@
 .planner-grid>div,.planner-grid>aside{min-width:0}.planner-top>div:first-child{min-width:0}.planner-top .stepper{flex-shrink:0}@media(max-width:700px){.planner-top{gap:16px}.planner-top p{max-width:190px}.planner-days{max-width:100%}}
 .planner-actions{display:flex;align-items:center;gap:20px;margin-bottom:32px;padding-bottom:24px;border-bottom:1px solid var(--line)}.planner-actions .button{font-size:12px;flex-shrink:0}.planner-actions p{font-size:11px;line-height:1.6;color:var(--muted);max-width:240px}.share-fallback{display:block;font-size:12px;margin-bottom:24px}.share-fallback input{width:100%;margin-top:10px}.trip-toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:28px}.trip-toolbar p{color:var(--muted);font-size:13px}.trip-toolbar .button,.receipt-actions .button{font-size:12px}.receipt-actions{display:flex;align-items:center;gap:24px;flex-wrap:wrap;margin-top:28px}.receipt-services{border-bottom:1px solid var(--line);padding:10px 0;margin-bottom:12px}.receipt-services p{display:flex;justify-content:space-between;gap:24px}.receipt-route{color:var(--forest);line-height:1.8}.trip-notice,.request-context{padding:20px;border:1px solid var(--forest);background:#EAEFE7;border-radius:8px;margin-bottom:28px;line-height:1.7}.reveal{opacity:1;transform:none}.reveal.visible{animation:section-enter .7s ease both}@keyframes section-enter{from{opacity:.55;transform:translateY(20px)}to{opacity:1;transform:none}}@media(prefers-reduced-motion:reduce){.reveal.visible{animation:none}}@media(max-width:700px){.planner-actions{align-items:flex-start;gap:14px;flex-direction:column}.planner-actions p{max-width:100%}.trip-toolbar{align-items:flex-start;gap:20px;flex-direction:column}.receipt-actions{gap:20px}}
 @media print{header,footer,.contact-float,.cookie-banner,.trip-toolbar,.receipt-actions,.skip-link,dialog{display:none!important}body{background:white;color:black}.container{width:100%;max-width:none}.page-content{padding:20px 0}.section-heading{margin-bottom:24px}.section-heading :is(h1,h2){font-size:36px}.trip-receipt{break-inside:avoid;border:1px solid #aaa;padding:20px;grid-template-columns:140px 1fr;margin-bottom:24px}.trip-receipt>img{width:140px;height:140px}.trip-receipt details:not([open])>*:not(summary){display:block!important}.trip-receipt details summary{display:none}.trip-receipt h3{font-size:24px}.trip-receipt p{font-size:12px}.trip-receipt small{font-size:10px}}
+/* Footer: on tablet and phone widths the link columns stay tight and evenly spaced. */
+@media (max-width: 960px) {
+  .footer-top { gap: 28px 24px; }
+  .footer-top h4 { margin-bottom: 12px; }
+  .footer-top > div > a:not(:has(.logo)) { margin: 4px 0; min-height: 34px; display: flex; align-items: center; }
+  .footer-bottom { margin-top: 36px; }
+}
+@media (max-width: 560px) {
+  .footer-top { gap: 28px 20px; }
+  .footer-top > div > a:not(:has(.logo)) { margin: 2px 0; min-height: 36px; font-size: 13px; }
+}

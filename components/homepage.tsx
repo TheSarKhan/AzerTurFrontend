@@ -40,7 +40,7 @@ export default function Homepage({ locale, go }: Props) {
   const t = (text: HomeText) => homeText(text, locale);
   const [region, setRegion] = useState("all"),
     [date, setDate] = useState(""),
-    [pax, setPax] = useState("2");
+    [pax, setPax] = useState("");
   const link = (to: string, children: ReactNode, className = "") => (
     <a
       key={to}
@@ -116,7 +116,8 @@ export default function Homepage({ locale, go }: Props) {
           className="hv-search"
           onSubmit={(e) => {
             e.preventDefault();
-            const params = new URLSearchParams({ region, date, pax });
+            const params = new URLSearchParams({ region, date });
+            if (pax) params.set("pax", pax);
             go("/tours?" + params);
           }}
         >
@@ -162,6 +163,7 @@ export default function Homepage({ locale, go }: Props) {
                 onChange={(e) => setPax(e.target.value)}
                 aria-label={t(homeCopy.travelers)}
               >
+                <option value="">{t(homeCopy.chooseTravelers)}</option>
                 {PAX_OPTIONS.map((n) => (
                   <option key={n} value={n}>
                     {travellerCount(n, locale)}

@@ -128,7 +128,7 @@ export function EventsPage({ locale: l, go }: { locale: Locale; go: (p: string) 
     [mode, setMode] = useState<"city" | "near">("city"),
     [radius, setRadius] = useState(25),
     [point, setPoint] = useState<{ lat: number; lng: number } | null>(null),
-    [geo, setGeo] = useState<"idle" | "asking" | "denied" | "unsupported">("idle"),
+    [geo, setGeo] = useState<"idle" | "asking" | "denied" | "failed" | "unsupported">("idle"),
     [items, setItems] = useState<EventView[]>([]),
     [state, setState] = useState<"loading" | "ready" | "error">("loading");
   const debounce = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -204,7 +204,7 @@ export function EventsPage({ locale: l, go }: { locale: Locale; go: (p: string) 
         setMode("near");
         setGeo("idle");
       },
-      () => { setGeo("denied"); setMode("city"); },
+      (err) => { setGeo(err.code === 1 ? "denied" : "failed"); setMode("city"); },
       { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 },
     );
   }, []);
@@ -237,8 +237,8 @@ export function EventsPage({ locale: l, go }: { locale: Locale; go: (p: string) 
           <button aria-pressed={category === ""} onClick={() => setCategory("")}>{t("All", "Все", "Hamısı")}</button>
           {CATEGORIES.map((c) => <button key={c} aria-pressed={category === c} onClick={() => setCategory(c)}>{categories[c]}</button>)}
         </div>
-        {(geo === "denied" || geo === "unsupported") && (
-          <p role="status" className="ev-note">{geo === "denied" ? t("We could not use your location. Pick a city instead.", "Не удалось определить местоположение. Выберите город.", "Məkanınızı müəyyən etmək olmadı. Şəhər seçin.") : t("This browser cannot share a location. Pick a city instead.", "Браузер не передаёт местоположение. Выберите город.", "Bu brauzer məkan paylaşa bilmir. Şəhər seçin.")}</p>
+        {(geo === "denied" || geo === "failed" || geo === "unsupported") && (
+          <p role="status" className="ev-note">{geo === "denied" ? t("Location access is blocked. Allow it in your browser settings, or pick a city instead.", "Доступ к местоположению заблокирован. Разрешите его в настройках браузера или выберите город.", "Məkan icazəsi bloklanıb. Brauzer parametrlərində icazə verin və ya şəhər seçin.") : geo === "failed" ? t("We could not find your location. Try again, or pick a city instead.", "Не удалось определить местоположение. Повторите попытку или выберите город.", "Məkanınızı tapa bilmədik. Yenidən cəhd edin və ya şəhər seçin.") : t("This browser cannot share a location. Pick a city instead.", "Браузер не передаёт местоположение. Выберите город.", "Bu brauzer məkan paylaşa bilmir. Şəhər seçin.")}</p>
         )}
         {mode === "near" && <p className="ev-note">{t("Your location is only used to find nearby events and is not stored.", "Местоположение используется только для поиска событий рядом и не сохраняется.", "Məkanınız yalnız yaxınlıqdakı tədbirləri tapmaq üçün istifadə olunur və saxlanılmır.")}</p>}
       </div>
