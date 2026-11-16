@@ -1036,3 +1036,14 @@
     grid-column: 1/-1;
   }
 }
+
+/* Tablet widths: the brand sits on its own row and the three link columns share the width evenly. */
+@media (min-width: 701px) and (max-width: 960px) {
+  .homepage-shell .footer-top {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 28px 24px;
+  }
+  .homepage-shell .footer-top > div:first-child {
+    grid-column: 1/-1;
+  }
+}
