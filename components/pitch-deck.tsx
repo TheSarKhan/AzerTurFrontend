@@ -4,16 +4,11 @@ import type { CSSProperties, ReactNode } from "react";
 import {
   CalendarClock,
   CalendarHeart,
-  ChevronLeft,
-  ChevronRight,
   Compass,
   Layers,
   LayoutTemplate,
   FolderOpen,
   MapPinned,
-  Maximize,
-  Minimize,
-  Printer,
   Route,
   Tickets,
 } from "lucide-react";
@@ -652,8 +647,6 @@ const H = 1080;
 export default function PitchDeck() {
   const [index, setIndex] = useState(0);
   const [scale, setScale] = useState(0.5);
-  const [full, setFull] = useState(false);
-  const [idle, setIdle] = useState(false);
   const root = useRef<HTMLDivElement>(null);
   const touch = useRef<{ x: number; y: number } | null>(null);
   const last = SLIDES.length - 1;
@@ -691,12 +684,6 @@ export default function PitchDeck() {
     fit();
     window.addEventListener("resize", fit);
     return () => window.removeEventListener("resize", fit);
-  }, []);
-
-  useEffect(() => {
-    const sync = () => setFull(document.fullscreenElement === root.current);
-    document.addEventListener("fullscreenchange", sync);
-    return () => document.removeEventListener("fullscreenchange", sync);
   }, []);
 
   const toggleFull = useCallback(() => {
@@ -744,26 +731,6 @@ export default function PitchDeck() {
     return () => window.removeEventListener("keydown", onKey);
   }, [go, index, last, toggleFull]);
 
-  // Hide the control bar when the pointer rests.
-  useEffect(() => {
-    let timer: ReturnType<typeof setTimeout>;
-    const wake = () => {
-      setIdle(false);
-      clearTimeout(timer);
-      timer = setTimeout(() => setIdle(true), 2800);
-    };
-    wake();
-    window.addEventListener("mousemove", wake);
-    window.addEventListener("touchstart", wake);
-    window.addEventListener("keydown", wake);
-    return () => {
-      clearTimeout(timer);
-      window.removeEventListener("mousemove", wake);
-      window.removeEventListener("touchstart", wake);
-      window.removeEventListener("keydown", wake);
-    };
-  }, []);
-
   const stageStyle = { transform: `translate(-50%, -50%) scale(${scale})` };
 
   return (
@@ -800,38 +767,6 @@ export default function PitchDeck() {
 
       <p className="pd-rotate">Rotate your phone for the best view</p>
 
-      <nav className={`pd-controls${idle ? " is-idle" : ""}`} aria-label="Presentation controls">
-        <button type="button" onClick={() => go(index - 1)} disabled={index === 0} aria-label="Previous slide">
-          <ChevronLeft size={20} />
-        </button>
-        <ol>
-          {LABELS.map((label, i) => (
-            <li key={label}>
-              <button
-                type="button"
-                className={i === index ? "is-current" : ""}
-                onClick={() => go(i)}
-                aria-label={`Go to slide ${i + 1}: ${label}`}
-                aria-current={i === index ? "step" : undefined}
-                title={label}
-              />
-            </li>
-          ))}
-        </ol>
-        <span className="pd-count" aria-live="polite">
-          {index + 1} / {SLIDES.length}
-        </span>
-        <button type="button" onClick={() => go(index + 1)} disabled={index === last} aria-label="Next slide">
-          <ChevronRight size={20} />
-        </button>
-        <i aria-hidden="true" />
-        <button type="button" onClick={toggleFull} aria-label={full ? "Exit full screen" : "Full screen"}>
-          {full ? <Minimize size={18} /> : <Maximize size={18} />}
-        </button>
-        <button type="button" onClick={() => window.print()} aria-label="Print or save as PDF">
-          <Printer size={18} />
-        </button>
-      </nav>
     </div>
   );
 }
